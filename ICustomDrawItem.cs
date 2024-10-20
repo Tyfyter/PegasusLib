@@ -8,8 +8,14 @@ using Microsoft.Xna.Framework;
 namespace PegasusLib {
 	public interface ICustomDrawItem {
 		void DrawInHand(Texture2D itemTexture, ref PlayerDrawSet drawInfo, Vector2 itemCenter, Color lightColor, Vector2 drawOrigin);
-		bool DrawOverHand => false;
-		bool BackHand => false;
+		/// <summary>
+		/// whether or not the item is drawn over the player's hand
+		/// </summary>
+		bool DrawOverHand(Player player) => false;
+		/// <summary>
+		/// whether or not the item is drawn in a layer further back than usual
+		/// </summary>
+		bool BackHand(Player player) => false;
 	}
 	public class Custom_Item_Layer : PlayerDrawLayer {
 		public override bool GetDefaultVisibility(PlayerDrawSet drawInfo) {
@@ -20,9 +26,9 @@ namespace PegasusLib {
 		}
 		public override Position GetDefaultPosition() {
 			Multiple position = new() {
-				{ new Between(PlayerDrawLayers.BladedGlove, PlayerDrawLayers.ProjectileOverArm), (drawInfo) => (drawInfo.drawPlayer.HeldItem?.ModItem is ICustomDrawItem customDraw && customDraw.DrawOverHand) },
-				{ new Between(PlayerDrawLayers.Skin, PlayerDrawLayers.Leggings), (drawInfo) => (drawInfo.drawPlayer.HeldItem?.ModItem is ICustomDrawItem customDraw && customDraw.BackHand) },
-				{ new Between(PlayerDrawLayers.HeldItem, PlayerDrawLayers.ArmOverItem), (drawInfo) => (drawInfo.drawPlayer.HeldItem?.ModItem is ICustomDrawItem customDraw && !customDraw.DrawOverHand && !customDraw.BackHand) }
+				{ new Between(PlayerDrawLayers.BladedGlove, PlayerDrawLayers.ProjectileOverArm), (drawInfo) => (drawInfo.drawPlayer.HeldItem?.ModItem is ICustomDrawItem customDraw && customDraw.DrawOverHand(drawInfo.drawPlayer)) },
+				{ new Between(PlayerDrawLayers.Skin, PlayerDrawLayers.Leggings), (drawInfo) => (drawInfo.drawPlayer.HeldItem?.ModItem is ICustomDrawItem customDraw && customDraw.BackHand(drawInfo.drawPlayer)) },
+				{ new Between(PlayerDrawLayers.HeldItem, PlayerDrawLayers.ArmOverItem), (drawInfo) => (drawInfo.drawPlayer.HeldItem?.ModItem is ICustomDrawItem customDraw && !customDraw.DrawOverHand(drawInfo.drawPlayer) && !customDraw.BackHand(drawInfo.drawPlayer)) }
 			};
 			return position;
 		}

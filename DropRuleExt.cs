@@ -6,7 +6,7 @@ using Terraria.GameContent.ItemDropRules;
 namespace PegasusLib {
 	public static class DropRuleExt {
 		public static void Unload() {
-			ruleChildFinders = null;
+			RuleChildFinders = null;
 		}
 		static Dictionary<Type, Func<IItemDropRule, IEnumerable<IItemDropRule>>> _RuleChildFinders => new() {
 			[typeof(AlwaysAtleastOneSuccessDropRule)] = r => ((AlwaysAtleastOneSuccessDropRule)r).rules,
@@ -18,12 +18,18 @@ namespace PegasusLib {
 			[typeof(SequentialRulesNotScalingWithLuckRule)] = r => ((SequentialRulesNotScalingWithLuckRule)r).rules,
 			[typeof(SequentialRulesRule)] = r => ((SequentialRulesRule)r).rules,
 		};
-		public static Dictionary<Type, Func<IItemDropRule, IEnumerable<IItemDropRule>>> ruleChildFinders = _RuleChildFinders;
+		public static Dictionary<Type, Func<IItemDropRule, IEnumerable<IItemDropRule>>> RuleChildFinders { get; private set; }  = _RuleChildFinders;
+		/// <summary>
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="dropRules"></param>
+		/// <param name="predicate"></param>
+		/// <returns>The first <see cref="IItemDropRule"/> matching <paramref name="predicate"/> in <paramref name="dropRules"/>, or null if no matching rule was found</returns>
 		public static T FindDropRule<T>(this IEnumerable<IItemDropRule> dropRules, Predicate<T> predicate) where T : class, IItemDropRule {
 			foreach (var dropRule in dropRules) {
 				if (dropRule is T rule && predicate(rule)) return rule;
 				if (dropRule.ChainedRules.Count != 0 && dropRule.ChainedRules.Select(c => c.RuleToChain).FindDropRule(predicate) is T foundRule) return foundRule;
-				if (ruleChildFinders.TryGetValue(dropRule.GetType(), out var ruleChildFinder) && ruleChildFinder(dropRule).FindDropRule(predicate) is T foundRule2) return foundRule2;
+				if (RuleChildFinders.TryGetValue(dropRule.GetType(), out var ruleChildFinder) && ruleChildFinder(dropRule).FindDropRule(predicate) is T foundRule2) return foundRule2;
 			}
 			return null;
 		}

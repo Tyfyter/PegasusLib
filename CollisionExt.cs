@@ -59,6 +59,14 @@ namespace PegasusLib {
 			float length = diff.Length();
 			return Raymarch(position, diff, length) == length;
 		}
+		/// <summary>
+		/// Throws <see cref="ArgumentException"/> if <paramref name="direction"/> is zero
+		/// </summary>
+		/// <param name="position"></param>
+		/// <param name="direction"></param>
+		/// <param name="maxLength"></param>
+		/// <returns>The distance traveled before a tile was reached, or <paramref name="maxLength"/> if the distance would exceed it</returns>
+		/// <exception cref="ArgumentException"></exception>
 		public static float Raymarch(Vector2 position, Vector2 direction, float maxLength = float.PositiveInfinity) {
 			if (direction == Vector2.Zero) throw new ArgumentException($"{nameof(direction)} may not be zero");
 			float length = 0;
@@ -88,7 +96,7 @@ namespace PegasusLib {
 				Vector2 next = RaycastStep(tileSubPos, sin, cos);
 				if (next == tileSubPos) break;
 				Tile tile = Framing.GetTileSafely(tilePos);
-				bool doBreak = false;
+				bool doBreak = !WorldGen.InWorld(tilePos.X, tilePos.Y);
 				Vector2 diff = next - tileSubPos;
 				float dist = diff.Length();
 
@@ -217,6 +225,12 @@ namespace PegasusLib {
 			double xIntercept = (pos.Y - yVlaue) / -slope + pos.X;
 			return new Vector2((float)xIntercept, yVlaue);
 		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="rect"></param>
+		/// <param name="a"></param>
+		/// <returns>The intersection point between a line segment connecting <paramref name="a"/> to the center of <paramref name="rect"/> and <paramref name="rect"/></returns>
 		public static Vector2 GetCenterProjectedPoint(Rectangle rect, Vector2 a) {
 			Vector2 b = rect.Center();
 			float s = (a.Y - b.Y) / (a.X - b.X);

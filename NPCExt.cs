@@ -16,12 +16,6 @@ namespace PegasusLib {
 		public static NPCID.Sets.NPCBestiaryDrawModifiers BestiaryWalkLeft => new() {
 			Velocity = 1f
 		};
-		/// <summary>
-		/// distinct from <see cref="HideInBestiary"/> so it can be easily found and removed when the NPC is implemented
-		/// </summary>
-		public static NPCID.Sets.NPCBestiaryDrawModifiers HideInBestiaryUnimplemented => new() {
-			Hide = true
-		};
 		static RenderTarget2D renderTarget;
 		public static void DrawBestiaryIcon(SpriteBatch spriteBatch, int type, Rectangle within, bool hovering = false, DrawData? stencil = null, Blend stencilColorBlend = Blend.SourceAlpha) {
 			BestiaryEntry bestiaryEntry = BestiaryDatabaseNPCsPopulator.FindEntryByNPCID(type);

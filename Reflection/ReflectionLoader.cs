@@ -14,14 +14,22 @@ namespace PegasusLib.Reflection {
 			_target = null;
 		}
 	}
+	/// <summary>
+	/// Automatically loads any <see cref="FastFieldInfo{TParent, T}"/>s, <see cref="FastStaticFieldInfo{TParent, T}"/>s, <see cref="FastStaticFieldInfo{T}"/>s, and delegates in <see cref="HostType"/>
+	/// use <see cref="ReflectionMemberNameAttribute"/> to specify the name to search for, if it doesn't match the field/property name
+	/// use <see cref="ReflectionParentTypeAttribute"/> to specify the type to search in, <see cref="FastFieldInfo{TParent, T}"/>s and <see cref="FastStaticFieldInfo{TParent, T}"/>s will automatically use TParent
+	/// use <see cref="ReflectionDefaultInstanceAttribute"/> to specify a default instance, necessary for instanced delegates
+	/// </summary>
 	public abstract class ReflectionLoader : ILoadable {
 		public abstract Type HostType { get; }
 		public void Load(Mod mod) {
 			LoadReflections(HostType);
 		}
+		public virtual void OnLoad() { }
 		public void Unload() {
 			UnloadReflections(HostType);
 		}
+		public virtual void OnUnload() { }
 		~ReflectionLoader() {
 			Unload();
 		}
@@ -149,9 +157,9 @@ namespace PegasusLib.Reflection {
 								return type.GetProperty(name, flags).GetValue(source);
 							}
 						}
-						target = GetValue(defaultObject.Type, defaultObject.FieldNames[0]);
-						for (int i = 1; i < defaultObject.FieldNames.Length; i++) {
-							target = GetValue(target, defaultObject.FieldNames[i]);
+						target = GetValue(defaultObject.Type, defaultObject.MemberNames[0]);
+						for (int i = 1; i < defaultObject.MemberNames.Length; i++) {
+							target = GetValue(target, defaultObject.MemberNames[i]);
 						}
 					} else {
 						target = Activator.CreateInstance(parentType);
@@ -192,8 +200,8 @@ namespace PegasusLib.Reflection {
 		public Type ParentType { get; init; } = type;
 	}
 	[AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
-	public sealed class ReflectionDefaultInstanceAttribute(Type type, params string[] fieldNames) : Attribute {
+	public sealed class ReflectionDefaultInstanceAttribute(Type type, params string[] memberNames) : Attribute {
 		public Type Type { get; init; } = type;
-		public string[] FieldNames { get; init; } = fieldNames;
+		public string[] MemberNames { get; init; } = memberNames;
 	}
 }

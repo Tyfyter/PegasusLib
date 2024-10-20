@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PegasusLib.Reflection;
 using ReLogic.Content;
 using ReLogic.Graphics;
 using System;
@@ -11,6 +12,12 @@ using Terraria.ModLoader;
 
 namespace PegasusLib {
 	public static class StrikethroughFont {
+		internal class FontInfoLoader : ILoadable {
+			public void Load(Mod mod) { }
+			public void Unload() {
+				strikethroughFont = null;
+			}
+		}
 		static FieldInfo _spriteCharacters;
 		static FieldInfo _SpriteCharacters => _spriteCharacters ??= typeof(DynamicSpriteFont).GetField("_spriteCharacters", BindingFlags.NonPublic | BindingFlags.Instance);
 		static FieldInfo _defaultCharacterData;

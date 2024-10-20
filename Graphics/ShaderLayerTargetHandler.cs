@@ -25,6 +25,10 @@ namespace PegasusLib.Graphics {
 				capturing = value;
 			}
 		}
+		/// <summary>
+		/// Begins capturing whatever is drawn to the spritebatch
+		/// </summary>
+		/// <param name="spriteBatch">the SpriteBatch to be used, leave as null to use <see cref="Main.spriteBatch"/></param>
 		public void Capture(SpriteBatch spriteBatch = null) {
 			if (Main.dedServ) return;
 			Capturing = true;
@@ -42,6 +46,11 @@ namespace PegasusLib.Graphics {
 			Main.graphics.GraphicsDevice.SetRenderTarget(renderTarget);
 			Main.graphics.GraphicsDevice.Clear(Color.Transparent);
 		}
+		/// <summary>
+		/// Applies the shader to everything captured
+		/// </summary>
+		/// <param name="shader"></param>
+		/// <param name="entity">the Entity to be used in <see cref="ArmorShaderData.Apply"/></param>
 		public void Stack(ArmorShaderData shader, Entity entity = null) {
 			if (Main.dedServ) return;
 			Utils.Swap(ref renderTarget, ref oldRenderTarget);
@@ -52,6 +61,9 @@ namespace PegasusLib.Graphics {
 			shader.Apply(entity, data);
 			data.Draw(spriteBatch);
 		}
+		/// <summary>
+		/// Sets the spritebatch to its state before <see cref="Capture"/> was called, then draws everything that was captured
+		/// </summary>
 		public void Release() {
 			if (Main.dedServ) return;
 			Capturing = false;

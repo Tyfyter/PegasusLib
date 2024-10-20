@@ -68,6 +68,14 @@ namespace PegasusLib {
 			}
 			return Colors.RarityNormal;
 		}
+		/// <summary>
+		/// Gets the top left tile of a multitile
+		/// </summary>
+		/// <param name="i"></param>
+		/// <param name="j"></param>
+		/// <param name="data"></param>
+		/// <param name="left"></param>
+		/// <param name="top"></param>
 		public static void GetMultiTileTopLeft(int i, int j, TileObjectData data, out int left, out int top) {
 			Tile tile = Main.tile[i, j];
 			int innerFrameY = tile.TileFrameY % data.CoordinateFullHeight;

@@ -6,10 +6,23 @@ using Terraria.ModLoader.IO;
 
 namespace PegasusLib {
 	public static class PegasusExt {
+		/// <typeparam name="T"></typeparam>
+		/// <param name="self"></param>
+		/// <param name="key"></param>
+		/// <param name="fallback"></param>
+		/// <returns>The value of <paramref name="key"/> in <paramref name="self"/>, or <paramref name="fallback"/> if <paramref name="self"/> does not contain <paramref name="key"/></returns>
 		public static T SafeGet<T>(this TagCompound self, string key, T fallback = default) {
 			return self.TryGet(key, out T output) ? output : fallback;
 		}
+		/// <summary>
+		/// Gets the default texture path of this type
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
 		public static string GetDefaultTMLName(this Type type) => (type.Namespace + "." + type.Name).Replace('.', '/');
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <returns>Every flag <paramref name="value"/> matches</returns>
 		public static IEnumerable<T> GetFlags<T>(this T value) where T : struct, Enum {
 			T[] possibleFlags = Enum.GetValues<T>();
 			for (int i = 0; i < possibleFlags.Length; i++) {
