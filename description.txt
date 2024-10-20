@@ -1,1 +1,9 @@
-Modify this file with a description of your mod.
+A collection of code I found myself repeating and recommending to other modders
+
+includes:
+A system to easily apply shaders to things drawn in multiple parts, and/or apply multiple shaders to one thing (ShaderLayerTargetHandler)
+A strikethrough font which matches the character spacing of the MouseText font
+A faster alternative to accessing fields through reflection (FastFieldInfo and FastStaticFieldInfo)
+Automatic asset loading (AutoLoadingAsset)
+Custom drawing while using or holding an item (ICustomDrawItem)
+Various collision methods (CollisionExt)
