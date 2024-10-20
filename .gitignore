@@ -1,0 +1,16 @@
+.vs/*
+obj/*
+bin/*
+Thumbs.db
+.vs/
+*.ide-wal
+*.ide-shm
+*.ide
+*.ide-wal
+*.ide
+*.ide-shm
+*.ide-wal
+*.ide-shm
+Properties/launchSettings.json
+*.csproj.user
+*.sln

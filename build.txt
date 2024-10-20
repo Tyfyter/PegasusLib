@@ -1,0 +1,3 @@
+displayName = Pegasus Lib
+author = Moonlight Glint
+version = 1.0
