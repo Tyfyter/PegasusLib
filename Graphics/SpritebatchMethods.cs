@@ -5,7 +5,6 @@ using System;
 
 namespace PegasusLib.Graphics {
 	internal class SpritebatchMethods : ReflectionLoader {
-		public override Type HostType => GetType();
 		public static FastFieldInfo<SpriteBatch, bool> beginCalled { get; private set; }
 		public static FastFieldInfo<SpriteBatch, SpriteSortMode> sortMode { get; private set; }
 		public static FastFieldInfo<SpriteBatch, Effect> customEffect { get; private set; }

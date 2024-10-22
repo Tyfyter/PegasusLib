@@ -31,6 +31,7 @@ namespace PegasusLib.Graphics {
 		/// <param name="spriteBatch">the SpriteBatch to be used, leave as null to use <see cref="Main.spriteBatch"/></param>
 		public void Capture(SpriteBatch spriteBatch = null) {
 			if (Main.dedServ) return;
+			SetupRenderTargets();
 			Capturing = true;
 			this.spriteBatch = spriteBatch ??= Main.spriteBatch;
 			if (SpritebatchMethods.beginCalled.GetValue(this.spriteBatch)) {
@@ -63,6 +64,7 @@ namespace PegasusLib.Graphics {
 		}
 		/// <summary>
 		/// Sets the spritebatch to its state before <see cref="Capture"/> was called, then draws everything that was captured
+		/// When used in a global, should be placed in the respective IFinishDrawing____.FinishDrawingNPC hook, not PostDraw
 		/// </summary>
 		public void Release() {
 			if (Main.dedServ) return;
@@ -120,6 +122,7 @@ namespace PegasusLib.Graphics {
 			SetupRenderTargets();
 		}
 		void SetupRenderTargets() {
+			if (renderTarget is not null && !renderTarget.IsDisposed) return;
 			renderTarget = new RenderTarget2D(Main.instance.GraphicsDevice, Main.screenWidth, Main.screenHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
 			oldRenderTarget = new RenderTarget2D(Main.instance.GraphicsDevice, Main.screenWidth, Main.screenHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
 		}

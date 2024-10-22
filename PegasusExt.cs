@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using Terraria;
+using Terraria.ModLoader.Core;
+using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
+using PegasusLib.Reflection;
 
 namespace PegasusLib {
 	public static class PegasusExt {
@@ -66,6 +71,9 @@ namespace PegasusLib {
 				}
 			}
 			return true;
+		}
+		public static ReverseEntityGlobalsEnumerator<TGlobal> EnumerateReverse<TGlobal>(this GlobalHookList<TGlobal> hookList,  IEntityWithGlobals<TGlobal> entity) where TGlobal : GlobalType<TGlobal> {
+			return new ReverseEntityGlobalsEnumerator<TGlobal>(GlobalHookListMethods<TGlobal>.ForType(hookList, entity.Type), entity);
 		}
 	}
 }

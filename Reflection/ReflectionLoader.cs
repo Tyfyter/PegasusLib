@@ -21,7 +21,7 @@ namespace PegasusLib.Reflection {
 	/// use <see cref="ReflectionDefaultInstanceAttribute"/> to specify a default instance, necessary for instanced delegates
 	/// </summary>
 	public abstract class ReflectionLoader : ILoadable {
-		public abstract Type HostType { get; }
+		public virtual Type HostType => GetType();
 		public void Load(Mod mod) {
 			LoadReflections(HostType);
 		}
