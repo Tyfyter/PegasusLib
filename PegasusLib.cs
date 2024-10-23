@@ -19,10 +19,10 @@ namespace PegasusLib {
 	public class PegasusLib : Mod {
 		internal static List<IUnloadable> unloadables = [];
 		public override void Load() {
-			On_Main.DrawNPCDirect += IFinishDrawingNPC.On_Main_DrawNPCDirect;
-			On_Main.DrawProj_Inner += IFinishDrawingProjectile.On_Main_DrawProj_Inner;
-			On_Main.DrawItem += IFinishDrawingItemInWorld.On_Main_DrawItem;
-			On_ItemSlot.DrawItemIcon += IFinishDrawingItemInInventory.On_ItemSlot_DrawItemIcon;
+			On_Main.DrawNPCDirect += IDrawNPCEffect.On_Main_DrawNPCDirect;
+			On_Main.DrawProj_Inner += IDrawProjectileEffect.On_Main_DrawProj_Inner;
+			On_Main.DrawItem += IDrawItemInWorldEffect.On_Main_DrawItem;
+			On_ItemSlot.DrawItemIcon += IDrawItemInInventoryEffect.On_ItemSlot_DrawItemIcon;
 		}
 		public override void Unload() {
 			foreach (IUnloadable unloadable in unloadables) {

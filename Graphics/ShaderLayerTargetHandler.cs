@@ -27,6 +27,7 @@ namespace PegasusLib.Graphics {
 		}
 		/// <summary>
 		/// Begins capturing whatever is drawn to the spritebatch
+		/// When used in a global, should be placed in the respective IDraw____Effect.PrepareToDraw____ hook, not PreDraw
 		/// </summary>
 		/// <param name="spriteBatch">the SpriteBatch to be used, leave as null to use <see cref="Main.spriteBatch"/></param>
 		public void Capture(SpriteBatch spriteBatch = null) {
@@ -64,7 +65,7 @@ namespace PegasusLib.Graphics {
 		}
 		/// <summary>
 		/// Sets the spritebatch to its state before <see cref="Capture"/> was called, then draws everything that was captured
-		/// When used in a global, should be placed in the respective IFinishDrawing____.FinishDrawingNPC hook, not PostDraw
+		/// When used in a global, should be placed in the respective IDraw____Effect.FinishDrawing____ hook, not PostDraw
 		/// </summary>
 		public void Release() {
 			if (Main.dedServ) return;
