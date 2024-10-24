@@ -2,7 +2,7 @@
 using System;
 using Terraria;
 
-namespace PegasusLib.Graphics {
+namespace PegasusLib {
 	public struct PolarVec2(float r, float theta) {
 		public float R = r;
 		public float Theta = theta;
@@ -16,13 +16,13 @@ namespace PegasusLib.Graphics {
 		public static bool operator !=(PolarVec2 a, PolarVec2 b) => a.Theta != b.Theta || a.R != b.R;
 		public static PolarVec2 operator *(PolarVec2 a, float scalar) => new(a.R * scalar, a.Theta);
 		public static PolarVec2 operator *(float scalar, PolarVec2 a) => new(a.R * scalar, a.Theta);
-		public static Vector2 operator *(PolarVec2 a, Vector2 vector) => ((Vector2)a) * vector;
-		public static Vector2 operator *(Vector2 vector, PolarVec2 a) => ((Vector2)a) * vector;
+		public static Vector2 operator *(PolarVec2 a, Vector2 vector) => (Vector2)a * vector;
+		public static Vector2 operator *(Vector2 vector, PolarVec2 a) => (Vector2)a * vector;
 		public static PolarVec2 operator /(PolarVec2 a, float scalar) => new(a.R / scalar, a.Theta);
-		public override readonly bool Equals(object obj) => (obj is PolarVec2 other) && other == this;
+		public override readonly bool Equals(object obj) => obj is PolarVec2 other && other == this;
 		public override readonly int GetHashCode() {
 			unchecked {
-				return (R.GetHashCode() * 397) ^ Theta.GetHashCode();
+				return R.GetHashCode() * 397 ^ Theta.GetHashCode();
 			}
 		}
 		public override readonly string ToString() => $"{{r = {R}, θ = {Theta}}}";

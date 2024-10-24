@@ -75,5 +75,14 @@ namespace PegasusLib {
 		public static ReverseEntityGlobalsEnumerator<TGlobal> EnumerateReverse<TGlobal>(this GlobalHookList<TGlobal> hookList,  IEntityWithGlobals<TGlobal> entity) where TGlobal : GlobalType<TGlobal> {
 			return new ReverseEntityGlobalsEnumerator<TGlobal>(GlobalHookListMethods<TGlobal>.ForType(hookList, entity.Type), entity);
 		}
+		public static void InsertOrdered<T>(this IList<T> list, T item, IComparer<T> comparer = null) {
+			comparer ??= Comparer<T>.Default;
+			for (int i = 0; i < list.Count + 1; i++) {
+				if (i == list.Count || comparer.Compare(list[i], item) > 0) {
+					list.Insert(i, item);
+					return;
+				}
+			}
+		}
 	}
 }

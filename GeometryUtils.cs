@@ -32,21 +32,6 @@ public static class GeometryUtils {
 		}
 		return null;
 	}
-	public static Vector2 Clamp(this Vector2 vector, Rectangle rect) {
-		return Vector2.Clamp(vector, rect.TopLeft(), rect.BottomRight());
-	}
-	public static bool LinearSmoothing(ref Vector2 smoothed, Vector2 target, float rate) {
-		if (target != smoothed) {
-			Vector2 diff = target - smoothed;
-			float dist = diff.Length();
-			if (dist < rate) {
-				smoothed = target;
-			} else {
-				smoothed += diff * rate / dist;
-			}
-		}
-		return smoothed == target;
-	}
 	public static bool AngularSmoothing(ref float smoothed, float target, float rate) {
 		if (target != smoothed) {
 			float diff = AngleDif(smoothed, target, out int dir);
