@@ -25,9 +25,8 @@ namespace PegasusLib {
 		static DynamicSpriteFont strikethroughFont;
 		public static DynamicSpriteFont Font {
 			get {
-				if (PlayerInput.Triggers.JustPressed.Down) strikethroughFont = null;
 				if (strikethroughFont is null) {
-					if (FontAssets.MouseText.IsLoaded) {
+					if (FontAssets.MouseText?.IsLoaded ?? false) {
 						Texture2D strikeTexture = ModContent.Request<Texture2D>("PegasusLib/Textures/Strikethrough_Font", AssetRequestMode.ImmediateLoad).Value;
 						DynamicSpriteFont baseFont = FontAssets.MouseText.Value;
 						strikethroughFont = new DynamicSpriteFont(baseFont.CharacterSpacing, baseFont.LineSpacing, baseFont.DefaultCharacter);
@@ -72,7 +71,7 @@ namespace PegasusLib {
 						}
 						_DefaultCharacterData.SetValue(strikethroughFont, _DefaultCharacterData.GetValue(baseFont));
 					} else {
-						return FontAssets.MouseText.Value;
+						return FontAssets.MouseText?.Value;
 					}
 				}
 				return strikethroughFont;
