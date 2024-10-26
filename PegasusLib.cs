@@ -83,26 +83,9 @@ namespace PegasusLib {
 			}
 			return Colors.RarityNormal;
 		}
-		/// <summary>
-		/// Gets the top left tile of a multitile
-		/// </summary>
-		/// <param name="i"></param>
-		/// <param name="j"></param>
-		/// <param name="data"></param>
-		/// <param name="left"></param>
-		/// <param name="top"></param>
-		public static void GetMultiTileTopLeft(int i, int j, TileObjectData data, out int left, out int top) {
-			Tile tile = Main.tile[i, j];
-			int innerFrameY = tile.TileFrameY % data.CoordinateFullHeight;
-			int frameI = (tile.TileFrameX % data.CoordinateFullWidth) / (data.CoordinateWidth + data.CoordinatePadding);
-			int frameJ = 0;
-			while (innerFrameY >= data.CoordinateHeights[frameJ] + data.CoordinatePadding) {
-				innerFrameY -= data.CoordinateHeights[frameJ] + data.CoordinatePadding;
-				frameJ++;
-			}
-			top = j - frameJ;
-			left = i - frameI;
-		}
+		/// <inheritdoc cref="TileUtils.GetMultiTileTopLeft(int, int, TileObjectData, out int, out int)"/>
+		[Obsolete("Moved to TileUtils", true)]
+		public static void GetMultiTileTopLeft(int i, int j, TileObjectData data, out int left, out int top) => TileUtils.GetMultiTileTopLeft(i, j, data, out left, out top);
 		public static T Compile<T>(string name, params (OpCode, object)[] instructions) where T : Delegate {
 			MethodInfo invoke = typeof(T).GetMethod("Invoke");
 			DynamicMethod method = new(name, invoke.ReturnType, invoke.GetParameters().Select(p => p.ParameterType).ToArray());

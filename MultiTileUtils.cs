@@ -1,10 +1,12 @@
 using Microsoft.Xna.Framework;
+using System;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.ObjectData;
 
 namespace PegasusLib {
-    public static class MultiTileUtils {
+	[Obsolete("Moved to TileUtils", true)]
+	public static class MultiTileUtils {
         public static Point GetRelativeOriginCoordinates(TileObjectData objectData, Tile tile) {
             int frameX = tile.TileFrameX % objectData.CoordinateFullWidth;
             int frameWidth = objectData.CoordinateWidth + objectData.CoordinatePadding;
