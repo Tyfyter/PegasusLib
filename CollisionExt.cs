@@ -2,6 +2,7 @@
 using Terraria.ID;
 using Terraria;
 using Microsoft.Xna.Framework;
+using System.Linq;
 
 namespace PegasusLib {
 	public static class CollisionExt {

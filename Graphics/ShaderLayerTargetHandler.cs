@@ -13,6 +13,7 @@ namespace PegasusLib.Graphics {
 		bool capturing = false;
 		bool spriteBatchWasRunning = false;
 		RenderTargetBinding[] oldRenderTargets = [];
+		Rectangle oldScissorRectangle;
 		public bool Capturing {
 			get => capturing;
 			private set {
@@ -35,6 +36,7 @@ namespace PegasusLib.Graphics {
 			SetupRenderTargets();
 			Capturing = true;
 			this.spriteBatch = spriteBatch ??= Main.spriteBatch;
+			oldScissorRectangle = spriteBatch.GraphicsDevice.ScissorRectangle;
 			if (SpritebatchMethods.beginCalled.GetValue(this.spriteBatch)) {
 				spriteBatchWasRunning = true;
 				spriteBatchState = this.spriteBatch.GetState();
@@ -96,6 +98,7 @@ namespace PegasusLib.Graphics {
 					Main.graphics.GraphicsDevice.PresentationParameters.RenderTargetUsage = renderTargetUsage[0];
 				}
 			}
+			spriteBatch.GraphicsDevice.ScissorRectangle = oldScissorRectangle;
 			spriteBatch.Draw(renderTarget, Vector2.Zero, null, Color.White, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
 			spriteBatch.Restart(spriteBatchState);
 			if (!spriteBatchWasRunning) spriteBatch.End();
