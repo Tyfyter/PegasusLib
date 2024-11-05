@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 using Terraria.ObjectData;
 
 namespace PegasusLib {
-	[Obsolete("Moved to TileUtils", true)]
+	[Obsolete("Moved to TileUtils")]
 	public static class MultiTileUtils {
         public static Point GetRelativeOriginCoordinates(TileObjectData objectData, Tile tile) {
             int frameX = tile.TileFrameX % objectData.CoordinateFullWidth;

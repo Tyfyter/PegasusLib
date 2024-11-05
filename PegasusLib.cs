@@ -84,7 +84,7 @@ namespace PegasusLib {
 			return Colors.RarityNormal;
 		}
 		/// <inheritdoc cref="TileUtils.GetMultiTileTopLeft(int, int, TileObjectData, out int, out int)"/>
-		[Obsolete("Moved to TileUtils", true)]
+		[Obsolete("Moved to TileUtils")]
 		public static void GetMultiTileTopLeft(int i, int j, TileObjectData data, out int left, out int top) => TileUtils.GetMultiTileTopLeft(i, j, data, out left, out top);
 		public static T Compile<T>(string name, params (OpCode, object)[] instructions) where T : Delegate {
 			MethodInfo invoke = typeof(T).GetMethod("Invoke");
