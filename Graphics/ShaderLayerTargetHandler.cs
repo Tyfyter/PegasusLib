@@ -41,7 +41,7 @@ namespace PegasusLib.Graphics {
 			if (SpritebatchMethods.beginCalled.GetValue(this.spriteBatch)) {
 				spriteBatchWasRunning = true;
 				spriteBatchState = this.spriteBatch.GetState();
-				this.spriteBatch.Restart(spriteBatchState, SpriteSortMode.Immediate);
+				this.spriteBatch.Restart(spriteBatchState, SpriteSortMode.Immediate, BlendState.AlphaBlend, Main.DefaultSamplerState, Main.Rasterizer, null, Main.Transform);
 			} else {
 				spriteBatchWasRunning = false;
 				spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.Transform);
