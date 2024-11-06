@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.DataStructures;
+using Terraria.GameContent;
 using Terraria.Graphics.Shaders;
 
 namespace PegasusLib.Graphics {
@@ -72,7 +73,7 @@ namespace PegasusLib.Graphics {
 		public void Release() {
 			if (Main.dedServ) return;
 			Capturing = false;
-			spriteBatch.Restart(spriteBatchState, transformMatrix: Matrix.Identity);
+			spriteBatch.Restart(spriteBatchState, SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, RasterizerState.CullNone, null, Matrix.Identity);
 			bool anyOldTargets = (oldRenderTargets?.Length ?? 0) != 0;
 			RenderTargetUsage[] renderTargetUsage = [];
 			try {
@@ -90,7 +91,6 @@ namespace PegasusLib.Graphics {
 				Main.graphics.GraphicsDevice.SetRenderTargets(oldRenderTargets);
 			} finally {
 				if (anyOldTargets) {
-					renderTargetUsage = new RenderTargetUsage[oldRenderTargets.Length];
 					for (int i = 0; i < oldRenderTargets.Length; i++) {
 						GraphicsMethods.SetRenderTargetUsage((RenderTarget2D)oldRenderTargets[i].RenderTarget, renderTargetUsage[i]);
 					}
@@ -99,7 +99,7 @@ namespace PegasusLib.Graphics {
 				}
 			}
 			spriteBatch.GraphicsDevice.ScissorRectangle = oldScissorRectangle;
-			spriteBatch.Draw(renderTarget, Vector2.Zero, null, Color.White, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+			spriteBatch.Draw(renderTarget, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
 			spriteBatch.Restart(spriteBatchState);
 			if (!spriteBatchWasRunning) spriteBatch.End();
 		}

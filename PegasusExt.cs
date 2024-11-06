@@ -8,6 +8,7 @@ using Terraria.ModLoader.Core;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using PegasusLib.Reflection;
+using System.Collections;
 
 namespace PegasusLib {
 	public static class PegasusExt {
@@ -82,6 +83,17 @@ namespace PegasusLib {
 					list.Insert(i, item);
 					return;
 				}
+			}
+		}
+		public static IEnumerable<TResult> TryCast<TResult>(this IEnumerable source) {
+			if (source is IEnumerable<TResult> typedSource) return typedSource;
+			ArgumentNullException.ThrowIfNull(source);
+			return TryCastIterator<TResult>(source);
+		}
+
+		private static IEnumerable<TResult> TryCastIterator<TResult>(IEnumerable source) {
+			foreach (object obj in source) {
+				if (obj is TResult result) yield return result;
 			}
 		}
 	}

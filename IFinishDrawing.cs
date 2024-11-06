@@ -8,6 +8,9 @@ using PegasusLib.Graphics;
 using Terraria.Graphics.Shaders;
 using Terraria.ID;
 using Terraria.UI;
+using MonoMod.Cil;
+using PegasusLib.Reflection;
+using Terraria.GameContent;
 
 namespace PegasusLib {
 	public interface IDrawNPCEffect {
@@ -15,16 +18,43 @@ namespace PegasusLib {
 		internal static GlobalHookList<GlobalNPC> HookFinishDrawingNPC = NPCLoader.AddModHook(GlobalHookList<GlobalNPC>.Create(g => ((IDrawNPCEffect)g).FinishDrawingNPC));
 		void PrepareToDrawNPC(NPC npc);
 		void FinishDrawingNPC(NPC npc);
+		bool OnlyWrapModTypeDraw => true;
 		internal static void On_Main_DrawNPCDirect(On_Main.orig_DrawNPCDirect orig, Main self, SpriteBatch mySpriteBatch, NPC rCurrentNPC, bool behindTiles, Vector2 screenPos) {
-			ReverseEntityGlobalsEnumerator<GlobalNPC> enumerator = HookPrepareToDrawNPC.EnumerateReverse(rCurrentNPC).GetEnumerator();
-			while (enumerator.MoveNext()) {
-				((IDrawNPCEffect)enumerator.Current).FinishDrawingNPC(rCurrentNPC);
+			foreach (GlobalNPC c in HookPrepareToDrawNPC.Enumerate(rCurrentNPC).GetEnumerator()) {
+				if (c is IDrawNPCEffect current && !current.OnlyWrapModTypeDraw) current.PrepareToDrawNPC(rCurrentNPC);
 			}
 			orig(self, mySpriteBatch, rCurrentNPC, behindTiles, screenPos);
-			enumerator = HookFinishDrawingNPC.EnumerateReverse(rCurrentNPC).GetEnumerator();
-			while (enumerator.MoveNext()) {
-				((IDrawNPCEffect)enumerator.Current).FinishDrawingNPC(rCurrentNPC);
+			foreach (GlobalNPC c in HookFinishDrawingNPC.EnumerateReverse(rCurrentNPC).GetEnumerator()) {
+				if (c is IDrawNPCEffect current && !current.OnlyWrapModTypeDraw) current.FinishDrawingNPC(rCurrentNPC);
 			}
+		}
+		internal static void AddIteratePreDraw(ILContext il) {
+			ILCursor c = new(il);
+			ILLabel label = default;
+			c.GotoNext(MoveType.Before,
+				il => il.MatchLdloc(out _),
+				il => il.MatchBrfalse(out label),
+				il => il.MatchLdarg0(),
+				il => il.MatchCallOrCallvirt<NPC>("get_" + nameof(NPC.ModNPC)),
+				il => il.MatchBrfalse(out ILLabel _label) && _label.Target == label.Target
+			);
+			c.EmitLdarg0();
+			c.EmitDelegate((NPC npc) => {
+				foreach (GlobalNPC c in HookPrepareToDrawNPC.Enumerate(npc).GetEnumerator()) {
+					if (c is IDrawNPCEffect current && current.OnlyWrapModTypeDraw) current.PrepareToDrawNPC(npc);
+				}
+			});
+		}
+		internal static void AddIteratePostDraw(ILContext il) {
+			ILCursor c = new(il);
+			c.GotoNext(MoveType.After, i => i.MatchCallOrCallvirt<ModNPC>(nameof(ModNPC.PostDraw)));
+			c.MoveAfterLabels();
+			c.EmitLdarg0();
+			c.EmitDelegate((NPC npc) => {
+				foreach (GlobalNPC c in HookFinishDrawingNPC.Enumerate(npc).GetEnumerator()) {
+					if (c is IDrawNPCEffect current && current.OnlyWrapModTypeDraw) current.FinishDrawingNPC(npc);
+				}
+			});
 		}
 	}
 	public interface IDrawProjectileEffect {
@@ -33,14 +63,15 @@ namespace PegasusLib {
 		void PrepareToDrawProjectile(Projectile projectile);
 		void FinishDrawingProjectile(Projectile projectile);
 		internal static void On_Main_DrawProj_Inner(On_Main.orig_DrawProj_Inner orig, Main self, Projectile proj) {
-			ReverseEntityGlobalsEnumerator<GlobalProjectile> enumerator = HookPrepareToDrawProjectile.EnumerateReverse(proj).GetEnumerator();
-			while (enumerator.MoveNext()) {
-				((IDrawProjectileEffect)enumerator.Current).PrepareToDrawProjectile(proj);
+			if (proj.whoAmI == 0) {
+
+			}
+			foreach (GlobalProjectile c in HookPrepareToDrawProjectile.Enumerate(proj).GetEnumerator()) {
+				if (c is IDrawProjectileEffect current) current.PrepareToDrawProjectile(proj);
 			}
 			orig(self, proj);
-			enumerator = HookFinishDrawingProjectile.EnumerateReverse(proj).GetEnumerator();
-			while (enumerator.MoveNext()) {
-				((IDrawProjectileEffect)enumerator.Current).FinishDrawingProjectile(proj);
+			foreach (GlobalProjectile c in HookFinishDrawingProjectile.EnumerateReverse(proj).GetEnumerator()) {
+				if (c is IDrawProjectileEffect current) current.FinishDrawingProjectile(proj);
 			}
 		}
 	}
@@ -50,14 +81,12 @@ namespace PegasusLib {
 		void PrepareToDrawItemInWorld(Item item);
 		void FinishDrawingItemInWorld(Item item);
 		internal static void On_Main_DrawItem(On_Main.orig_DrawItem orig, Main self, Item item, int whoami) {
-			ReverseEntityGlobalsEnumerator<GlobalItem> enumerator = HookPrepareToDrawItemInWorld.EnumerateReverse(item).GetEnumerator();
-			while (enumerator.MoveNext()) {
-				((IDrawItemInWorldEffect)enumerator.Current).FinishDrawingItemInWorld(item);
+			foreach (GlobalItem c in HookPrepareToDrawItemInWorld.Enumerate(item).GetEnumerator()) {
+				if (c is IDrawItemInWorldEffect current) current.PrepareToDrawItemInWorld(item);
 			}
 			orig(self, item, whoami);
-			enumerator = HookFinishDrawingItemInWorld.EnumerateReverse(item).GetEnumerator();
-			while (enumerator.MoveNext()) {
-				((IDrawItemInWorldEffect)enumerator.Current).FinishDrawingItemInWorld(item);
+			foreach (GlobalItem c in HookFinishDrawingItemInWorld.EnumerateReverse(item).GetEnumerator()) {
+				if (c is IDrawItemInWorldEffect current) current.FinishDrawingItemInWorld(item);
 			}
 		}
 	}
@@ -67,24 +96,14 @@ namespace PegasusLib {
 		void PrepareToDrawItemInInventory(Item item, int context);
 		void FinishDrawingItemInInventory(Item item, int context);
 		internal static float On_ItemSlot_DrawItemIcon(On_ItemSlot.orig_DrawItemIcon orig, Item item, int context, SpriteBatch spriteBatch, Vector2 screenPositionForItemCenter, float scale, float sizeLimit, Color environmentColor) {
-			PrepareToDrawItemInInventory(item, context);
+			foreach (GlobalItem c in HookPrepareToDrawItemInInventory.Enumerate(item).GetEnumerator()) {
+				if (c is IDrawItemInInventoryEffect current) current.PrepareToDrawItemInInventory(item, context);
+			}
 			float ret = orig(item, context, spriteBatch, screenPositionForItemCenter, scale, sizeLimit, environmentColor);
-			FinishDrawingItemInInventory(item, context);
+			foreach (GlobalItem c in HookFinishDrawingItemInInventory.EnumerateReverse(item).GetEnumerator()) {
+				if (c is IDrawItemInInventoryEffect current) current.FinishDrawingItemInInventory(item, context);
+			}
 			return ret;
-		}
-		/// <param name="worthless">exists solely to change the method signature</param>
-		public static void PrepareToDrawItemInInventory(Item item, int context, int worthless = 0) {
-			ReverseEntityGlobalsEnumerator<GlobalItem> enumerator = HookPrepareToDrawItemInInventory.EnumerateReverse(item).GetEnumerator();
-			while (enumerator.MoveNext()) {
-				((IDrawItemInInventoryEffect)enumerator.Current).PrepareToDrawItemInInventory(item, context);
-			}
-		}
-		/// <param name="worthless">exists solely to change the method signature</param>
-		public static void FinishDrawingItemInInventory(Item item, int context, int worthless = 0) {
-			ReverseEntityGlobalsEnumerator<GlobalItem> enumerator = HookFinishDrawingItemInInventory.EnumerateReverse(item).GetEnumerator();
-			while (enumerator.MoveNext()) {
-				((IDrawItemInInventoryEffect)enumerator.Current).FinishDrawingItemInInventory(item, context);
-			}
 		}
 	}
 }

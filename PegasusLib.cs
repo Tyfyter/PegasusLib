@@ -13,6 +13,8 @@ using System.Reflection.Emit;
 using System.Reflection;
 using System.Linq;
 using Terraria.UI;
+using MonoMod.Cil;
+using PegasusLib.Reflection;
 
 namespace PegasusLib {
 	// Please read https://github.com/tModLoader/tModLoader/wiki/Basic-tModLoader-Modding-Guide#mod-skeleton-contents for more information about the various files in a mod.
@@ -23,6 +25,9 @@ namespace PegasusLib {
 			On_Main.DrawProj_Inner += IDrawProjectileEffect.On_Main_DrawProj_Inner;
 			On_Main.DrawItem += IDrawItemInWorldEffect.On_Main_DrawItem;
 			On_ItemSlot.DrawItemIcon += IDrawItemInInventoryEffect.On_ItemSlot_DrawItemIcon;
+
+			MonoModHooks.Modify(typeof(NPCLoader).GetMethod(nameof(NPCLoader.PreDraw)), IDrawNPCEffect.AddIteratePreDraw);
+			MonoModHooks.Modify(typeof(NPCLoader).GetMethod(nameof(NPCLoader.PostDraw)), IDrawNPCEffect.AddIteratePostDraw);
 		}
 		public override void Unload() {
 			foreach (IUnloadable unloadable in unloadables) {
