@@ -57,6 +57,7 @@ namespace PegasusLib {
 	public class FastStaticFieldInfo<TParent, T>(string name, BindingFlags bindingFlags, bool init = false) : FastStaticFieldInfo<T>(typeof(TParent), name, bindingFlags, init) { }
 	public class FastStaticFieldInfo<T> {
 		public readonly FieldInfo field;
+		RefGetter refGetter;
 		Func<T> getter;
 		Action<T> setter;
 		public FastStaticFieldInfo(Type type, string name, BindingFlags bindingFlags, bool init = false) {
@@ -75,6 +76,7 @@ namespace PegasusLib {
 				setter = CreateSetter();
 			}
 		}
+		public ref T Value => ref (refGetter ??= CreateRefGetter())();
 		public T GetValue() {
 			return (getter ??= CreateGetter())();
 		}
@@ -103,6 +105,18 @@ namespace PegasusLib {
 			gen.Emit(OpCodes.Ret);
 
 			return (Action<T>)setterMethod.CreateDelegate(typeof(Action<T>));
+		}
+		private delegate ref T RefGetter();
+		private RefGetter CreateRefGetter() {
+			if (field.FieldType != typeof(T)) throw new InvalidOperationException($"type of {field.Name} does not match provided type {typeof(T)}");
+			string methodName = field.ReflectedType.FullName + ".getref_" + field.Name;
+			DynamicMethod getterMethod = new DynamicMethod(methodName, typeof(T).MakeByRefType(), [], true);
+			ILGenerator gen = getterMethod.GetILGenerator();
+
+			gen.Emit(OpCodes.Ldsflda, field);
+			gen.Emit(OpCodes.Ret);
+
+			return getterMethod.CreateDelegate<RefGetter>();
 		}
 		public static explicit operator T(FastStaticFieldInfo<T> fastFieldInfo) {
 			return fastFieldInfo.GetValue();

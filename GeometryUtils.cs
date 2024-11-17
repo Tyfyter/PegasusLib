@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
+using System.Collections.Generic;
 using Terraria;
 
 namespace PegasusLib;
@@ -58,5 +59,40 @@ public static class GeometryUtils {
 	public static Vector2 WithMaxLength(this Vector2 vector, float length) {
 		float pLength = vector.LengthSquared();
 		return pLength > length * length ? Vector2.Normalize(vector) * length : vector;
+	}
+	public static bool IsWithin(this Vector2 a, Vector2 b, float range) => a.DistanceSQ(b) < range * range;
+	public static bool GetIntersectionPoints(Vector2 start, Vector2 end, Rectangle bounds, out List<Vector2> intersections) {
+		return GetIntersectionPoints(start, end, bounds.TopLeft(), bounds.BottomRight(), out intersections);
+	}
+	public static bool GetIntersectionPoints(Vector2 start, Vector2 end, Vector2 topLeft, Vector2 bottomRight, out List<Vector2> intersections) {
+		intersections = [];
+		Vector2 intersection;
+		if (Intersects(start, end, topLeft, new Vector2(bottomRight.X, topLeft.Y), out intersection)) intersections.Add(intersection);
+		if (Intersects(start, end, new Vector2(bottomRight.X, topLeft.Y), bottomRight, out intersection)) intersections.Add(intersection);
+		if (Intersects(start, end, bottomRight, new Vector2(topLeft.X, bottomRight.Y), out intersection)) intersections.Add(intersection);
+		if (Intersects(start, end, new Vector2(topLeft.X, bottomRight.Y), topLeft, out intersection)) intersections.Add(intersection);
+		return intersections.Count != 0;
+	}
+	public static bool Intersects(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2, out Vector2 intersection) {
+		intersection = a1;
+		Vector2 b = a2 - a1;
+		Vector2 d = b2 - b1;
+		float bDotDPerp = b.X * d.Y - b.Y * d.X;
+
+		// if b dot d == 0, it means the lines are parallel so have infinite intersection points
+		if (bDotDPerp == 0) return true;
+
+		Vector2 c = b1 - a1;
+		float t = (c.X * d.Y - c.Y * d.X) / bDotDPerp;
+		if (t < 0 || t > 1) {
+			return false;
+		}
+
+		float u = (c.X * b.Y - c.Y * b.X) / bDotDPerp;
+		if (u < 0 || u > 1) {
+			return false;
+		}
+		intersection = a1 + t * b;
+		return true;
 	}
 }

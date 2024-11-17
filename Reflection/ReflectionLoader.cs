@@ -24,10 +24,12 @@ namespace PegasusLib.Reflection {
 		public virtual Type HostType => GetType();
 		public void Load(Mod mod) {
 			LoadReflections(HostType);
+			OnLoad();
 		}
 		public virtual void OnLoad() { }
 		public void Unload() {
 			UnloadReflections(HostType);
+			OnUnload();
 		}
 		public virtual void OnUnload() { }
 		~ReflectionLoader() {

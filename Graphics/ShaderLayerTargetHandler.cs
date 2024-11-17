@@ -38,10 +38,10 @@ namespace PegasusLib.Graphics {
 			Capturing = true;
 			this.spriteBatch = spriteBatch ??= Main.spriteBatch;
 			oldScissorRectangle = spriteBatch.GraphicsDevice.ScissorRectangle;
-			if (SpritebatchMethods.beginCalled.GetValue(this.spriteBatch)) {
+			if (this.spriteBatch.IsRunning()) {
 				spriteBatchWasRunning = true;
 				spriteBatchState = this.spriteBatch.GetState();
-				this.spriteBatch.Restart(spriteBatchState, SpriteSortMode.Immediate, BlendState.AlphaBlend, Main.DefaultSamplerState, Main.Rasterizer, null, Main.Transform);
+				this.spriteBatch.Restart(spriteBatchState, SpriteSortMode.Immediate, BlendState.AlphaBlend, Main.DefaultSamplerState, Main.Rasterizer, null);
 			} else {
 				spriteBatchWasRunning = false;
 				spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.Transform);
