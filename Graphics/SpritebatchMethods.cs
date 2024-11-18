@@ -39,7 +39,6 @@ namespace PegasusLib.Graphics {
 		/// Begin the spritebatch, using the provided values, any value not provided will use the respective value from spriteBatchState instead
 		/// </summary>
 		public static void Begin(this SpriteBatch spriteBatch, SpriteBatchState spriteBatchState, SpriteSortMode? sortMode = null, BlendState blendState = null, SamplerState samplerState = null, RasterizerState rasterizerState = null, Effect effect = null, Matrix? transformMatrix = null) {
-			spriteBatch.End();
 			spriteBatch.Begin(
 				sortMode ?? spriteBatchState.sortMode,
 				blendState ?? spriteBatchState.blendState,
