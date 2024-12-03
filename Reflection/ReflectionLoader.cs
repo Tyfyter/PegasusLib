@@ -23,6 +23,7 @@ namespace PegasusLib.Reflection {
 	public abstract class ReflectionLoader : ILoadable {
 		public virtual Type HostType => GetType();
 		public void Load(Mod mod) {
+			mod.Logger.Info($"Loading reflections for type {HostType}");
 			LoadReflections(HostType);
 			OnLoad();
 		}

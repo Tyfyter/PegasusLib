@@ -1,9 +1,10 @@
 ﻿using MonoMod.Cil;
+using System.Reflection;
 using Terraria;
 using Terraria.ModLoader;
 
 namespace PegasusLib {
-	interface IComplexMineDamageTile {
+	public interface IComplexMineDamageTile {
 		void MinePower(int i, int j, int minePower, ref int damage) { }
 	}
 	public class ComplexMiningDamage : ILoadable {
@@ -37,17 +38,18 @@ namespace PegasusLib {
 				c.EmitLdarg1();
 				c.EmitLdfld(typeof(Item).GetField("hammer"));
 				c.EmitLdloca(damageArg);
-				c.EmitDelegate<MinePowerDel>((ModTile modTile, int x, int y, int minePower, ref int damage) => {
-					if (modTile is IComplexMineDamageTile damageTile) {
-						damageTile.MinePower(x, y, minePower, ref damage);
-					}
-				});
+				c.EmitCall(il.Import(GetType().GetMethod(nameof(ModifyHammage), BindingFlags.NonPublic | BindingFlags.Static)));
 			};
 		}
 
 		public void Unload() { }
 		delegate void MinePowerDel(ModTile modTile, int i, int j, int minePower, ref int damage);
-		private int On_Player_GetPickaxeDamage(On_Player.orig_GetPickaxeDamage orig, Player self, int x, int y, int pickPower, int hitBufferIndex, Tile tileTarget) {
+		private static void ModifyHammage(ModTile modTile, int i, int j, int minePower, ref int damage) {
+			if (modTile is IComplexMineDamageTile damageTile) {
+				damageTile.MinePower(i, j, minePower, ref damage);
+			}
+		}
+		private static int On_Player_GetPickaxeDamage(On_Player.orig_GetPickaxeDamage orig, Player self, int x, int y, int pickPower, int hitBufferIndex, Tile tileTarget) {
 			int value = orig(self, x, y, pickPower, hitBufferIndex, tileTarget);
 			ModTile modTile = ModContent.GetModTile(tileTarget.TileType);
 			if (modTile is IComplexMineDamageTile damageTile) {

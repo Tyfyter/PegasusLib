@@ -45,6 +45,7 @@ namespace PegasusLib {
 							Top = new StyleDimension(70, 0f),
 							Left = new StyleDimension(3 + 99 * (statCount % 2), 0f)
 						};
+						stat.TextureValue.LoadAsset();
 						uIImage.Append(new UIImageFramed(stat.TextureValue, stat.TextureFrame) {
 							HAlign = 0f,
 							VAlign = 0.5f,
@@ -85,6 +86,7 @@ namespace PegasusLib {
 			Type = BestiaryCombatStatLoader.bestiaryCombatStats.Count;
 			BestiaryCombatStatLoader.bestiaryCombatStats.Add(this);
 			TextureValue = Texture;
+			_ = DisplayName.Value;
 		}
 		public abstract bool ShouldDisplay(NPC npc);
 		public abstract string GetDisplayText(NPC npc);
