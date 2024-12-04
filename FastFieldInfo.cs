@@ -48,7 +48,7 @@ namespace PegasusLib {
 			return (Func<TParent, T>)getterMethod.CreateDelegate(typeof(Func<TParent, T>));
 		}
 		private Action<TParent, T> CreateSetter() {
-			if (!field.FieldType.IsClass) return null;
+			if (!field.DeclaringType.IsClass) return null;
 			if (field.FieldType != typeof(T)) throw new InvalidOperationException($"type of {field.Name} does not match provided type {typeof(T)}");
 			string methodName = field.ReflectedType.FullName + ".set_" + field.Name;
 			DynamicMethod setterMethod = new(methodName, null, [typeof(TParent), typeof(T)], true);
@@ -73,8 +73,11 @@ namespace PegasusLib {
 
 			return getterMethod.CreateDelegate<RefGetter>();
 		}
+		public static implicit operator FastFieldInfo<TParent, T>(string name) => new(name, BindingFlags.NonPublic | BindingFlags.Public);
 	}
-	public class FastStaticFieldInfo<TParent, T>(string name, BindingFlags bindingFlags, bool init = false) : FastStaticFieldInfo<T>(typeof(TParent), name, bindingFlags, init) { }
+	public class FastStaticFieldInfo<TParent, T>(string name, BindingFlags bindingFlags, bool init = false) : FastStaticFieldInfo<T>(typeof(TParent), name, bindingFlags, init) {
+		public static implicit operator FastStaticFieldInfo<TParent, T>(string name) => new(name, BindingFlags.NonPublic | BindingFlags.Public);
+	}
 	public class FastStaticFieldInfo<T> {
 		public readonly FieldInfo field;
 		RefGetter refGetter;
