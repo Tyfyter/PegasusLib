@@ -15,25 +15,54 @@ using System.Linq;
 using Terraria.UI;
 using MonoMod.Cil;
 using PegasusLib.Reflection;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace PegasusLib {
 	// Please read https://github.com/tModLoader/tModLoader/wiki/Basic-tModLoader-Modding-Guide#mod-skeleton-contents for more information about the various files in a mod.
 	public class PegasusLib : Mod {
 		internal static List<IUnloadable> unloadables = [];
+		internal static Dictionary<LibFeature, List<Mod>> requiredFeatures = [];
+		internal static Dictionary<LibFeature, Exception> erroredFeatures = [];
 		public override void Load() {
 			On_Main.DrawNPCDirect += IDrawNPCEffect.On_Main_DrawNPCDirect;
 			On_Main.DrawProj_Inner += IDrawProjectileEffect.On_Main_DrawProj_Inner;
 			On_Main.DrawItem += IDrawItemInWorldEffect.On_Main_DrawItem;
 			On_ItemSlot.DrawItemIcon += IDrawItemInInventoryEffect.On_ItemSlot_DrawItemIcon;
 
-			MonoModHooks.Modify(typeof(NPCLoader).GetMethod(nameof(NPCLoader.PreDraw)), IDrawNPCEffect.AddIteratePreDraw);
-			MonoModHooks.Modify(typeof(NPCLoader).GetMethod(nameof(NPCLoader.PostDraw)), IDrawNPCEffect.AddIteratePostDraw);
+			try {
+				MonoModHooks.Modify(typeof(NPCLoader).GetMethod(nameof(NPCLoader.PreDraw)), IDrawNPCEffect.AddIteratePreDraw);
+				MonoModHooks.Modify(typeof(NPCLoader).GetMethod(nameof(NPCLoader.PostDraw)), IDrawNPCEffect.AddIteratePostDraw);
+			} catch (Exception exception) {
+				FeatureError(LibFeature.IDrawNPCEffect, exception);
+			}
+		}
+		public static void Require(Mod mod, params LibFeature[] features) {
+			for (int i = 0; i < features.Length; i++) {
+				LibFeature feature = features[i];
+				if (erroredFeatures.TryGetValue(feature, out Exception exception)) {
+					throw new Exception($"Error while loading feature {feature} required by mod {mod.DisplayNameClean}:", exception);
+				} else {
+					if (!requiredFeatures.TryGetValue(feature, out List<Mod> reqs)) reqs = [];
+					reqs.Add(mod);
+					requiredFeatures[feature] = reqs;
+				}
+			}
+		}
+		public static void FeatureError(LibFeature feature, Exception exception) {
+			if (requiredFeatures.TryGetValue(feature, out List<Mod> mods)) {
+				throw new Exception($"Error while loading feature {feature} required by mods [{string.Join(", ", mods.Select(mod => mod.DisplayNameClean))}]:", exception);
+			} else {
+				erroredFeatures.Add(feature, exception);
+				ModContent.GetInstance<PegasusLib>().Logger.Error(exception);
+			}
 		}
 		public override void Unload() {
 			foreach (IUnloadable unloadable in unloadables) {
 				unloadable.Unload();
 			}
 			unloadables = null;
+			requiredFeatures = null;
+			erroredFeatures = null;
 			DropRuleExt.Unload();
 		}
 		public static Color GetRarityColor(int rare, bool expert = false, bool master = false) {
@@ -155,5 +184,9 @@ namespace PegasusLib {
 		public readonly ReverseEntityGlobalsEnumerator<TGlobal> GetEnumerator() {
 			return this;
 		}
+	}
+	public enum LibFeature {
+		IDrawNPCEffect,
+		IComplexMineDamageTile_Hammer
 	}
 }
