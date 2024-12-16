@@ -29,32 +29,40 @@ namespace PegasusLib {
 			}
 		}
 		internal static void AddIteratePreDraw(ILContext il) {
-			ILCursor c = new(il);
-			ILLabel label = default;
-			c.GotoNext(MoveType.Before,
-				il => il.MatchLdloc(out _),
-				il => il.MatchBrfalse(out label),
-				il => il.MatchLdarg0(),
-				il => il.MatchCallOrCallvirt<NPC>("get_" + nameof(NPC.ModNPC)),
-				il => il.MatchBrfalse(out ILLabel _label) && _label.Target == label.Target
-			);
-			c.EmitLdarg0();
-			c.EmitDelegate((NPC npc) => {
-				foreach (GlobalNPC c in HookPrepareToDrawNPC.Enumerate(npc).GetEnumerator()) {
-					if (c is IDrawNPCEffect current && current.OnlyWrapModTypeDraw) current.PrepareToDrawNPC(npc);
-				}
-			});
+			try {
+				ILCursor c = new(il);
+				ILLabel label = default;
+				c.GotoNext(MoveType.Before,
+					il => il.MatchLdloc(out _),
+					il => il.MatchBrfalse(out label),
+					il => il.MatchLdarg0(),
+					il => il.MatchCallOrCallvirt<NPC>("get_" + nameof(NPC.ModNPC)),
+					il => il.MatchBrfalse(out ILLabel _label) && _label.Target == label.Target
+				);
+				c.EmitLdarg0();
+				c.EmitDelegate((NPC npc) => {
+					foreach (GlobalNPC c in HookPrepareToDrawNPC.Enumerate(npc).GetEnumerator()) {
+						if (c is IDrawNPCEffect current && current.OnlyWrapModTypeDraw) current.PrepareToDrawNPC(npc);
+					}
+				});
+			} catch (Exception exception) {
+				PegasusLib.FeatureError(LibFeature.IDrawNPCEffect, exception);
+			}
 		}
 		internal static void AddIteratePostDraw(ILContext il) {
-			ILCursor c = new(il);
-			c.GotoNext(MoveType.After, i => i.MatchCallOrCallvirt<ModNPC>(nameof(ModNPC.PostDraw)));
-			c.MoveAfterLabels();
-			c.EmitLdarg0();
-			c.EmitDelegate((NPC npc) => {
-				foreach (GlobalNPC c in HookFinishDrawingNPC.Enumerate(npc).GetEnumerator()) {
-					if (c is IDrawNPCEffect current && current.OnlyWrapModTypeDraw) current.FinishDrawingNPC(npc);
-				}
-			});
+			try {
+				ILCursor c = new(il);
+				c.GotoNext(MoveType.After, i => i.MatchCallOrCallvirt<ModNPC>(nameof(ModNPC.PostDraw)));
+				c.MoveAfterLabels();
+				c.EmitLdarg0();
+				c.EmitDelegate((NPC npc) => {
+					foreach (GlobalNPC c in HookFinishDrawingNPC.Enumerate(npc).GetEnumerator()) {
+						if (c is IDrawNPCEffect current && current.OnlyWrapModTypeDraw) current.FinishDrawingNPC(npc);
+					}
+				});
+			} catch (Exception exception) {
+				PegasusLib.FeatureError(LibFeature.IDrawNPCEffect, exception);
+			}
 		}
 	}
 	public interface IDrawProjectileEffect {

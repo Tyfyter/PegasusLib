@@ -29,12 +29,8 @@ namespace PegasusLib {
 			On_Main.DrawItem += IDrawItemInWorldEffect.On_Main_DrawItem;
 			On_ItemSlot.DrawItemIcon += IDrawItemInInventoryEffect.On_ItemSlot_DrawItemIcon;
 
-			try {
-				MonoModHooks.Modify(typeof(NPCLoader).GetMethod(nameof(NPCLoader.PreDraw)), IDrawNPCEffect.AddIteratePreDraw);
-				MonoModHooks.Modify(typeof(NPCLoader).GetMethod(nameof(NPCLoader.PostDraw)), IDrawNPCEffect.AddIteratePostDraw);
-			} catch (Exception exception) {
-				FeatureError(LibFeature.IDrawNPCEffect, exception);
-			}
+			MonoModHooks.Modify(typeof(NPCLoader).GetMethod(nameof(NPCLoader.PreDraw)), IDrawNPCEffect.AddIteratePreDraw);
+			MonoModHooks.Modify(typeof(NPCLoader).GetMethod(nameof(NPCLoader.PostDraw)), IDrawNPCEffect.AddIteratePostDraw);
 		}
 		public static void Require(Mod mod, params LibFeature[] features) {
 			for (int i = 0; i < features.Length; i++) {
