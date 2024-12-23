@@ -67,7 +67,7 @@ namespace PegasusLib {
 			);
 			c.EmitLdloc(textSnippet);
 			c.EmitDelegate(static (bool value, TextSnippet textSnippet) => {
-				if (textSnippet is WrappingTextSnippet snippet && snippet.IsHovered) return true;
+				if (textSnippet is WrappingTextSnippet snippet) return snippet.IsHovered;
 				return value;
 			});
 			c.GotoNext(MoveType.After,
@@ -79,13 +79,14 @@ namespace PegasusLib {
 				i => i.MatchCall(typeof(Math), nameof(Math.Max)),	//IL_00b6: call float32[System.Runtime]System.Math::Max(float32, float32)
 				i => i.MatchStfld<Vector2>("X")						//IL_00bb: stfld float32[FNA]Microsoft.Xna.Framework.Vector2::X
 			);
+			c.EmitLdloc(textSnippet);
 			c.EmitLdloca(vector);
 			c.EmitLdarg(3);
 			c.EmitLdarg(il.Method.Parameters.Count - 2);
 			c.EmitLdarg(1);
 			c.EmitLdarg(scale);
-			c.EmitDelegate(static (ref Vector2 vector, Vector2 startPosition, float maxWidth, DynamicSpriteFont font, Vector2 scale) => {
-				if (maxWidth == -1) return;
+			c.EmitDelegate(static (TextSnippet snippet, ref Vector2 vector, Vector2 startPosition, float maxWidth, DynamicSpriteFont font, Vector2 scale) => {
+				if (maxWidth == -1 || snippet is not WrappingTextSnippet) return;
 				float lineSpacing = font.LineSpacing * scale.Y;
 				while (vector.X - startPosition.X > maxWidth) {
 					vector.X -= maxWidth;
