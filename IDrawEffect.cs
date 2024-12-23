@@ -47,6 +47,9 @@ namespace PegasusLib {
 				});
 			} catch (Exception exception) {
 				PegasusLib.FeatureError(LibFeature.IDrawNPCEffect, exception);
+#if DEBUG
+				throw;
+#endif
 			}
 		}
 		internal static void AddIteratePostDraw(ILContext il) {
@@ -62,6 +65,9 @@ namespace PegasusLib {
 				});
 			} catch (Exception exception) {
 				PegasusLib.FeatureError(LibFeature.IDrawNPCEffect, exception);
+#if DEBUG
+				throw;
+#endif
 			}
 		}
 	}

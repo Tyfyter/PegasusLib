@@ -1,9 +1,18 @@
 A collection of code I found myself repeating and recommending to other modders
 
-includes:
+Includes:
 A system to easily apply shaders to things drawn in multiple parts, and/or apply multiple shaders to one thing (ShaderLayerTargetHandler)
 A strikethrough font which matches the character spacing of the MouseText font
 A faster alternative to accessing fields through reflection (FastFieldInfo and FastStaticFieldInfo)
 Automatic asset loading (AutoLoadingAsset)
 Custom drawing while using or holding an item (ICustomDrawItem)
 Various collision methods (CollisionExt)
+
+To use (as a player):
+Install and enable alongside a mod which uses it.
+
+To use (as a modder):
+Perform the normal setup to use a library mod.
+During loading, call PegasusLib.PegasusLib.Require() with any PegasusLib.LibFeatures your mod needs, to ensure that features relying on them do not fail silently.
+Alternatively, you can use PegasusLib.PegasusLib.IsFeatureErrored or PegasusLib.PegasusLib.OnFeatureError to handle any issues that may arise in whatever way suits your mod best.
+These methods exist to ensure that tModLoader updates or mod incompatibilities only interfere with mods that actually use the features they cause errors with, so that players can continue using your mod without having to wait for features it doesn't use to be fixed.

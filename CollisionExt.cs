@@ -3,6 +3,7 @@ using Terraria.ID;
 using Terraria;
 using Microsoft.Xna.Framework;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace PegasusLib {
 	public static class CollisionExt {
@@ -54,6 +55,34 @@ namespace PegasusLib {
 				}
 			}
 			return false;
+		}
+		public static bool OverlapsAnyTiles(this Rectangle area, out List<Point> intersectingTiles, bool fallThrough = true) {
+			Rectangle checkArea = area;
+			Point topLeft = area.TopLeft().ToTileCoordinates();
+			Point bottomRight = area.BottomRight().ToTileCoordinates();
+			int minX = Utils.Clamp(topLeft.X, 0, Main.maxTilesX - 1);
+			int minY = Utils.Clamp(topLeft.Y, 0, Main.maxTilesY - 1);
+			int maxX = Utils.Clamp(bottomRight.X, 0, Main.maxTilesX - 1) - minX;
+			int maxY = Utils.Clamp(bottomRight.Y, 0, Main.maxTilesY - 1) - minY;
+			int cornerX = area.X - topLeft.X * 16;
+			int cornerY = area.Y - topLeft.Y * 16;
+			intersectingTiles = [];
+			for (int i = 0; i <= maxX; i++) {
+				for (int j = 0; j <= maxY; j++) {
+					Tile tile = Main.tile[i + minX, j + minY];
+					if (fallThrough && Main.tileSolidTop[tile.TileType]) continue;
+					if (tile != null && tile.HasSolidTile()) {
+						checkArea.X = i * -16 + cornerX;
+						checkArea.Y = j * -16 + cornerY;
+						if (tile.Slope != SlopeType.Solid) {
+							if (tileTriangles[(int)tile.Slope - 1].Intersects(checkArea)) intersectingTiles.Add(new(i + minX, j + minY));
+						} else {
+							if (tileRectangles[(int)tile.BlockType].Intersects(checkArea)) intersectingTiles.Add(new(i + minX, j + minY));
+						}
+					}
+				}
+			}
+			return intersectingTiles.Count > 0;
 		}
 		public static bool CanHitRay(Vector2 position, Vector2 target) {
 			Vector2 diff = target - position;

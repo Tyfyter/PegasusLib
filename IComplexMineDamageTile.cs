@@ -44,6 +44,9 @@ namespace PegasusLib {
 				};
 			} catch (Exception exception) {
 				PegasusLib.FeatureError(LibFeature.IComplexMineDamageTile_Hammer, exception);
+#if DEBUG
+				throw;
+#endif
 			}
 		}
 

@@ -23,6 +23,7 @@ namespace PegasusLib {
 		internal static List<IUnloadable> unloadables = [];
 		internal static Dictionary<LibFeature, List<Mod>> requiredFeatures = [];
 		internal static Dictionary<LibFeature, Exception> erroredFeatures = [];
+		internal static Dictionary<LibFeature, Action<Exception>> onFeatureError = [];
 		public override void Load() {
 			On_Main.DrawNPCDirect += IDrawNPCEffect.On_Main_DrawNPCDirect;
 			On_Main.DrawProj_Inner += IDrawProjectileEffect.On_Main_DrawProj_Inner;
@@ -45,11 +46,25 @@ namespace PegasusLib {
 			}
 		}
 		public static void FeatureError(LibFeature feature, Exception exception) {
+			if (onFeatureError.TryGetValue(feature, out Action<Exception> handlers)) handlers(exception);
 			if (requiredFeatures.TryGetValue(feature, out List<Mod> mods)) {
 				throw new Exception($"Error while loading feature {feature} required by mods [{string.Join(", ", mods.Select(mod => mod.DisplayNameClean))}]:", exception);
 			} else {
 				erroredFeatures.Add(feature, exception);
 				ModContent.GetInstance<PegasusLib>().Logger.Error(exception);
+			}
+		}
+		public static bool IsFeatureErrored(LibFeature feature) => erroredFeatures.ContainsKey(feature);
+		delegate void _onFeatureError(Exception exception);
+		public static void OnFeatureError(LibFeature feature, Action<Exception> handler) {
+			if (erroredFeatures.TryGetValue(feature, out Exception exception)) {
+				handler(exception);
+				return;
+			}
+			if (onFeatureError.TryGetValue(feature, out Action<Exception> @delegate)) {
+				onFeatureError[feature] = @delegate + handler;
+			} else {
+				onFeatureError[feature] = handler;
 			}
 		}
 		public override void Unload() {
@@ -183,6 +198,7 @@ namespace PegasusLib {
 	}
 	public enum LibFeature {
 		IDrawNPCEffect,
-		IComplexMineDamageTile_Hammer
+		IComplexMineDamageTile_Hammer,
+		WrappingTextSnippet
 	}
 }
