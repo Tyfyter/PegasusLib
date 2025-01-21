@@ -8,7 +8,8 @@ namespace PegasusLib {
 		public static void Unload() {
 			RuleChildFinders = null;
 		}
-		static Dictionary<Type, Func<IItemDropRule, IEnumerable<IItemDropRule>>> _RuleChildFinders => new() {
+		public delegate IEnumerable<IItemDropRule> RuleChildFinder(IItemDropRule rule);
+		static Dictionary<Type, RuleChildFinder> _RuleChildFinders => new() {
 			[typeof(AlwaysAtleastOneSuccessDropRule)] = r => ((AlwaysAtleastOneSuccessDropRule)r).rules,
 			[typeof(DropBasedOnExpertMode)] = r => [((DropBasedOnExpertMode)r).ruleForNormalMode, ((DropBasedOnExpertMode)r).ruleForExpertMode],
 			[typeof(DropBasedOnMasterAndExpertMode)] = r => [((DropBasedOnMasterAndExpertMode)r).ruleForDefault, ((DropBasedOnMasterAndExpertMode)r).ruleForExpertmode, ((DropBasedOnMasterAndExpertMode)r).ruleForMasterMode],
@@ -18,7 +19,7 @@ namespace PegasusLib {
 			[typeof(SequentialRulesNotScalingWithLuckRule)] = r => ((SequentialRulesNotScalingWithLuckRule)r).rules,
 			[typeof(SequentialRulesRule)] = r => ((SequentialRulesRule)r).rules,
 		};
-		public static Dictionary<Type, Func<IItemDropRule, IEnumerable<IItemDropRule>>> RuleChildFinders { get; private set; }  = _RuleChildFinders;
+		public static Dictionary<Type, RuleChildFinder> RuleChildFinders { get; private set; }  = _RuleChildFinders;
 		/// <summary>
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
@@ -29,7 +30,7 @@ namespace PegasusLib {
 			foreach (IItemDropRule dropRule in dropRules) {
 				if (dropRule is T rule && predicate(rule)) return rule;
 				if (dropRule.ChainedRules.Count != 0 && dropRule.ChainedRules.Select(c => c.RuleToChain).FindDropRule(predicate) is T foundRule) return foundRule;
-				if (RuleChildFinders.TryGetValue(dropRule.GetType(), out var ruleChildFinder) && ruleChildFinder(dropRule).FindDropRule(predicate) is T foundRule2) return foundRule2;
+				if (RuleChildFinders.TryGetValue(dropRule.GetType(), out RuleChildFinder ruleChildFinder) && ruleChildFinder(dropRule).FindDropRule(predicate) is T foundRule2) return foundRule2;
 			}
 			return null;
 		}
@@ -44,7 +45,7 @@ namespace PegasusLib {
 						yield return foundRule;
 					}
 				}
-				if (RuleChildFinders.TryGetValue(dropRule.GetType(), out var ruleChildFinder)) {
+				if (RuleChildFinders.TryGetValue(dropRule.GetType(), out RuleChildFinder ruleChildFinder)) {
 					foreach (T foundRule in ruleChildFinder(dropRule).FindDropRules(predicate)) yield return foundRule;
 				}
 			}
