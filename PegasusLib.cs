@@ -16,6 +16,8 @@ using Terraria.UI;
 using MonoMod.Cil;
 using PegasusLib.Reflection;
 using Microsoft.Xna.Framework.Graphics;
+using Terraria.Audio;
+using MonoMod.Utils;
 
 namespace PegasusLib {
 	// Please read https://github.com/tModLoader/tModLoader/wiki/Basic-tModLoader-Modding-Guide#mod-skeleton-contents for more information about the various files in a mod.
@@ -75,6 +77,16 @@ namespace PegasusLib {
 			requiredFeatures = null;
 			erroredFeatures = null;
 			DropRuleExt.Unload();
+		}
+		public override object Call(params object[] args) {
+			switch (((string)args[0]).ToUpperInvariant()) {
+				case "ADDRULECHILDFINDER":
+				if (args[1] is Type type && args[2] is Delegate del && del.TryCastDelegate(out DropRuleExt.RuleChildFinder finder)) {
+					return DropRuleExt.RuleChildFinders.TryAdd(type, finder);
+				}
+				return false;
+			}
+			return null;
 		}
 		public static Color GetRarityColor(int rare, bool expert = false, bool master = false) {
 			if (expert || rare == ItemRarityID.Expert) {
