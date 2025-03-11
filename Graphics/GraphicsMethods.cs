@@ -31,4 +31,35 @@ namespace PegasusLib.Graphics {
 		static Action<RenderTarget2D, RenderTargetUsage> setRenderTargetUsage;
 		public static void SetRenderTargetUsage(RenderTarget2D self, RenderTargetUsage renderTargetUsage) => setRenderTargetUsage(self, renderTargetUsage);
 	}
+	public static class GraphicsDeviceExtensions {
+		/// <summary>
+		/// Sets the spritebatch to use some list of old render targets without clearing them
+		/// </summary>
+		public static void UseOldRenderTargets(this GraphicsDevice graphicsDevice, RenderTargetBinding[] oldRenderTargets) {
+			bool anyOldTargets = (oldRenderTargets?.Length ?? 0) != 0;
+			RenderTargetUsage[] renderTargetUsage = [];
+			try {
+				if (anyOldTargets) {
+					renderTargetUsage = new RenderTargetUsage[oldRenderTargets.Length];
+					for (int i = 0; i < oldRenderTargets.Length; i++) {
+						RenderTarget2D renderTarget = (RenderTarget2D)oldRenderTargets[i].RenderTarget;
+						renderTargetUsage[i] = renderTarget.RenderTargetUsage;
+						GraphicsMethods.SetRenderTargetUsage(renderTarget, RenderTargetUsage.PreserveContents);
+					}
+				} else {
+					renderTargetUsage = [graphicsDevice.PresentationParameters.RenderTargetUsage];
+					graphicsDevice.PresentationParameters.RenderTargetUsage = RenderTargetUsage.PreserveContents;
+				}
+				graphicsDevice.SetRenderTargets(oldRenderTargets);
+			} finally {
+				if (anyOldTargets) {
+					for (int i = 0; i < oldRenderTargets.Length; i++) {
+						GraphicsMethods.SetRenderTargetUsage((RenderTarget2D)oldRenderTargets[i].RenderTarget, renderTargetUsage[i]);
+					}
+				} else {
+					graphicsDevice.PresentationParameters.RenderTargetUsage = renderTargetUsage[0];
+				}
+			}
+		}
+	}
 }

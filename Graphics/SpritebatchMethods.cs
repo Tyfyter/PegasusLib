@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using PegasusLib.Reflection;
 using System;
+using Terraria;
 
 namespace PegasusLib.Graphics {
 	internal class SpritebatchMethods : ReflectionLoader {

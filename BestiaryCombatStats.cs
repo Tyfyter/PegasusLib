@@ -85,6 +85,7 @@ namespace PegasusLib {
 		protected sealed override void Register() {
 			Type = BestiaryCombatStatLoader.bestiaryCombatStats.Count;
 			BestiaryCombatStatLoader.bestiaryCombatStats.Add(this);
+			ModContent.RequestIfExists<Texture2D>(Texture, out _);
 			TextureValue = Texture;
 			_ = DisplayName.Value;
 		}
