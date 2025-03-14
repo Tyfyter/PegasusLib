@@ -103,6 +103,9 @@ namespace PegasusLib.Graphics {
 			spriteBatch.Restart(spriteBatchState);
 			if (!spriteBatchWasRunning) spriteBatch.End();
 		}
+		public void DrawContents() {
+			spriteBatch.Draw(renderTarget, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+		}
 		public void Reset(GameTime _) {
 			if (Main.dedServ) return;
 			Capturing = false;
