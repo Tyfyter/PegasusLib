@@ -1,1 +1,8 @@
+ListAll: {
+	1: "{n}"
+	2: "{n} and {n}"
+	Any: "[{n}, ]and {n}"
+}
 
+PluralityFormatting.NoValidFormat: No valid format for {0} arguments found in {1}
+FlagsEnumConfigElement.NoneSelected: None
