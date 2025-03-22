@@ -151,10 +151,10 @@ namespace PegasusLib {
 		public override void NetSend(BinaryWriter writer) => netSend(writer);
 		public override void NetReceive(BinaryReader reader) => netReceive(reader);
 		public override void ClearWorld() => clearWorld();
-		static Action<TagCompound> saveData;
-		static Action<TagCompound> loadData;
-		static Action<BinaryWriter> netSend;
-		static Action<BinaryReader> netReceive;
-		static Action clearWorld;
+		Action<TagCompound> saveData;
+		Action<TagCompound> loadData;
+		Action<BinaryWriter> netSend;
+		Action<BinaryReader> netReceive;
+		Action clearWorld;
 	}
 }
