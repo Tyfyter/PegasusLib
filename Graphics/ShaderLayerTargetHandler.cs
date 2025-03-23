@@ -106,6 +106,16 @@ namespace PegasusLib.Graphics {
 		public void DrawContents() {
 			spriteBatch.Draw(renderTarget, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
 		}
+		public void DrawContents(RenderTarget2D renderTarget) {
+			try {
+				Main.graphics.GraphicsDevice.SetRenderTarget(renderTarget);
+				Main.graphics.GraphicsDevice.Clear(Color.Transparent);
+				spriteBatch.Restart(spriteBatchState, SpriteSortMode.Immediate, transformMatrix: Matrix.Identity);
+				spriteBatch.Draw(this.renderTarget, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+			} finally {
+				Main.graphics.GraphicsDevice.SetRenderTarget(this.renderTarget);
+			}
+		}
 		public void Reset(GameTime _) {
 			if (Main.dedServ) return;
 			Capturing = false;
@@ -114,7 +124,7 @@ namespace PegasusLib.Graphics {
 			} else {
 				spriteBatch.End();
 			}
-			Main.graphics.GraphicsDevice.SetRenderTargets(oldRenderTargets);
+			Main.graphics.GraphicsDevice.UseOldRenderTargets(oldRenderTargets);
 		}
 		public ShaderLayerTargetHandler() {
 			if (Main.dedServ) return;
