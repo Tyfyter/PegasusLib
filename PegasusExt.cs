@@ -9,6 +9,9 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using PegasusLib.Reflection;
 using System.Collections;
+using Terraria.DataStructures;
+using Microsoft.Xna.Framework;
+using Terraria.ID;
 
 namespace PegasusLib {
 	public static class PegasusExt {
@@ -95,6 +98,52 @@ namespace PegasusLib {
 			foreach (object obj in source) {
 				if (obj is TResult result) yield return result;
 			}
+		}
+
+		public static Projectile SpawnProjectile(this Projectile self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) {
+			if (self.owner != Main.myPlayer) return null;
+			return Projectile.NewProjectileDirect(
+				spawnSource,
+				position,
+				velocity,
+				type,
+				damage,
+				knockback,
+				Main.myPlayer,
+				ai0,
+				ai1,
+				ai2
+			);
+		}
+		public static Projectile SpawnProjectile(this Player self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) {
+			if (self.whoAmI != Main.myPlayer) return null;
+			return Projectile.NewProjectileDirect(
+				spawnSource,
+				position,
+				velocity,
+				type,
+				damage,
+				knockback,
+				Main.myPlayer,
+				ai0,
+				ai1,
+				ai2
+			);
+		}
+		public static Projectile SpawnProjectile(this NPC self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) {
+			if (Main.netMode == NetmodeID.MultiplayerClient) return null;
+			return Projectile.NewProjectileDirect(
+				spawnSource,
+				position,
+				velocity,
+				type,
+				damage,
+				knockback,
+				Main.myPlayer,
+				ai0,
+				ai1,
+				ai2
+			);
 		}
 	}
 }

@@ -28,7 +28,7 @@ namespace PegasusLib {
 			Multiple position = new() {
 				{ new Between(PlayerDrawLayers.BladedGlove, PlayerDrawLayers.ProjectileOverArm), (drawInfo) => (drawInfo.drawPlayer.HeldItem?.ModItem is ICustomDrawItem customDraw && customDraw.DrawOverHand(drawInfo.drawPlayer)) },
 				{ new Between(PlayerDrawLayers.Skin, PlayerDrawLayers.Leggings), (drawInfo) => (drawInfo.drawPlayer.HeldItem?.ModItem is ICustomDrawItem customDraw && customDraw.BackHand(drawInfo.drawPlayer)) },
-				{ new Between(PlayerDrawLayers.HeldItem, PlayerDrawLayers.ArmOverItem), (drawInfo) => (drawInfo.drawPlayer.HeldItem?.ModItem is ICustomDrawItem customDraw && !customDraw.DrawOverHand(drawInfo.drawPlayer) && !customDraw.BackHand(drawInfo.drawPlayer)) }
+				{ new Between(null, PlayerDrawLayers.ArmOverItem), (drawInfo) => (drawInfo.drawPlayer.HeldItem?.ModItem is ICustomDrawItem customDraw && !customDraw.DrawOverHand(drawInfo.drawPlayer) && !customDraw.BackHand(drawInfo.drawPlayer)) }
 			};
 			return position;
 		}
