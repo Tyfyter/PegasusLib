@@ -145,5 +145,6 @@ namespace PegasusLib {
 				ai2
 			);
 		}
+		public static bool TrySet<T>(ref this T value, T newValue) where T : struct => PegasusLib.TrySet(ref value, newValue);
 	}
 }

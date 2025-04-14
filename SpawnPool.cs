@@ -38,6 +38,7 @@ namespace PegasusLib {
 		public override void EditSpawnPool(IDictionary<int, float> pool, NPCSpawnInfo spawnInfo) {
 			SpawnPool selectedPool = null;
 			float priority = 0;
+			if (Main.invasionType != 0) priority = SpawnPool.SpawnPoolPriority.Event;
 			if (spawnInfo.Player.ZoneTowerNebula || spawnInfo.Player.ZoneTowerSolar || spawnInfo.Player.ZoneTowerStardust || spawnInfo.Player.ZoneTowerVortex) priority = SpawnPool.SpawnPoolPriority.EventHigh;
 			for (int i = 0; i < SpawnPools.Count; i++) {
 				SpawnPool currentPool = SpawnPools[i];

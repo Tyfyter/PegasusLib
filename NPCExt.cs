@@ -40,7 +40,7 @@ namespace PegasusLib {
 				};
 				bestiaryEntry.Icon.Update(info, screenPos, settings);
 				SpriteBatchState state = spriteBatch.GetState();
-				spriteBatch.Restart(default, SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.AnisotropicClamp, Main.Rasterizer, null, Main.UIScaleMatrix);
+				spriteBatch.Restart(SpriteBatchState.Default, SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.AnisotropicClamp, Main.Rasterizer, null, Main.UIScaleMatrix);
 				Main.graphics.GraphicsDevice.SetRenderTarget(renderTarget);
 				Main.graphics.GraphicsDevice.Clear(Color.Transparent);
 				bestiaryEntry.Icon.Draw(info, spriteBatch, settings);

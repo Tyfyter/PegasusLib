@@ -169,6 +169,13 @@ namespace PegasusLib {
 			}
 			return method.CreateDelegate<T>();
 		}
+		public static bool TrySet<T>(ref T value, T newValue) {
+			if (!Equals(value, newValue)) {
+				value = newValue;
+				return true;
+			}
+			return false;
+		}
 	}
 	public ref struct ReverseEntityGlobalsEnumerator<TGlobal>(TGlobal[] baseGlobals, TGlobal[] entityGlobals) where TGlobal : GlobalType<TGlobal> {
 		static readonly Func<IEntityWithGlobals<TGlobal>, TGlobal[]> getArray = PegasusLib.Compile<Func<IEntityWithGlobals<TGlobal>, TGlobal[]>>("getEntityGlobals",
