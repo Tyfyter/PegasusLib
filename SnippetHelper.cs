@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 namespace PegasusLib {
 	public record struct SnippetOption(string Name, [StringSyntax(StringSyntaxAttribute.Regex)] string Data, Action<string> Action) {
 		public readonly string Pattern => Name + Data;
+		/// <summary>
+		/// Creates an option which parses a color as an 8, 6, 4, or 3 digit hex code
+		/// </summary>
 		public static SnippetOption CreateColorOption(string name, Action<Color> setter) {
 			return new(name, "[\\da-fA-F]{3,8}", match => {
 				int Parse(int index, int size) {
@@ -34,11 +37,17 @@ namespace PegasusLib {
 				}
 			});
 		}
+		/// <summary>
+		/// Creates an option which parses a floating point number
+		/// </summary>
 		public static SnippetOption CreateFloatOption(string name, Action<float> setter) {
 			return new(name, "[\\d\\.]+", match => {
 				setter(int.Parse(match));
 			});
 		}
+		/// <summary>
+		/// Creates an option which parses an integer
+		/// </summary>
 		public static SnippetOption CreateIntOption(string name, Action<int> setter) {
 			return new(name, "[\\d]+", match => {
 				setter(int.Parse(match));
