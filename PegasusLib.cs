@@ -18,6 +18,7 @@ using PegasusLib.Reflection;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria.Audio;
 using MonoMod.Utils;
+using System.IO;
 
 namespace PegasusLib {
 	// Please read https://github.com/tModLoader/tModLoader/wiki/Basic-tModLoader-Modding-Guide#mod-skeleton-contents for more information about the various files in a mod.
@@ -175,6 +176,20 @@ namespace PegasusLib {
 				return true;
 			}
 			return false;
+		}
+		public override void HandlePacket(BinaryReader reader, int whoAmI) {
+			switch ((Packets)reader.ReadByte()) {
+				case Packets.SyncKeybindHandler:
+				int forPlayer = reader.ReadByte();
+				if (whoAmI != forPlayer && Main.netMode == NetmodeID.Server) break;
+				KeybindHandlerPlayer khPlayer = (KeybindHandlerPlayer)Main.player[forPlayer].ModPlayers[reader.ReadUInt16()];
+				khPlayer.ReceiveSync(reader);
+				if (Main.netMode == NetmodeID.Server) khPlayer.SendSync(whoAmI);
+				break;
+			}
+		}
+		internal enum Packets : byte {
+			SyncKeybindHandler
 		}
 	}
 	public ref struct ReverseEntityGlobalsEnumerator<TGlobal>(TGlobal[] baseGlobals, TGlobal[] entityGlobals) where TGlobal : GlobalType<TGlobal> {
