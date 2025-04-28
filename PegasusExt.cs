@@ -100,8 +100,11 @@ namespace PegasusLib {
 			}
 		}
 
+		public static Projectile SpawnProjectile(this ModProjectile self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) =>
+			SpawnProjectile(self.Projectile, spawnSource, position, velocity, type, damage, knockback, ai0, ai1, ai2);
 		public static Projectile SpawnProjectile(this Projectile self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) {
 			if (self.owner != Main.myPlayer) return null;
+			spawnSource ??= self.GetSource_FromAI();
 			return Projectile.NewProjectileDirect(
 				spawnSource,
 				position,
@@ -130,8 +133,11 @@ namespace PegasusLib {
 				ai2
 			);
 		}
+		public static Projectile SpawnProjectile(this ModNPC self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) =>
+			SpawnProjectile(self.NPC, spawnSource, position, velocity, type, damage, knockback, ai0, ai1, ai2);
 		public static Projectile SpawnProjectile(this NPC self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) {
 			if (Main.netMode == NetmodeID.MultiplayerClient) return null;
+			spawnSource ??= self.GetSource_FromAI();
 			return Projectile.NewProjectileDirect(
 				spawnSource,
 				position,
