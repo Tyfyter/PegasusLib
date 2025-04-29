@@ -99,12 +99,10 @@ namespace PegasusLib {
 				if (obj is TResult result) yield return result;
 			}
 		}
-
-		public static Projectile SpawnProjectile(this ModProjectile self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) =>
-			SpawnProjectile(self.Projectile, spawnSource, position, velocity, type, damage, knockback, ai0, ai1, ai2);
-		public static Projectile SpawnProjectile(this Projectile self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) {
-			if (self.owner != Main.myPlayer) return null;
-			spawnSource ??= self.GetSource_FromAI();
+		public static Projectile SpawnProjectile(this ModPlayer self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) =>
+			SpawnProjectile(self.Player, spawnSource, position, velocity, type, damage, knockback, ai0, ai1, ai2);
+		public static Projectile SpawnProjectile(this Player self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) {
+			if (self.whoAmI != Main.myPlayer) return null;
 			return Projectile.NewProjectileDirect(
 				spawnSource,
 				position,
@@ -118,8 +116,11 @@ namespace PegasusLib {
 				ai2
 			);
 		}
-		public static Projectile SpawnProjectile(this Player self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) {
-			if (self.whoAmI != Main.myPlayer) return null;
+		public static Projectile SpawnProjectile(this ModProjectile self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) =>
+			SpawnProjectile(self.Projectile, spawnSource, position, velocity, type, damage, knockback, ai0, ai1, ai2);
+		public static Projectile SpawnProjectile(this Projectile self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) {
+			if (self.owner != Main.myPlayer) return null;
+			spawnSource ??= self.GetSource_FromAI();
 			return Projectile.NewProjectileDirect(
 				spawnSource,
 				position,
@@ -150,6 +151,13 @@ namespace PegasusLib {
 				ai1,
 				ai2
 			);
+		}
+		public static NPC SpawnNPC(this ModNPC self, IEntitySource spawnSource, int x, int y, int type, int start = 0, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f, float ai3 = 0f, int target = 255) =>
+			SpawnNPC(self.NPC, spawnSource, x, y, type, start, ai0, ai1, ai2, ai3, target);
+		public static NPC SpawnNPC(this NPC self, IEntitySource spawnSource, int x, int y, int type, int start = 0, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f, float ai3 = 0f, int target = 255) {
+			if (Main.netMode == NetmodeID.MultiplayerClient) return null;
+			spawnSource ??= self.GetSource_FromAI();
+			return NPC.NewNPCDirect(spawnSource, x, y, type, start, ai0, ai1, ai2, ai3, target);
 		}
 		public static bool TrySet<T>(ref this T value, T newValue) where T : struct => PegasusLib.TrySet(ref value, newValue);
 	}
