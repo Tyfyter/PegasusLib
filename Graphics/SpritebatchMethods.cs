@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework.Graphics;
 using PegasusLib.Reflection;
 using System;
-using Terraria;
 
 namespace PegasusLib.Graphics {
 	internal class SpritebatchMethods : ReflectionLoader {
@@ -10,6 +9,13 @@ namespace PegasusLib.Graphics {
 		public static FastFieldInfo<SpriteBatch, SpriteSortMode> sortMode { get; private set; }
 		public static FastFieldInfo<SpriteBatch, Effect> customEffect { get; private set; }
 		public static FastFieldInfo<SpriteBatch, Matrix> transformMatrix { get; private set; }
+		private delegate void PrepRenderState_Del();
+		[ReflectionParentType(typeof(SpriteBatch)), ReflectionMemberName("PrepRenderState"), ReflectionDefaultInstance(typeof(Terraria.Main), nameof(Terraria.Main.spriteBatch))]
+		private static PrepRenderState_Del _PrepRenderState;
+		public static void PrepRenderState(SpriteBatch self) {
+			DelegateMethods._target.SetValue(_PrepRenderState, self);
+			_PrepRenderState();
+		}
 	}
 	public static class SpritebatchExt {
 		public static bool IsRunning(this SpriteBatch spriteBatch) => SpritebatchMethods.beginCalled.GetValue(spriteBatch);

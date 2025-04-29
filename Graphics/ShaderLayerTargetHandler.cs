@@ -102,6 +102,7 @@ namespace PegasusLib.Graphics {
 			spriteBatch.Draw(renderTarget, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
 			spriteBatch.Restart(spriteBatchState);
 			if (!spriteBatchWasRunning) spriteBatch.End();
+			if (spriteBatchWasRunning && spriteBatchState.sortMode != SpriteSortMode.Immediate) SpritebatchMethods.PrepRenderState(spriteBatch);
 		}
 		public void DrawContents() {
 			spriteBatch.Draw(renderTarget, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
@@ -121,6 +122,7 @@ namespace PegasusLib.Graphics {
 			Capturing = false;
 			if (spriteBatchWasRunning) {
 				spriteBatch.Restart(spriteBatchState);
+				if (spriteBatchState.sortMode != SpriteSortMode.Immediate) SpritebatchMethods.PrepRenderState(spriteBatch);
 			} else {
 				spriteBatch.End();
 			}
