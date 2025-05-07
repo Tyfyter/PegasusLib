@@ -53,6 +53,15 @@ namespace PegasusLib {
 				setter(int.Parse(match));
 			});
 		}
+		/// <summary>
+		/// Creates an option which parses a rectangle
+		/// </summary>
+		public static SnippetOption CreateRectangleOption(string name, Action<Rectangle> setter) {
+			return new(name, "(?:\\d+,){3}\\d+", match => {
+				string[] args = match.Split(',');
+				setter(new(int.Parse(args[0]), int.Parse(args[1]), int.Parse(args[2]), int.Parse(args[3])));
+			});
+		}
 	}
 	public static class SnippetHelper {
 		public static void ParseOptions(this string optionsText, params SnippetOption[] options) {
