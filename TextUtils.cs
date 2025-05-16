@@ -1,36 +1,55 @@
 ﻿using Hjson;
-using Microsoft.CodeAnalysis.Differencing;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Terraria;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace PegasusLib {
 	public static class TextUtils {
 		public static LanguageTree LanguageTree { get; private set; }
+		public static LanguageTree FallbackLanguageTree { get; private set; }
 		static Task taskWaiter;
 		internal static void LoadTranslations() {
+			CreateSelfLocalization ??= CreateLocalizationCreator();
 			LanguageTree = [];
+			bool generateFallback = FallbackLanguageTree is null;
+			if (generateFallback) FallbackLanguageTree = [];
 			List<Task> tasks = [];
 			foreach (Mod mod in ModLoader.Mods) {
 				tasks.Add(Task.Run(() => {
 					foreach (string name in mod.GetFileNames() ?? []) {
 						if (Path.GetExtension(name) != ".hjson") continue;
-						if (!LocalizationLoader.TryGetCultureAndPrefixFromPath(name, out GameCulture fileCulture, out string prefix) || fileCulture != Language.ActiveCulture) continue;
-						ProcessLocalizationFile(mod, name, prefix);
+						if (!LocalizationLoader.TryGetCultureAndPrefixFromPath(name, out GameCulture fileCulture, out string prefix)) continue;
+						if (fileCulture == Language.ActiveCulture) ProcessLocalizationFile(false, mod, name, prefix);
+						if (generateFallback && fileCulture == GameCulture.DefaultCulture) ProcessLocalizationFile(true, mod, name, prefix);
 					}
 				}));
 			}
 			taskWaiter = Task.WhenAll(tasks);
 		}
-		static void ProcessLocalizationFile(Mod mod, string name, string prefix) {
+		/// <summary>
+		///IL_0010: ldarg.0
+		///IL_0011: ldarg.0
+		///IL_0012: newobj instance void Terraria.Localization.LocalizedText::.ctor(string, string)
+		///IL_0017: ret
+		/// </summary>
+		internal static Func<string, LocalizedText> CreateSelfLocalization;
+		static Func<string, LocalizedText> CreateLocalizationCreator() => PegasusLib.Compile<Func<string, LocalizedText>>("LocalizationCreator",
+			(OpCodes.Ldarg_0, null),
+			(OpCodes.Ldarg_0, null),
+			(OpCodes.Newobj, typeof(LocalizedText).GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, [typeof(string), typeof(string)])),
+			(OpCodes.Ret, null)
+		);
+		static void ProcessLocalizationFile(bool isFallback, Mod mod, string name, string prefix) {
+			LanguageTree languageTree = isFallback ? FallbackLanguageTree : LanguageTree;
 			using Stream stream = mod.GetFileStream(name);
 			using StreamReader streamReader = new(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
 			string translationFileContents = streamReader.ReadToEnd();
@@ -69,12 +88,13 @@ namespace PegasusLib {
 					}
 					path2 = path2.Replace(".$parentVal", "");
 					if (!string.IsNullOrWhiteSpace(prefix)) path2 = prefix + "." + path2;
-					LanguageTree.Find(path2).value = Language.GetText(path2);
+					languageTree.FindOrCreate(path2).value = Language.GetText(path2);
 				}
 			}
 		}
 		internal static void Unload() {
 			LanguageTree = null;
+			FallbackLanguageTree = null;
 			taskWaiter = null;
 		}
 		public static string Format(string baseKey, IEnumerable<object> args) => Format(baseKey, args.ToArray());
@@ -89,7 +109,7 @@ namespace PegasusLib {
 				foreach (KeyValuePair<string, LanguageTree> item in tree) {
 					Match modMatch = modChecker.Match(item.Key);
 					if (modMatch.Length != item.Key.Length) continue;
-					int.TryParse(modMatch.Groups[1].Value, out int modOffset);
+					_ = int.TryParse(modMatch.Groups[1].Value, out int modOffset);
 					if (int.TryParse(modMatch.Groups[2].Value, out int modulo)) {
 						if ((args.Length + modOffset) % modulo == 0) {
 							format = item.Value.TextValue;
