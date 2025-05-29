@@ -107,12 +107,13 @@ namespace PegasusLib.Graphics {
 		public void DrawContents() {
 			spriteBatch.Draw(renderTarget, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
 		}
-		public void DrawContents(RenderTarget2D renderTarget) {
+		public void DrawContents(RenderTarget2D renderTarget) => DrawContents(renderTarget, Color.White, Matrix.Identity);
+		public void DrawContents(RenderTarget2D renderTarget, Color color, Matrix transformMatrix) {
 			try {
 				Main.graphics.GraphicsDevice.SetRenderTarget(renderTarget);
 				Main.graphics.GraphicsDevice.Clear(Color.Transparent);
-				spriteBatch.Restart(spriteBatchState, SpriteSortMode.Immediate, transformMatrix: Matrix.Identity);
-				spriteBatch.Draw(this.renderTarget, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+				spriteBatch.Restart(spriteBatchState, SpriteSortMode.Immediate, transformMatrix: transformMatrix);
+				spriteBatch.Draw(this.renderTarget, Vector2.Zero, null, color, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
 			} finally {
 				Main.graphics.GraphicsDevice.SetRenderTarget(this.renderTarget);
 			}
