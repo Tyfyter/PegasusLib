@@ -14,7 +14,18 @@ namespace PegasusLib {
 		public static implicit operator AutoCastingAsset<T>(Asset<T> asset) => new(asset);
 		public static implicit operator T(AutoCastingAsset<T> asset) => asset.Value;
 	}
-	public struct AutoLoadingAsset<T> : IUnloadable where T : class {
+	public interface IBatchLoadable {
+		public void Load();
+		public void Wait();
+		public static void LoadAll(params IBatchLoadable[] loadables) {
+			for (int i = 0; i < loadables.Length; i++) loadables[i].Load();
+		}
+		public static void LoadAllAndWait(params IBatchLoadable[] loadables) {
+			LoadAll(loadables);
+			for (int i = 0; i < loadables.Length; i++) loadables[i].Wait();
+		}
+	}
+	public struct AutoLoadingAsset<T> : IUnloadable, IBatchLoadable where T : class {
 		public readonly bool IsLoaded => asset.Value?.IsLoaded ?? false;
 		public T Value {
 			get {
@@ -73,6 +84,7 @@ namespace PegasusLib {
 			for (int i = 0; i < assets.Length; i++) assets[i].LoadAsset();
 			for (int i = 0; i < assets.Length; i++) assets[i].asset.Value.Wait();
 		}
+		void IBatchLoadable.Load() => LoadAsset();
 		public static implicit operator AutoLoadingAsset<T>(Asset<T> asset) => new(asset);
 		public static implicit operator AutoLoadingAsset<T>(string asset) => new(asset);
 		public static implicit operator T(AutoLoadingAsset<T> asset) => asset.Value;

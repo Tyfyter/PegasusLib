@@ -1,3 +1,8 @@
+global using Vector2 = Microsoft.Xna.Framework.Vector2;
+global using Vector3 = Microsoft.Xna.Framework.Vector3;
+global using Vector4 = Microsoft.Xna.Framework.Vector4;
+global using Color = Microsoft.Xna.Framework.Color;
+global using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using System.Collections.Generic;
 using Terraria.ID;
 using Terraria;

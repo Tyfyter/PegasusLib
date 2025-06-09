@@ -12,6 +12,7 @@ using System.Collections;
 using Terraria.DataStructures;
 using Microsoft.Xna.Framework;
 using Terraria.ID;
+using System.Numerics;
 
 namespace PegasusLib {
 	public static class PegasusExt {
@@ -160,5 +161,29 @@ namespace PegasusLib {
 			return NPC.NewNPCDirect(spawnSource, x, y, type, start, ai0, ai1, ai2, ai3, target);
 		}
 		public static bool TrySet<T>(ref this T value, T newValue) where T : struct => PegasusLib.TrySet(ref value, newValue);
+		public static bool Cooldown(ref this float value, float to = 0, float rate = 1) => value.Cooldown<float>(to, rate);
+		public static bool Cooldown(ref this int value, int to = 0, int rate = 1) => value.Cooldown<int>(to, rate);
+		public static bool Cooldown<N>(ref this N value, N to, N rate) where N : struct, INumber<N> {
+			if (value > to) {
+				value -= rate;
+				if (value <= to) {
+					value = to;
+					return true;
+				}
+			}
+			return false;
+		}
+		public static bool Warmup(ref this float value, float to, float rate = 1) => value.Warmup<float>(to, rate);
+		public static bool Warmup(ref this int value, int to, int rate = 1) => value.Warmup<int>(to, rate);
+		public static bool Warmup<N>(ref this N value, N to, N rate) where N : struct, INumber<N> {
+			if (value < to) {
+				value += rate;
+				if (value >= to) {
+					value = to;
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 }

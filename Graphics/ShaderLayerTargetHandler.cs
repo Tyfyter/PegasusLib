@@ -41,10 +41,10 @@ namespace PegasusLib.Graphics {
 			if (this.spriteBatch.IsRunning()) {
 				spriteBatchWasRunning = true;
 				spriteBatchState = this.spriteBatch.GetState();
-				this.spriteBatch.Restart(spriteBatchState, SpriteSortMode.Immediate, BlendState.AlphaBlend, Main.DefaultSamplerState, Main.Rasterizer, null);
+				this.spriteBatch.Restart(spriteBatchState, SpriteSortMode.Immediate, BlendState.AlphaBlend, Main.DefaultSamplerState, RasterizerState.CullNone, null);
 			} else {
 				spriteBatchWasRunning = false;
-				spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.Transform);
+				spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullNone, null, Main.GameViewMatrix.TransformationMatrix);
 				spriteBatchState = this.spriteBatch.GetState();
 			}
 			oldRenderTargets = Main.graphics.GraphicsDevice.GetRenderTargets();
