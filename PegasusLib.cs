@@ -24,6 +24,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Terraria.Audio;
 using MonoMod.Utils;
 using System.IO;
+using System.Collections;
 
 namespace PegasusLib {
 	// Please read https://github.com/tModLoader/tModLoader/wiki/Basic-tModLoader-Modding-Guide#mod-skeleton-contents for more information about the various files in a mod.
@@ -186,10 +187,23 @@ namespace PegasusLib {
 			switch ((Packets)reader.ReadByte()) {
 				case Packets.SyncKeybindHandler:
 				int forPlayer = reader.ReadByte();
+				string name = reader.ReadString();
+				BitArray values = Utils.ReceiveBitArray(reader.ReadByte(), reader);
 				if (whoAmI != forPlayer && Main.netMode == NetmodeID.Server) break;
-				KeybindHandlerPlayer khPlayer = (KeybindHandlerPlayer)Main.player[forPlayer].ModPlayers[reader.ReadUInt16()];
-				khPlayer.ReceiveSync(reader);
-				if (Main.netMode == NetmodeID.Server) khPlayer.SendSync(whoAmI);
+
+				if (KeybindHandlerPlayer.playerIDsByName.TryGetValue(name, out int index)) {
+					KeybindHandlerPlayer khPlayer = (KeybindHandlerPlayer)Main.player[forPlayer].ModPlayers[index];
+					khPlayer.netBits = values;
+					if (Main.netMode == NetmodeID.Server) khPlayer.SendSync(whoAmI);
+				} else {
+					ModPacket packet = ModContent.GetInstance<PegasusLib>().GetPacket();
+					packet.Write((byte)Packets.SyncKeybindHandler);
+					packet.Write((byte)forPlayer);
+					packet.Write(name);
+					packet.Write((byte)values.Count);
+					Utils.SendBitArray(values, packet);
+					packet.Send(ignoreClient: whoAmI);
+				}
 				break;
 			}
 		}
@@ -238,6 +252,7 @@ namespace PegasusLib {
 	public enum LibFeature {
 		IDrawNPCEffect,
 		IComplexMineDamageTile_Hammer,
-		WrappingTextSnippet
+		WrappingTextSnippet,
+		ExtraDyeSlots,
 	}
 }

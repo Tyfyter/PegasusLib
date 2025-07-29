@@ -13,11 +13,13 @@ using Terraria;
 using Terraria.GameInput;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.IO;
 
 namespace PegasusLib {
 	public abstract class KeybindHandlerPlayer : ModPlayer {
 		Action<KeybindHandlerPlayer> updateOldKeys;
 		Action<KeybindHandlerPlayer> updateCurrentKeys;
+		internal static Dictionary<string, int> playerIDsByName = [];
 
 		List<FieldInfo> netKeys = [];
 		public sealed override void Load() {
@@ -62,6 +64,9 @@ namespace PegasusLib {
 			}
 			netBits = new(netKeys.Count);
 		}
+		public override void SetStaticDefaults() {
+			playerIDsByName[FullName] = Index;
+		}
 		internal BitArray netBits;
 		public override ModPlayer Clone(Player newEntity) {
 			KeybindHandlerPlayer clone = (KeybindHandlerPlayer)base.Clone(newEntity);
@@ -82,12 +87,10 @@ namespace PegasusLib {
 			ModPacket packet = ModContent.GetInstance<PegasusLib>().GetPacket();
 			packet.Write((byte)PegasusLib.Packets.SyncKeybindHandler);
 			packet.Write((byte)Player.whoAmI);
-			packet.Write((ushort)Index);
+			packet.Write(FullName);
+			packet.Write((byte)netBits.Count);
 			Utils.SendBitArray(netBits, packet);
 			packet.Send(ignoreClient: ignoreClient);
-		}
-		internal void ReceiveSync(BinaryReader reader) {
-			netBits = Utils.ReceiveBitArray(netBits.Length, reader);
 		}
 		void SetNetKeys() {
 			for (int i = 0; i < netKeys.Count; i++) {

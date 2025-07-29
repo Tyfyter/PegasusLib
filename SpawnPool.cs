@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Terraria;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using Terraria.Utilities;
 
 namespace PegasusLib {
 	public abstract class SpawnPool : ModType {
@@ -54,6 +55,16 @@ namespace PegasusLib {
 					pool[npcType] = condition.Rate(spawnInfo) * 1000;
 				}
 			}
+		}
+		public static int GetSpawn<TPool>(NPCSpawnInfo spawnInfo) where TPool : SpawnPool {
+			WeightedRandom<int> pool = new(Main.rand);
+			SpawnPool selectedPool = ModContent.GetInstance<TPool>();
+			for (int i = 0; i < selectedPool.Spawns.Count; i++) {
+				(int npcType, SpawnRate condition) = selectedPool.Spawns[i];
+				pool.Add(npcType, condition.Rate(spawnInfo));
+			}
+			if (pool.elements.Count <= 0) return -1;
+			return pool.Get();
 		}
 	}
 }
