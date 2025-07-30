@@ -6,3 +6,15 @@ ListAll: {
 
 PluralityFormatting.NoValidFormat: No valid format for {0} arguments found in {1}
 FlagsEnumConfigElement.NoneSelected: None
+ExtraDyeSlotsButton: Additional Dyes
+
+Configs: {
+	PegasusConfig: {
+		DisplayName: Config
+
+		alwaysShowDyeSlotList: {
+			Label: Always Show Extra Dye List Button
+			Tooltip: ""
+		}
+	}
+}

@@ -25,12 +25,13 @@ namespace PegasusLib {
 		internal static List<ExtraDyeSlot> extraDyeSlots = [];
 		internal static bool drawingExtraDyeSlots = false;
 		internal static bool drewAnyExtraDyeSlots = false;
+		static bool? enabled;
+		static bool Enabled => enabled ??= PegasusLib.requiredFeatures.ContainsKey(LibFeature.ExtraDyeSlots);
 		public void Load(Mod mod) {
 			try {
 				IL_Main.DrawInventory += IL_Main_DrawInventory;
 				MonoModHooks.Add(typeof(AccessorySlotLoader).GetMethod("DrawSlot", BindingFlags.NonPublic | BindingFlags.Instance), On_DrawSlot);
 				On_ItemSlot.Draw_SpriteBatch_ItemArray_int_int_Vector2_Color += On_ItemSlot_Draw_SpriteBatch_ItemArray_int_int_Vector2_Color;
-				On_Main.DrawInventory += On_Main_DrawInventory;
 				On_Main.DrawPageIcons += On_Main_DrawPageIcons;
 			} catch (Exception exception) {
 				PegasusLib.FeatureError(LibFeature.ExtraDyeSlots, exception);
@@ -42,7 +43,8 @@ namespace PegasusLib {
 
 		private int On_Main_DrawPageIcons(On_Main.orig_DrawPageIcons orig, int yPos) {
 			int ret = orig(yPos);
-			if (!drewAnyExtraDyeSlots) {
+			if (!Enabled) return ret;
+			if (!drewAnyExtraDyeSlots || PegasusConfig.Instance.alwaysShowDyeSlotList) {
 				bool shouldDraw = false;
 				for (int i = 0; i < extraDyeSlots.Count && !shouldDraw; i++) {
 					shouldDraw = extraDyeSlots[i].Item?.IsAir == false;
@@ -66,10 +68,6 @@ namespace PegasusLib {
 			drewAnyExtraDyeSlots = false;
 			return ret;
 		}
-
-		static void On_Main_DrawInventory(On_Main.orig_DrawInventory orig, Main self) {
-			orig(self);
-		}
 		static Rectangle GetPosition(Vector2 position) {
 			Vector2 size = buttonTexture.Value.Frame(2).Size();
 			position += new Vector2(39, 5);
@@ -78,6 +76,7 @@ namespace PegasusLib {
 		}
 		static void On_ItemSlot_Draw_SpriteBatch_ItemArray_int_int_Vector2_Color(On_ItemSlot.orig_Draw_SpriteBatch_ItemArray_int_int_Vector2_Color orig, SpriteBatch spriteBatch, Item[] inv, int context, int slot, Vector2 position, Color lightColor) {
 			orig(spriteBatch, inv, context, slot, position, lightColor);
+			if (!Enabled) return;
 			if (drawingExtraDyeSlots) return;
 			if (showButton && context is ItemSlot.Context.EquipDye or ItemSlot.Context.ModdedDyeSlot or ItemSlot.Context.DisplayDollDye or ItemSlot.Context.EquipMiscDye or ItemSlot.Context.HatRackDye) {
 				spriteBatch.Draw(buttonTexture, GetPosition(position), buttonTexture.Value.Frame(2), Color.White * (hovered ? 1f : 0.7f));
@@ -125,6 +124,7 @@ namespace PegasusLib {
 		static bool HandleButtonInteraction(int x, int y, Item[] items, int context, int slot) {
 			showButton = false;
 			hovered = false;
+			if (!Enabled) return false;
 			if (drawingExtraDyeSlots) return false;
 			if (context is ItemSlot.Context.EquipDye or ItemSlot.Context.ModdedDyeSlot) {
 				(int vanityOffset, Item[] equippedItems, bool[] equipHidden) = GetEquippedItems(items == Main.LocalPlayer.dye);
@@ -132,6 +132,7 @@ namespace PegasusLib {
 				showButton = true;
 				if (ButtonHovered(x, y)) {
 					Main.LocalPlayer.mouseInterface = true;
+					Main.instance.MouseText(Language.GetTextValue("Mods.PegasusLib.ExtraDyeSlotsButton"));
 					hovered = true;
 					return true;
 				}
@@ -168,6 +169,7 @@ namespace PegasusLib {
 		public virtual LocalizedText DisplayText => this.GetLocalization(nameof(DisplayText), () => "{$LegacyInterface.57}");
 		FakeDyeSlot fakeDyeSlot;
 		protected sealed override void Register() {
+			PegasusLib.Require(Mod, LibFeature.ExtraDyeSlots);
 			ModTypeLookup<ExtraDyeSlot>.Register(this);
 			Type = ExtraDyeSlots.extraDyeSlots.Count;
 			ExtraDyeSlots.extraDyeSlots.Add(this);

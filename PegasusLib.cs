@@ -1,27 +1,19 @@
 global using Vector2 = Microsoft.Xna.Framework.Vector2;
 global using Vector3 = Microsoft.Xna.Framework.Vector3;
-global using Vector4 = Microsoft.Xna.Framework.Vector4;
 global using Color = Microsoft.Xna.Framework.Color;
 global using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using System.Collections.Generic;
 using Terraria.ID;
 using Terraria;
 using Terraria.ModLoader;
-using Microsoft.Xna.Framework;
 using Terraria.ObjectData;
 using System;
 using Terraria.ModLoader.Core;
-using MonoMod.Core.Platforms;
-using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Reflection.Emit;
 using System.Reflection;
 using System.Linq;
 using Terraria.UI;
-using MonoMod.Cil;
-using PegasusLib.Reflection;
-using Microsoft.Xna.Framework.Graphics;
-using Terraria.Audio;
 using MonoMod.Utils;
 using System.IO;
 using System.Collections;
@@ -48,9 +40,8 @@ namespace PegasusLib {
 				if (erroredFeatures.TryGetValue(feature, out Exception exception)) {
 					throw new Exception($"Error while loading feature {feature} required by mod {mod.DisplayNameClean}:", exception);
 				} else {
-					if (!requiredFeatures.TryGetValue(feature, out List<Mod> reqs)) reqs = [];
-					reqs.Add(mod);
-					requiredFeatures[feature] = reqs;
+					if (!requiredFeatures.TryGetValue(feature, out List<Mod> reqs)) requiredFeatures[feature] = reqs = [];
+					if (!reqs.Contains(mod)) reqs.Add(mod);
 				}
 			}
 		}
