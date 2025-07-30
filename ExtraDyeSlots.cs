@@ -24,11 +24,14 @@ namespace PegasusLib {
 		internal static FastFieldInfo<ModAccessorySlotPlayer, bool[]> exHideAccessory = "exHideAccessory";
 		internal static List<ExtraDyeSlot> extraDyeSlots = [];
 		internal static bool drawingExtraDyeSlots = false;
+		internal static bool drewAnyExtraDyeSlots = false;
 		public void Load(Mod mod) {
 			try {
 				IL_Main.DrawInventory += IL_Main_DrawInventory;
 				MonoModHooks.Add(typeof(AccessorySlotLoader).GetMethod("DrawSlot", BindingFlags.NonPublic | BindingFlags.Instance), On_DrawSlot);
 				On_ItemSlot.Draw_SpriteBatch_ItemArray_int_int_Vector2_Color += On_ItemSlot_Draw_SpriteBatch_ItemArray_int_int_Vector2_Color;
+				On_Main.DrawInventory += On_Main_DrawInventory;
+				On_Main.DrawPageIcons += On_Main_DrawPageIcons;
 			} catch (Exception exception) {
 				PegasusLib.FeatureError(LibFeature.ExtraDyeSlots, exception);
 #if DEBUG
@@ -37,8 +40,38 @@ namespace PegasusLib {
 			}
 		}
 
+		private int On_Main_DrawPageIcons(On_Main.orig_DrawPageIcons orig, int yPos) {
+			int ret = orig(yPos);
+			if (!drewAnyExtraDyeSlots) {
+				bool shouldDraw = false;
+				for (int i = 0; i < extraDyeSlots.Count && !shouldDraw; i++) {
+					shouldDraw = extraDyeSlots[i].Item?.IsAir == false;
+				}
+				if (shouldDraw) {
+					Rectangle frame = buttonTexture.Value.Frame(2);
+					Rectangle rect = new(Main.screenWidth - 162 - 48 - 6, yPos + 4, frame.Width, frame.Height);
+					if (rect.Contains(Main.mouseX, Main.mouseY)) {
+						frame.X += frame.Width;
+						Main.LocalPlayer.mouseInterface = true;
+						if (Main.mouseLeftRelease && Main.mouseLeft) {
+							ExtraDyeSlotSystem.SetUI(new ExtraDyeSlotUI(
+								rect.X, rect.Y,
+								extraDyeSlots.ToArray()
+							));
+						}
+					}
+					Main.spriteBatch.Draw(buttonTexture, rect, frame, Color.White);
+				}
+			}
+			drewAnyExtraDyeSlots = false;
+			return ret;
+		}
+
+		static void On_Main_DrawInventory(On_Main.orig_DrawInventory orig, Main self) {
+			orig(self);
+		}
 		static Rectangle GetPosition(Vector2 position) {
-			Vector2 size = buttonTexture.Value.Size();
+			Vector2 size = buttonTexture.Value.Frame(2).Size();
 			position += new Vector2(39, 5);
 
 			return new((int)(position.X - size.X * 0.5f), (int)(position.Y - size.Y * 0.5f), (int)size.X, (int)size.Y);
@@ -47,9 +80,9 @@ namespace PegasusLib {
 			orig(spriteBatch, inv, context, slot, position, lightColor);
 			if (drawingExtraDyeSlots) return;
 			if (showButton && context is ItemSlot.Context.EquipDye or ItemSlot.Context.ModdedDyeSlot or ItemSlot.Context.DisplayDollDye or ItemSlot.Context.EquipMiscDye or ItemSlot.Context.HatRackDye) {
-				spriteBatch.Draw(buttonTexture, GetPosition(position), Color.White * (hovered ? 1f : 0.7f));
+				spriteBatch.Draw(buttonTexture, GetPosition(position), buttonTexture.Value.Frame(2), Color.White * (hovered ? 1f : 0.7f));
+				drewAnyExtraDyeSlots = true;
 				if (hovered && Main.mouseLeftRelease && Main.mouseLeft) {
-
 					(int vanityOffset, Item[] equippedItems, bool[] equipHidden) = GetEquippedItems(inv == Main.LocalPlayer.dye);
 					ExtraDyeSlotSystem.SetUI(new ExtraDyeSlotUI(
 						(int)position.X, (int)position.Y,
@@ -146,7 +179,13 @@ namespace PegasusLib {
 		}
 		public abstract bool UseForSlot(Item equipped, Item vanity, bool equipHidden);
 		public abstract void ApplyDye(Player player, [NotNull] Item dye);
-		internal (Item[] slots, int index) Item => (ExtraDyeSlots.exDyesAccessory.GetValue(fakeDyeSlot.ModSlotPlayer), fakeDyeSlot.Type);
+		internal (Item[] slots, int index) ItemData => (ExtraDyeSlots.exDyesAccessory.GetValue(fakeDyeSlot.ModSlotPlayer), fakeDyeSlot.Type);
+		public ref Item Item {
+			get {
+				(Item[] slots, int index) = ItemData;
+				return ref slots[index];
+			}
+		}
 		public class FakeDyeSlot(ExtraDyeSlot slot) : ModAccessorySlot {
 			public override string Name => slot.Name + "_Slot";
 			public override bool IsHidden() => true;
@@ -177,7 +216,8 @@ namespace PegasusLib {
 			List<ExtraDyeSlot> invalidSlots = [];
 			for (int i = 0; i < ExtraDyeSlots.extraDyeSlots.Count; i++) {
 				ExtraDyeSlot slot = ExtraDyeSlots.extraDyeSlots[i];
-				(Item[] inv, int j) = slot.Item;
+				if (slots.Contains(slot)) continue;
+				(Item[] inv, int j) = slot.ItemData;
 				if (inv[j]?.IsAir ?? true) continue;
 
 				(int vanityOffset, Item[] equippedItems, bool[] equipHidden) = ExtraDyeSlots.GetEquippedItems(true);
@@ -260,7 +300,7 @@ namespace PegasusLib {
 				Top.Set(3, 0);
 			}
 			public override void Draw(SpriteBatch spriteBatch) {
-				(Item[] items, int index) = slot.Item;
+				(Item[] items, int index) = slot.ItemData;
 				Vector2 position = GetDimensions().Position();
 				int context = 12;
 				if (Parent.Parent is ExtraDyeSlotUI parent && index >= parent.invalidSlotIndex) {
@@ -279,8 +319,19 @@ namespace PegasusLib {
 					ItemSlot.LeftClick(items, context, index);
 					ItemSlot.MouseHover(items, context, index);
 					Main.hoverItemName = slot.DisplayText.Value;
+					if (Main.HoverItem?.TryGetGlobalItem(out ShowDyeSlotNames showNames) ?? false) showNames.text = slot.DisplayText;
 				}
 				ItemSlot.Draw(spriteBatch, items, context, index, position);
+			}
+		}
+	}
+	internal class ShowDyeSlotNames : GlobalItem {
+		internal LocalizedText text;
+		public override bool InstancePerEntity => true;
+		public override bool AppliesToEntity(Item entity, bool lateInstantiation) => entity.dye != 0;
+		public override void ModifyTooltips(Item item, List<TooltipLine> tooltips) {
+			if (text is not null) {
+				tooltips.Insert(0, new(Mod, "SlotName", text.Value));
 			}
 		}
 	}
