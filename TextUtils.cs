@@ -147,6 +147,14 @@ namespace PegasusLib {
 		public static string Replace(this Match match, string source, string replacement) {
 			return string.Concat(source.AsSpan(0, match.Index), replacement, source.AsSpan(match.Index + match.Length));
 		}
+		public static IEnumerable<LanguageTree> GetDescendants(this LanguageTree languageTree, bool includeSelf = false) {
+			if (includeSelf && languageTree.value.Key != languageTree.value.Value) yield return languageTree;
+			foreach (LanguageTree branch in languageTree.Values) {
+				foreach (LanguageTree item in branch.GetDescendants(true)) {
+					yield return item;
+				}
+			}
+		}
 	}
 	internal class PluralityFormattingSystem : ModSystem {
 		public override void OnLocalizationsLoaded() {

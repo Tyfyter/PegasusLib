@@ -295,17 +295,17 @@ namespace PegasusLib {
 			}
 		}
 		readonly Stack<UIExtraDyeSlot> removeStack = new();
-		class UIExtraDyeSlot(ExtraDyeSlot slot, int index) : UIElement {
+		class UIExtraDyeSlot(ExtraDyeSlot slot, int slotIndex) : UIElement {
 			public override void OnInitialize() {
 				HAlign = 1;
-				Left.Set((index + 1) * -50 + 2, 0);
+				Left.Set((slotIndex + 1) * -50 + 2, 0);
 				Top.Set(3, 0);
 			}
 			public override void Draw(SpriteBatch spriteBatch) {
 				(Item[] items, int index) = slot.ItemData;
 				Vector2 position = GetDimensions().Position();
 				int context = 12;
-				if (Parent.Parent is ExtraDyeSlotUI parent && index >= parent.invalidSlotIndex) {
+				if (Parent.Parent is ExtraDyeSlotUI parent && slotIndex >= parent.invalidSlotIndex) {
 					context = ItemSlot.Context.VoidItem;
 					if (items[index]?.IsAir ?? true) {
 						parent.removeStack.Push(this);

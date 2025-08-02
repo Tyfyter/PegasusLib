@@ -27,7 +27,7 @@ using Microsoft.Xna.Framework;
 
 namespace PegasusLib {
 	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Class | AttributeTargets.Enum)]
-	sealed class ConfigFlagsAttribute<TEnum>() : CustomModConfigItemAttribute(typeof(FlagsEnumConfigElement<TEnum>)) where TEnum : struct, Enum {}
+	public sealed class ConfigFlagsAttribute<TEnum>() : CustomModConfigItemAttribute(typeof(FlagsEnumConfigElement<TEnum>)) where TEnum : struct, Enum {}
 	public class FlagsEnumConfigElement<TEnum> : ConfigElement<TEnum> where TEnum : struct, Enum {
 		protected bool pendingChanges = false;
 		TEnum[] possibleFlags;

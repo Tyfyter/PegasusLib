@@ -98,7 +98,7 @@ namespace PegasusLib {
 				frameX = style * objectData.CoordinateFullWidth;
 				for (int x = 0; x < objectData.Width; x++) {
 					tile = Main.tile[Coords.X + x, Coords.Y + y];
-					tile.ResetToType(type);
+					tile.TileType = type;
 					tile.TileFrameX = (short)frameX;
 					tile.TileFrameY = (short)frameY;
 					frameX += objectData.CoordinateWidth + objectData.CoordinatePadding;

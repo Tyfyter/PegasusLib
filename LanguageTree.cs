@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Terraria.Localization;
@@ -9,6 +10,7 @@ namespace PegasusLib {
 		public LocalizedText value = value;
 		public string TextValue => value.Value;
 		public LocalizedText[] Children => Values.Select(tree => tree.value).ToArray();
+		public LocalizedText[] Descendants => this.GetDescendants().Select(tree => tree.value).ToArray();
 		string KeyPrefix => value is null ? "" : $"{value.Key}.";
 		public LanguageTree GetOrCreate(string key) => GetOrAdd(key, _ => new(TextUtils.CreateSelfLocalization(KeyPrefix + key)));
 		public LanguageTree Find(string path, bool doFallback = true) {
