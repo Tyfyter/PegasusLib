@@ -78,7 +78,7 @@ namespace PegasusLib {
 			orig(spriteBatch, inv, context, slot, position, lightColor);
 			if (!Enabled) return;
 			if (drawingExtraDyeSlots) return;
-			if (showButton && context is ItemSlot.Context.EquipDye or ItemSlot.Context.ModdedDyeSlot or ItemSlot.Context.DisplayDollDye or ItemSlot.Context.EquipMiscDye or ItemSlot.Context.HatRackDye) {
+			if (showButton && context is ItemSlot.Context.EquipDye or ItemSlot.Context.ModdedDyeSlot) {
 				spriteBatch.Draw(buttonTexture, GetPosition(position), buttonTexture.Value.Frame(2), Color.White * (hovered ? 1f : 0.7f));
 				drewAnyExtraDyeSlots = true;
 				if (hovered && Main.mouseLeftRelease && Main.mouseLeft) {
