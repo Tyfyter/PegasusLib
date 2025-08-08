@@ -42,7 +42,7 @@ namespace PegasusLib {
 		/// </summary>
 		public static SnippetOption CreateFloatOption(string name, Action<float> setter) {
 			return new(name, "[\\d\\.]+", match => {
-				setter(int.Parse(match));
+				setter(float.Parse(match));
 			});
 		}
 		/// <summary>
