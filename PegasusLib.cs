@@ -1,22 +1,23 @@
-global using Vector2 = Microsoft.Xna.Framework.Vector2;
-global using Vector3 = Microsoft.Xna.Framework.Vector3;
 global using Color = Microsoft.Xna.Framework.Color;
 global using Rectangle = Microsoft.Xna.Framework.Rectangle;
-using System.Collections.Generic;
-using Terraria.ID;
-using Terraria;
-using Terraria.ModLoader;
-using Terraria.ObjectData;
-using System;
-using Terraria.ModLoader.Core;
-using System.Runtime.CompilerServices;
-using System.Reflection.Emit;
-using System.Reflection;
-using System.Linq;
-using Terraria.UI;
+global using Vector2 = Microsoft.Xna.Framework.Vector2;
+global using Vector3 = Microsoft.Xna.Framework.Vector3;
 using MonoMod.Utils;
-using System.IO;
+using PegasusLib.Networking;
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
+using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
+using Terraria.ModLoader.Core;
+using Terraria.ObjectData;
+using Terraria.UI;
 
 namespace PegasusLib {
 	// Please read https://github.com/tModLoader/tModLoader/wiki/Basic-tModLoader-Modding-Guide#mod-skeleton-contents for more information about the various files in a mod.
@@ -196,10 +197,15 @@ namespace PegasusLib {
 					packet.Send(ignoreClient: whoAmI);
 				}
 				break;
+
+				case Packets.SyncedAction:
+				SyncedAction.Get(reader.ReadUInt16()).Read(reader).Perform(whoAmI);
+				break;
 			}
 		}
 		internal enum Packets : byte {
-			SyncKeybindHandler
+			SyncKeybindHandler,
+			SyncedAction
 		}
 	}
 	public ref struct ReverseEntityGlobalsEnumerator<TGlobal>(TGlobal[] baseGlobals, TGlobal[] entityGlobals) where TGlobal : GlobalType<TGlobal> {

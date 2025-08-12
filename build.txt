@@ -1,5 +1,5 @@
 displayName = Pegasus Lib
 author = Moonlight Glint
-version = 1.0.7.4
+version = 1.0.8
 side = NoSync
 homepage = https://github.com/Tyfyter/PegasusLib

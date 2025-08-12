@@ -56,14 +56,30 @@ namespace PegasusLib.Graphics {
 		/// </summary>
 		/// <param name="shader"></param>
 		/// <param name="entity">the Entity to be used in <see cref="ArmorShaderData.Apply"/></param>
-		public void Stack(ArmorShaderData shader, Entity entity = null) {
+		public void Stack(ArmorShaderData shader, Entity entity = null) => Stack(shader, Matrix.Identity, entity);
+		public void Stack(ArmorShaderData shader, Matrix matrix, Entity entity = null) {
 			if (Main.dedServ) return;
 			Utils.Swap(ref renderTarget, ref oldRenderTarget);
 			Main.graphics.GraphicsDevice.SetRenderTarget(renderTarget);
 			Main.graphics.GraphicsDevice.Clear(Color.Transparent);
-			spriteBatch.Restart(spriteBatchState, SpriteSortMode.Immediate, transformMatrix: Matrix.Identity);
+			spriteBatch.Restart(spriteBatchState, SpriteSortMode.Immediate, transformMatrix: matrix);
 			DrawData data = new(oldRenderTarget, Vector2.Zero, null, Color.White, 0, Vector2.Zero, Vector2.One, SpriteEffects.None);
 			shader.Apply(entity, data);
+			data.Draw(spriteBatch);
+		}
+		/// <summary>
+		/// Applies the shader to everything captured
+		/// </summary>
+		/// <param name="shader"></param>
+		public void Stack(MiscShaderData shader, Matrix? matrix = null) {
+			if (Main.dedServ) return;
+			matrix ??= Matrix.Identity;
+			Utils.Swap(ref renderTarget, ref oldRenderTarget);
+			Main.graphics.GraphicsDevice.SetRenderTarget(renderTarget);
+			Main.graphics.GraphicsDevice.Clear(Color.Transparent);
+			spriteBatch.Restart(spriteBatchState, SpriteSortMode.Immediate, transformMatrix: matrix);
+			DrawData data = new(oldRenderTarget, Vector2.Zero, null, Color.White, 0, Vector2.Zero, Vector2.One, SpriteEffects.None);
+			shader.Apply(data);
 			data.Draw(spriteBatch);
 		}
 		/// <summary>
