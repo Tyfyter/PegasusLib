@@ -1,18 +1,15 @@
-﻿using System;
+﻿using PegasusLib.Reflection;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
-using Terraria;
-using Terraria.ModLoader.Core;
-using Terraria.ModLoader;
-using Terraria.ModLoader.IO;
-using PegasusLib.Reflection;
-using System.Collections;
-using Terraria.DataStructures;
-using Microsoft.Xna.Framework;
-using Terraria.ID;
 using System.Numerics;
+using Terraria;
+using Terraria.DataStructures;
+using Terraria.ID;
+using Terraria.ModLoader;
+using Terraria.ModLoader.Core;
+using Terraria.ModLoader.IO;
 
 namespace PegasusLib {
 	public static class PegasusExt {
@@ -94,10 +91,15 @@ namespace PegasusLib {
 			ArgumentNullException.ThrowIfNull(source);
 			return TryCastIterator<TResult>(source);
 		}
-
 		private static IEnumerable<TResult> TryCastIterator<TResult>(IEnumerable source) {
 			foreach (object obj in source) {
 				if (obj is TResult result) yield return result;
+			}
+		}
+		public delegate bool TryGetter<TSource, TResult>(TSource source, out TResult result);
+		public static IEnumerable<TResult> TrySelect<TSource, TResult>(this IEnumerable<TSource> source, TryGetter<TSource, TResult> tryGetter) {
+			foreach (TSource item in source) {
+				if (tryGetter(item, out TResult result)) yield return result;
 			}
 		}
 		public static Projectile SpawnProjectile(this ModPlayer self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) =>

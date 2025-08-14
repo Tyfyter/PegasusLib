@@ -15,6 +15,10 @@ namespace PegasusLib.Networking {
 			actionIDsByType?.TryGetValue(GetType(), out type);
 		}
 		private ushort type;
+		/// <summary>
+		/// In multiplayer, this is used to determine whether or not the action runs on clients
+		/// Return true for anything that should only be run by the process that handles NPCs, the world, etc.
+		/// </summary>
 		public virtual bool ServerOnly => false;
 		protected virtual bool ShouldPerform => true;
 		public void Load(Mod mod) {
@@ -32,7 +36,7 @@ namespace PegasusLib.Networking {
 		/// <param name="fromClient"></param>
 		public void Perform(int fromClient = -2) {
 			if (!ShouldPerform) return;
-			if (NetmodeActive.Server || !ServerOnly) Perform();
+			if (!NetmodeActive.MultiplayerClient || !ServerOnly) Perform();
 			if ((NetmodeActive.Server && !ServerOnly) || (NetmodeActive.MultiplayerClient && fromClient == -2)) {
 				Send(ignoreClient: fromClient);
 			}
