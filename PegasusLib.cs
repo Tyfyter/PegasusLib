@@ -2,6 +2,8 @@ global using Color = Microsoft.Xna.Framework.Color;
 global using Rectangle = Microsoft.Xna.Framework.Rectangle;
 global using Vector2 = Microsoft.Xna.Framework.Vector2;
 global using Vector3 = Microsoft.Xna.Framework.Vector3;
+using Microsoft.Xna.Framework;
+using MonoMod.Cil;
 using MonoMod.Utils;
 using PegasusLib.Networking;
 using System;
@@ -26,6 +28,7 @@ namespace PegasusLib {
 		internal static Dictionary<LibFeature, List<Mod>> requiredFeatures = [];
 		internal static Dictionary<LibFeature, Exception> erroredFeatures = [];
 		internal static Dictionary<LibFeature, Action<Exception>> onFeatureError = [];
+		public static bool unloading = false;
 		public override void Load() {
 			On_Main.DrawNPCDirect += IDrawNPCEffect.On_Main_DrawNPCDirect;
 			On_Main.DrawProj_Inner += IDrawProjectileEffect.On_Main_DrawProj_Inner;
@@ -34,6 +37,10 @@ namespace PegasusLib {
 
 			MonoModHooks.Modify(typeof(NPCLoader).GetMethod(nameof(NPCLoader.PreDraw)), IDrawNPCEffect.AddIteratePreDraw);
 			MonoModHooks.Modify(typeof(NPCLoader).GetMethod(nameof(NPCLoader.PostDraw)), IDrawNPCEffect.AddIteratePostDraw);
+			MonoModHooks.Modify(typeof(MenuLoader).GetMethod("Unload", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static), (ILContext il) => {
+				new ILCursor(il).EmitLdcI4(1).EmitStsfld(typeof(PegasusLib).GetField(nameof(unloading)));
+			});
+			Main.OnPostDraw += IncrementFrameCount;
 		}
 		public static void Require(Mod mod, params LibFeature[] features) {
 			for (int i = 0; i < features.Length; i++) {
@@ -72,6 +79,7 @@ namespace PegasusLib {
 			foreach (IUnloadable unloadable in unloadables) {
 				unloadable.Unload();
 			}
+			Main.OnPostDraw -= IncrementFrameCount;
 			unloadables = null;
 			requiredFeatures = null;
 			erroredFeatures = null;
@@ -201,6 +209,13 @@ namespace PegasusLib {
 				case Packets.SyncedAction:
 				SyncedAction.Get(reader.ReadUInt16()).Read(reader).Perform(whoAmI);
 				break;
+			}
+		}
+
+		public static uint gameFrameCount = 0;
+		static void IncrementFrameCount(GameTime gameTime) {
+			unchecked {
+				gameFrameCount++;
 			}
 		}
 		internal enum Packets : byte {
