@@ -22,6 +22,7 @@ namespace PegasusLib.Networking {
 		public virtual bool ServerOnly => false;
 		protected virtual bool ShouldPerform => true;
 		public void Load(Mod mod) {
+			if (mod.Side != ModSide.Both) throw new InvalidOperationException("SyncedActions can only be added by Both-side mods");
 			type = (ushort)actions.Count;
 			actions.Add(this);
 			actionIDsByType.Add(GetType(), type);
