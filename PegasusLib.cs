@@ -207,7 +207,7 @@ namespace PegasusLib {
 				break;
 
 				case Packets.SyncedAction:
-				SyncedAction.Get(reader.ReadUInt16()).Read(reader).Perform(whoAmI);
+				SyncedAction.Get(SyncedAction.ReadType(reader)).Read(reader).Perform(whoAmI);
 				break;
 			}
 		}
