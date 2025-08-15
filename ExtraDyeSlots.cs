@@ -197,6 +197,7 @@ namespace PegasusLib {
 			public override void ApplyEquipEffects() {
 				if (DyeItem?.IsAir == false) slot.ApplyDye(Player, DyeItem);
 			}
+			public override bool CanAcceptItem(Item checkItem, AccessorySlotType context) => context == AccessorySlotType.DyeSlot;
 		}
 	}
 	internal class ExtraDyeSlotUI : UIState {
