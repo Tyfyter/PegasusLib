@@ -7,6 +7,22 @@ ListAll: {
 PluralityFormatting.NoValidFormat: No valid format for {0} arguments found in {1}
 FlagsEnumConfigElement.NoneSelected: None
 ExtraDyeSlotsButton: Additional Dyes
+WeakSyncedAction_BothSide: WeakSyncedActions should not be added by Both-side mods for performance reasons, use SyncedAction instead
+WarningPrefaceText: Some errors were encountered during mod loading, these may be the result of incompatibility with other mods
+
+NotSynced_KeybindHandlerPlayer: {
+	Base: KeybindHandlerPlayer, but PegasusLib is not present on the server, some keybindings may not produce the expected effect for other clients
+	1: "{n} uses {$Base}"
+	2: "{n} and {n} use {$Base}"
+	Any: "[{n}, ]and {n} use {$Base}"
+}
+
+NotSynced_WeakSyncedAction: {
+	Base: WeakSyncedAction, but PegasusLib is not present on the server, some actions may not produce the expected effect for other clients
+	1: "{n} uses {$Base}"
+	2: "{n} and {n} use {$Base}"
+	Any: "[{n}, ]and {n} use {$Base}"
+}
 
 Configs: {
 	PegasusConfig: {

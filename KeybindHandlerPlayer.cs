@@ -84,6 +84,7 @@ namespace PegasusLib {
 			}
 		}
 		internal void SendSync(int ignoreClient = -1) {
+			if (!PegasusLib.IsNetSynced) return;
 			ModPacket packet = ModContent.GetInstance<PegasusLib>().GetPacket();
 			packet.Write((byte)PegasusLib.Packets.SyncKeybindHandler);
 			packet.Write((byte)Player.whoAmI);

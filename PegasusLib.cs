@@ -9,21 +9,30 @@ using PegasusLib.Networking;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Security.Policy;
 using Terraria;
+using Terraria.GameContent;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Core;
+using Terraria.ModLoader.UI;
 using Terraria.ObjectData;
 using Terraria.UI;
+using Terraria.UI.Chat;
+using XPT.Core.Audio.MP3Sharp.Decoding;
 
 namespace PegasusLib {
 	// Please read https://github.com/tModLoader/tModLoader/wiki/Basic-tModLoader-Modding-Guide#mod-skeleton-contents for more information about the various files in a mod.
 	public class PegasusLib : Mod {
+		internal static new bool IsNetSynced => ((Mod)ModContent.GetInstance<PegasusLib>()).IsNetSynced;
 		internal static List<IUnloadable> unloadables = [];
 		internal static Dictionary<LibFeature, List<Mod>> requiredFeatures = [];
 		internal static Dictionary<LibFeature, Exception> erroredFeatures = [];
@@ -41,6 +50,29 @@ namespace PegasusLib {
 				new ILCursor(il).EmitLdcI4(1).EmitStsfld(typeof(PegasusLib).GetField(nameof(unloading)));
 			});
 			Main.OnPostDraw += IncrementFrameCount;
+			On_Main.DrawSocialMediaButtons += (orig, color, upBump) => {
+				orig(color, upBump);
+				if (loadingWarnings.Count != 0) {
+					int titleLinks = Main.tModLoaderTitleLinks.Count;
+					Vector2 anchorPosition = new(18f, 18f);
+					Rectangle rectangle = new((int)anchorPosition.X, (int)anchorPosition.Y, 30, 30);
+					float scaleValue = MathHelper.Lerp(0.5f, 1f, Main.mouseTextColor / 255f);
+					ChatManager.DrawColorCodedStringWithShadow(
+						Main.spriteBatch,
+						FontAssets.DeathText.Value,
+						"!",
+						rectangle.Left() - FontAssets.DeathText.Value.MeasureString("!") * new Vector2(0f, 0.25f),
+						Color.Yellow,
+						Color.OrangeRed,
+						0,
+						Vector2.Zero,
+						new Vector2(scaleValue)
+					);
+					if (rectangle.Contains(Main.mouseX, Main.mouseY)) {
+						UICommon.TooltipMouseText(Language.GetText("Mods.PegasusLib.Warnings.WarningPrefaceText") + "\n" + string.Join('\n', loadingWarnings));
+					}
+				}
+			};
 		}
 		public static void Require(Mod mod, params LibFeature[] features) {
 			for (int i = 0; i < features.Length; i++) {
@@ -183,32 +215,65 @@ namespace PegasusLib {
 			}
 			return false;
 		}
+		public static void LogLoadingWarning(LocalizedText message) {
+			ModContent.GetInstance<PegasusLib>().Logger.Warn(message.Value);
+			loadingWarnings.Add(message);
+		}
+		public static List<LocalizedText> loadingWarnings = [];
 		public override void HandlePacket(BinaryReader reader, int whoAmI) {
 			switch ((Packets)reader.ReadByte()) {
-				case Packets.SyncKeybindHandler:
-				int forPlayer = reader.ReadByte();
-				string name = reader.ReadString();
-				BitArray values = Utils.ReceiveBitArray(reader.ReadByte(), reader);
-				if (whoAmI != forPlayer && Main.netMode == NetmodeID.Server) break;
+				case Packets.SyncKeybindHandler: {
+					int forPlayer = reader.ReadByte();
+					string name = reader.ReadString();
+					BitArray values = Utils.ReceiveBitArray(reader.ReadByte(), reader);
+					if (whoAmI != forPlayer && Main.netMode == NetmodeID.Server) break;
 
-				if (KeybindHandlerPlayer.playerIDsByName.TryGetValue(name, out int index)) {
-					KeybindHandlerPlayer khPlayer = (KeybindHandlerPlayer)Main.player[forPlayer].ModPlayers[index];
-					khPlayer.netBits = values;
-					if (Main.netMode == NetmodeID.Server) khPlayer.SendSync(whoAmI);
-				} else {
-					ModPacket packet = ModContent.GetInstance<PegasusLib>().GetPacket();
-					packet.Write((byte)Packets.SyncKeybindHandler);
-					packet.Write((byte)forPlayer);
-					packet.Write(name);
-					packet.Write((byte)values.Count);
-					Utils.SendBitArray(values, packet);
-					packet.Send(ignoreClient: whoAmI);
+					if (KeybindHandlerPlayer.playerIDsByName.TryGetValue(name, out int index)) {
+						KeybindHandlerPlayer khPlayer = (KeybindHandlerPlayer)Main.player[forPlayer].ModPlayers[index];
+						khPlayer.netBits = values;
+						if (Main.netMode == NetmodeID.Server) khPlayer.SendSync(whoAmI);
+					} else {
+						ModPacket packet = ModContent.GetInstance<PegasusLib>().GetPacket();
+						packet.Write((byte)Packets.SyncKeybindHandler);
+						packet.Write((byte)forPlayer);
+						packet.Write(name);
+						packet.Write((byte)values.Count);
+						Utils.SendBitArray(values, packet);
+						packet.Send(ignoreClient: whoAmI);
+					}
+					break;
 				}
-				break;
 
 				case Packets.SyncedAction:
 				SyncedAction.Get(SyncedAction.ReadType(reader)).Read(reader).Perform(whoAmI);
 				break;
+
+				case Packets.WeakSyncedAction: {
+					string name = reader.ReadString();
+					if (WeakSyncedAction.TryGet(name, out WeakSyncedAction action)) {
+						MemoryStream stream = new(reader.ReadBytes(reader.ReadInt32()));
+						action = action.Read(new BinaryReader(stream));
+						action.Perform(whoAmI);
+						if (NetmodeActive.Server) action.Send(ignoreClient: whoAmI);
+						if (stream.Position < stream.Length) {
+							Logger.Error($"Read underflow {stream.Position} of {stream.Length} bytes from WeakSyncedAction {name}");
+						}
+					} else {
+						int size = reader.ReadInt32();
+						byte[] buffer = reader.ReadBytes(size);
+						if (NetmodeActive.Server) {
+							ModPacket packet = ModContent.GetInstance<PegasusLib>().GetPacket();
+							packet.Write((byte)Packets.WeakSyncedAction);
+							packet.Write(name);
+
+							packet.Write(size);
+							packet.Write(buffer);
+
+							packet.Send(ignoreClient: whoAmI);
+						}
+					}
+					break;
+				}
 			}
 		}
 
@@ -220,7 +285,8 @@ namespace PegasusLib {
 		}
 		internal enum Packets : byte {
 			SyncKeybindHandler,
-			SyncedAction
+			SyncedAction,
+			WeakSyncedAction,
 		}
 	}
 	public ref struct ReverseEntityGlobalsEnumerator<TGlobal>(TGlobal[] baseGlobals, TGlobal[] entityGlobals) where TGlobal : GlobalType<TGlobal> {
