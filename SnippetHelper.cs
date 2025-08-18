@@ -73,6 +73,5 @@ namespace PegasusLib {
 				options[i].Action(match[options[i].Name.Length..]);
 			}
 		}
-
 	}
 }

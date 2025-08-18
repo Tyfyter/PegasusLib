@@ -190,14 +190,14 @@ namespace PegasusLib {
 		}
 		public class FakeDyeSlot(ExtraDyeSlot slot) : ModAccessorySlot {
 			public override string Name => slot.Name + "_Slot";
-			public override bool IsHidden() => DrawFunctionalSlot || DrawVanitySlot;
+			public override bool IsHidden() => !DrawFunctionalSlot && !DrawVanitySlot;
 			public override bool DrawFunctionalSlot => !(FunctionalItem?.IsAir ?? true);
 			public override bool DrawVanitySlot => !(VanityItem?.IsAir ?? true);
 			public override bool DrawDyeSlot => false;
 			public override void ApplyEquipEffects() {
 				if (DyeItem?.IsAir == false) slot.ApplyDye(Player, DyeItem);
 			}
-			public override bool CanAcceptItem(Item checkItem, AccessorySlotType context) => context == AccessorySlotType.DyeSlot;
+			public override bool CanAcceptItem(Item checkItem, AccessorySlotType context) => false;
 		}
 	}
 	internal class ExtraDyeSlotUI : UIState {
