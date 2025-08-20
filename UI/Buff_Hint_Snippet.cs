@@ -243,6 +243,7 @@ public class Fallback_Buff_Hint_Handler : ITagHandler, ILoadable {
 	public static string GenerateTag(int buffID) => $"[bufftip:{buffID}]";
 
 	public void Load(Mod mod) {
+		if (ModLoader.HasMod("PegasusLib")) return;
 		ChatManager.Register<Fallback_Buff_Hint_Handler>([
 			"bufftip"
 		]);
