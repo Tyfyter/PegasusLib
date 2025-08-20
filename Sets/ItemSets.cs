@@ -1,0 +1,83 @@
+﻿using Terraria.ID;
+using Terraria.ModLoader;
+
+namespace PegasusLib.Sets {
+	[ReinitializeDuringResizeArrays]
+	public static class ItemSets {
+		public static int[][] InflictsDebuffs { get; } = ItemID.Sets.Factory.CreateNamedSet($"{nameof(InflictsDebuffs)}")
+		.Description("Buffs and debuffs that aren't mentioned in the item tooltip")
+		.RegisterCustomSet<int[]>(null,
+			ItemID.PygmyStaff, new int[] { BuffID.Venom },
+			ItemID.QueenSpiderStaff, new int[] { BuffID.Venom },
+			ItemID.SpiderStaff, new int[] { BuffID.Venom },
+			ItemID.VenomStaff, new int[] { BuffID.Venom },
+			ItemID.ClingerStaff, new int[] { BuffID.CursedInferno },
+			ItemID.CursedArrow, new int[] { BuffID.CursedInferno },
+			ItemID.CursedBullet, new int[] { BuffID.CursedInferno },
+			ItemID.CursedDart, new int[] { BuffID.CursedInferno },
+			ItemID.CursedFlames, new int[] { BuffID.CursedInferno },
+			ItemID.DayBreak, new int[] { BuffID.Daybreak },
+			ItemID.SolarEruption, new int[] { BuffID.Daybreak },
+			ItemID.Amarok, new int[] { BuffID.Frostburn2 },
+			ItemID.CoolWhip, new int[] { BuffID.Frostburn2 },
+			ItemID.ElfMelter, new int[] { BuffID.Frostburn2 },
+			ItemID.FlowerofFrost, new int[] { BuffID.Frostburn2 },
+			ItemID.FrostStaff, new int[] { BuffID.Frostburn2 },
+			ItemID.Frostbrand, new int[] { BuffID.Frostburn2 },
+			ItemID.StaffoftheFrostHydra, new int[] { BuffID.Frostburn2 },
+			ItemID.FrostburnArrow, new int[] { BuffID.Frostburn },
+			ItemID.IceBoomerang, new int[] { BuffID.Frostburn },
+			ItemID.WandofFrosting, new int[] { BuffID.Frostburn },
+			ItemID.DD2SquireDemonSword, new int[] { BuffID.OnFire3 },
+			ItemID.ButchersChainsaw, new int[] { BuffID.OnFire3 },
+			ItemID.FireWhip, new int[] { BuffID.OnFire3 },
+			ItemID.DD2FlameburstTowerT2Popper, new int[] { BuffID.OnFire3 },
+			ItemID.DD2FlameburstTowerT3Popper, new int[] { BuffID.OnFire3 },
+			ItemID.Flamethrower, new int[] { BuffID.OnFire3 },
+			ItemID.HelFire, new int[] { BuffID.OnFire3 },
+			ItemID.InfernoFork, new int[] { BuffID.OnFire3 },
+			ItemID.DD2PhoenixBow, new int[] { BuffID.OnFire3 },
+			ItemID.WaffleIron, new int[] { BuffID.OnFire3 },
+			ItemID.Bladetongue, new int[] { BuffID.Ichor },
+			ItemID.IchorDart, new int[] { BuffID.Ichor },
+			ItemID.Cascade, new int[] { BuffID.OnFire },
+			ItemID.Flamarang, new int[] { BuffID.OnFire },
+			ItemID.DD2FlameburstTowerT1Popper, new int[] { BuffID.OnFire },
+			ItemID.Flamelash, new int[] { BuffID.OnFire },
+			ItemID.FlamingArrow, new int[] { BuffID.OnFire },
+			ItemID.FlamingMace, new int[] { BuffID.OnFire },
+			ItemID.FlowerofFire, new int[] { BuffID.OnFire },
+			ItemID.ImpStaff, new int[] { BuffID.OnFire },
+			ItemID.MoltenHamaxe, new int[] { BuffID.OnFire },
+			ItemID.MoltenPickaxe, new int[] { BuffID.OnFire },
+			ItemID.Sunfury, new int[] { BuffID.OnFire },
+			ItemID.FieryGreatsword, new int[] { BuffID.OnFire },
+			ItemID.WandofSparking, new int[] { BuffID.OnFire },
+			ItemID.BladeofGrass, new int[] { BuffID.Poisoned },
+			ItemID.HornetStaff, new int[] { BuffID.Poisoned },
+			ItemID.PoisonStaff, new int[] { BuffID.Poisoned },
+			ItemID.PoisonedKnife, new int[] { BuffID.Poisoned },
+			ItemID.ThornWhip, new int[] { BuffID.Poisoned },
+			ItemID.SporeSac, new int[] { BuffID.Poisoned },
+			ItemID.ThornChakram, new int[] { BuffID.Poisoned },
+			ItemID.Toxikarp, new int[] { BuffID.Poisoned },
+			ItemID.GasTrap, new int[] { BuffID.Poisoned },
+			ItemID.DarkLance, new int[] { BuffID.ShadowFlame },
+			ItemID.ShadowFlameBow, new int[] { BuffID.ShadowFlame },
+			ItemID.ShadowFlameHexDoll, new int[] { BuffID.ShadowFlame }
+		);
+		/// Mentions debuff, needs tooltip change:
+		/// Flasks
+		/// Bullets, Arrows
+		/// Bee Keeper
+		/// Dao of Pow
+		/// Frost armor
+		/// Fire Gauntlet
+		/// Inferno Potion
+		/// Magma Stone
+		/// Huntress armor / Red Riding armor
+		/// Molotov Cocktail
+		/// Poison Dart
+		/// Shadowflame Knife
+	}
+}

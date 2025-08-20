@@ -54,12 +54,29 @@ namespace PegasusLib {
 			});
 		}
 		/// <summary>
-		/// Creates an option which parses a rectangle
+		/// Creates an option which parses a Vector2
+		/// </summary>
+		public static SnippetOption CreateVector2Option(string name, Action<Vector2> setter) {
+			return new(name, "(?:[\\d\\.]+,)[\\d\\.]+", match => {
+				string[] args = match.Split(',');
+				setter(new(float.Parse(args[0]), float.Parse(args[1])));
+			});
+		}
+		/// <summary>
+		/// Creates an option which parses a Rectangle
 		/// </summary>
 		public static SnippetOption CreateRectangleOption(string name, Action<Rectangle> setter) {
 			return new(name, "(?:\\d+,){3}\\d+", match => {
 				string[] args = match.Split(',');
 				setter(new(int.Parse(args[0]), int.Parse(args[1]), int.Parse(args[2]), int.Parse(args[3])));
+			});
+		}
+		/// <summary>
+		/// Creates an option which parses a string terminated with any of the specified delimiters
+		/// </summary>
+		public static SnippetOption CreateStringOption(string name, Action<string> setter, params char[] delimiters) {
+			return new(name, "[^/" + new string(delimiters) + "]+", match => {
+				setter(match);
 			});
 		}
 	}

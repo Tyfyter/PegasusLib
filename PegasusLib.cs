@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using MonoMod.Utils;
 using PegasusLib.Networking;
+using PegasusLib.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -73,6 +74,12 @@ namespace PegasusLib {
 					}
 				}
 			};
+			ChatManager.Register<Buff_Hint_Handler>([
+				"bufftip"
+			]);
+			ChatManager.Register<Sprite_Snippet_Handler>([
+				"sprite"
+			]);
 		}
 		public static void Require(Mod mod, params LibFeature[] features) {
 			for (int i = 0; i < features.Length; i++) {

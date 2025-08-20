@@ -32,5 +32,56 @@ Configs: {
 			Label: Always Show Extra Dye List Button
 			Tooltip: ""
 		}
+
+		buffHintListCondition: {
+			Label: Buff Hint List Control
+			Tooltip:
+				'''
+				When the buff hint list will be shown for compatible items
+				While a specific key is held, always, or never
+				'''
+		}
+
+		buffHintListPosition: {
+			Label: Buff Hint List Position
+			Tooltip: ""
+		}
+
+		buffHintListScale: {
+			Label: Buff Hint List Scale
+			Tooltip: ""
+		}
+
+		showAdditionalDebuffsTooltip: {
+			Label: show Additional Debuffs Tooltip
+			Tooltip: ""
+		}
+	}
+
+	BuffListPosition: {
+		Tooltip: ""
+		Right.Label: Right
+		Below.Label: Below
+		Side.Label: Side
+	}
+
+	BuffListControl: {
+		Tooltip: ""
+		Shift.Label: Shift
+		Always.Label: Always
+		Never.Label: Never
+		Control.Label: Control
+		Alt.Label: Alt
 	}
 }
+
+BuffTooltip: {
+	DOT: Deals {0:0.#} damage per second
+	CursedInferno: +10% knockback taken
+	Ichor: -15 defense
+	Oiled: Deals 25 damage per second to burning targets
+	Midas: Target drops 10-49% more coins on death
+	Daybreak: Deals 25 damage per second for every spear in the target
+}
+
+InflictsDebuffs: Inflicts {0}
