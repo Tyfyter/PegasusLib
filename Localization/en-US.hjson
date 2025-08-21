@@ -1,0 +1,58 @@
+ItemTooltip: {
+	FlaskofVenom: Melee and Whip attacks inflict [buffhint:Venom] on enemies
+	FlaskofCursedFlames: Melee and Whip attacks inflict enemies with [buffhint/dncursed flames:CursedInferno]
+	FlaskofFire: Melee and Whip attacks set enemies [buffhint/dnon fire:OnFire]
+	FlaskofGold: Melee and Whip attacks make enemies [buffhint/dndrop more gold:Midas]
+	FlaskofIchor: Melee and Whip attacks [buffhint/dndecrease enemies defense:Ichor]
+	FlaskofNanites: Melee and Whip attacks [buffhint/dnconfuse:Confused] enemies
+	FlaskofPoison: Melee and Whip attacks [buffhint/dnpoison:Poisoned] enemies
+	VenomArrow: Inflicts target with [buffhint:Venom]
+	VenomBullet: Inflicts target with [buffhint:Venom]
+	NanoBullet: Causes [buffhint/dnconfusion:Confused] and bounces back after hitting a wall
+	GoldenBullet: Enemies killed will [buffhint/dndrop more money:Midas]
+	ShadowFlameKnife: Inflicts [buffhint:ShadowFlame] on hit
+	BeeKeeper:
+		'''
+		Summons killer bees after striking your foe
+		Small chance to cause [buffhint/dnconfusion:Confused]
+		'''
+	DaoofPow:
+		'''
+		Has a chance to [buffhint/dnconfuse:Confused]
+		'Find your inner pieces'
+		'''
+	FireGauntlet:
+		'''
+		Increases melee knockback and melee attacks set enemies [buffhint/dnon fire:OnFire3]
+		12% increased melee damage and speed
+		Enables auto swing for melee weapons
+		Increases the size of melee weapons
+		'''
+	InfernoPotion: "[buffhint/dnIgnites:OnFire3] nearby enemies"
+	MagmaStone: Melee attacks set enemies [buffhint/dnon fire:OnFire3]
+	MolotovCocktail:
+		'''
+		A small explosion that puts enemies [buffhint/dnon fire:OnFire3]
+		Lights nearby area on fire for a while
+		'''
+	PoisonDart: Inflicts [buffhint/dnpoison:Poisoned] on enemies
+}
+
+ArmorSetBonus: {
+	Frost:
+		'''
+		Melee and ranged attacks cause [buffhint:Frostburn2]
+		Increases melee and ranged damage by 10%
+		'''
+	HuntressTier2:
+		'''
+		Increases your max number of sentries
+		Explosive Traps recharge faster and [buffhint/dnoil:Oiled] enemies
+		Set oiled enemies on fire for extra damage
+		'''
+	HuntressTier3:
+		'''
+		Increases your max number of sentries
+		Greatly[buffhint/dn :Oiled]enhances Explosive Traps effectiveness
+		'''
+}

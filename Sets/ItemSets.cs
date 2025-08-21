@@ -64,20 +64,13 @@ namespace PegasusLib.Sets {
 			ItemID.GasTrap, new int[] { BuffID.Poisoned },
 			ItemID.DarkLance, new int[] { BuffID.ShadowFlame },
 			ItemID.ShadowFlameBow, new int[] { BuffID.ShadowFlame },
-			ItemID.ShadowFlameHexDoll, new int[] { BuffID.ShadowFlame }
+			ItemID.ShadowFlameHexDoll, new int[] { BuffID.ShadowFlame },
+			ItemID.Flare, new int[] { BuffID.OnFire },
+			ItemID.BlueFlare, new int[] { BuffID.OnFire },
+			ItemID.SpelunkerFlare, new int[] { BuffID.OnFire },
+			ItemID.CursedFlare, new int[] { BuffID.CursedInferno },
+			ItemID.RainbowFlare, new int[] { BuffID.OnFire },
+			ItemID.ShimmerFlare, new int[] { BuffID.OnFire }
 		);
-		/// Mentions debuff, needs tooltip change:
-		/// Flasks
-		/// Bullets, Arrows
-		/// Bee Keeper
-		/// Dao of Pow
-		/// Frost armor
-		/// Fire Gauntlet
-		/// Inferno Potion
-		/// Magma Stone
-		/// Huntress armor / Red Riding armor
-		/// Molotov Cocktail
-		/// Poison Dart
-		/// Shadowflame Knife
 	}
 }

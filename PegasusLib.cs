@@ -75,6 +75,7 @@ namespace PegasusLib {
 				}
 			};
 			ChatManager.Register<Buff_Hint_Handler>([
+				"buffhint",
 				"bufftip"
 			]);
 			ChatManager.Register<Sprite_Snippet_Handler>([

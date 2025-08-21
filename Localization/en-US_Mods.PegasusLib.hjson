@@ -29,12 +29,12 @@ Configs: {
 		DisplayName: Config
 
 		alwaysShowDyeSlotList: {
-			Label: Always Show Extra Dye List Button
+			Label: Always show extra dye list button
 			Tooltip: ""
 		}
 
 		buffHintListCondition: {
-			Label: Buff Hint List Control
+			Label: Buff hint list control
 			Tooltip:
 				'''
 				When the buff hint list will be shown for compatible items
@@ -43,17 +43,27 @@ Configs: {
 		}
 
 		buffHintListPosition: {
-			Label: Buff Hint List Position
+			Label: Buff hint list position
 			Tooltip: ""
 		}
 
 		buffHintListScale: {
-			Label: Buff Hint List Scale
+			Label: Buff hint list scale
 			Tooltip: ""
 		}
 
 		showAdditionalDebuffsTooltip: {
-			Label: show Additional Debuffs Tooltip
+			Label: Show additional debuffs tooltip
+			Tooltip: Whether or not to add a tooltip line to show buffs that aren't mentioned in the regular tooltips
+		}
+
+		colorBuffHints: {
+			Label: Color buff hints
+			Tooltip: ""
+		}
+
+		invertOnHitBuffHintColor: {
+			Label: Invert buff hint color for "on hit" effects
 			Tooltip: ""
 		}
 	}

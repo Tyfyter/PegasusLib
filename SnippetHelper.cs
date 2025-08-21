@@ -75,8 +75,18 @@ namespace PegasusLib {
 		/// Creates an option which parses a string terminated with any of the specified delimiters
 		/// </summary>
 		public static SnippetOption CreateStringOption(string name, Action<string> setter, params char[] delimiters) {
-			return new(name, "[^/" + new string(delimiters) + "]+", match => {
+			string allDelimiters = $"\\/\\{string.Join("\\", delimiters)}";
+			return new(name, $"[^{allDelimiters}]+[{allDelimiters}]?", match => {
+				if (Regex.IsMatch(match, $"[{allDelimiters}]$")) match = match[..^1];
 				setter(match);
+			});
+		}
+		/// <summary>
+		/// Creates an option which sets a flag
+		/// </summary>
+		public static SnippetOption CreateFlagOption(string name, Action setter) {
+			return new(name, "", _ => {
+				setter();
 			});
 		}
 	}

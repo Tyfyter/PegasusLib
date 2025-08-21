@@ -17,11 +17,13 @@ namespace PegasusLib.UI;
 public class Buff_Hint_Snippet : TextSnippet {
 	public readonly int buffType;
 	public readonly ModBuff buff;
+	public readonly Options options;
 	public bool DisplayHint { get; set; } = true;
-	public Buff_Hint_Snippet(string text, int type, Color color = default) : base() {
+	public Buff_Hint_Snippet(string text, int type, Color color = default, Options options = default) : base() {
 		Text = text;
 		Color = color;
 		buffType = type;
+		this.options = options;
 		if (type <= 0) {
 			Text = "Invalid Buff type";
 			return;
@@ -33,10 +35,13 @@ public class Buff_Hint_Snippet : TextSnippet {
 			case BuffID.OnFire3:
 			case BuffID.Oiled:
 			case BuffID.Daybreak:
+			case BuffID.Midas:
 			debuff = true;
 			break;
 		}
-		Color = Color.Lerp(color, debuff ? Color.Red : Color.Lime, 0.5f);
+		if (options.Hide) DisplayHint = false;
+		if (PegasusConfig.Instance.invertOnHitBuffHintColor && !options.OnSelf) debuff = !debuff;
+		if (PegasusConfig.Instance.colorBuffHints) Color = Color.Lerp(color, debuff ? Color.Red : Color.Lime, 0.5f);
 		buff = BuffLoader.GetBuff(type);
 		Buff_Hint_Handler.BuffHintModifiers[buffType].ModifyBuffSnippet?.Invoke(this, color);
 	}
@@ -47,11 +52,13 @@ public class Buff_Hint_Snippet : TextSnippet {
 	public string[] GetBuffText() {
 		if (buffType <= 0) return [];
 		List<string> lines = [
-			$"[sprite:{buff?.Texture ?? $"Terraria/Images/Buff_{buffType}"}] [c/{Color.Hex3()}:{Lang.GetBuffName(buffType)}]"
+			$"{GenerateBuffIcon(buffType)} [c/{Color.Hex3()}:{Lang.GetBuffName(buffType)}]"
 		];
 		Buff_Hint_Handler.BuffHintModifiers[buffType].ModifyBuffTip?.Invoke(lines, BuffHintItem.currentItem);
 		return lines.SelectMany(l => l.Split('\n')).ToArray();
 	}
+	public static string GenerateBuffIcon(int buffType) => $"[sprite:{BuffLoader.GetBuff(buffType)?.Texture ?? $"Terraria/Images/Buff_{buffType}"}]";
+	public record struct Options(bool OnSelf = false, bool Hide = false);
 }
 class BuffHintItem : GlobalItem {
 	public static Item currentItem;
@@ -86,9 +93,10 @@ class BuffHintItem : GlobalItem {
 		}
 		currentItem = item;
 		List<Buff_Hint_Snippet> buffs = [];
+		HashSet<int> mentionedBuffs = [];
 		for (int i = 0; i < lines.Count; i++) {
 			List<TextSnippet> textSnippets = ChatManager.ParseMessage(lines[i].Text, lines[i].Color);
-			buffs.AddRange(textSnippets.TryCast<Buff_Hint_Snippet>().Where(l => l.DisplayHint));
+			buffs.AddRange(textSnippets.TryCast<Buff_Hint_Snippet>().Where(l => l.DisplayHint && mentionedBuffs.Add(l.buffType)));
 		}
 		if (!PegasusConfig.Instance.showAdditionalDebuffsTooltip && ItemSets.InflictsDebuffs[item.type] is int[] extraBuffs) {
 			buffs.AddRange(extraBuffs.Select(static buff => new Buff_Hint_Snippet(null, buff, Color.White)));
@@ -161,56 +169,63 @@ class BuffHintItem : GlobalItem {
 public class Buff_Hint_Handler : ITagHandler {
 	public static (Action<TextSnippet, Color> ModifyBuffSnippet, Action<List<string>, Item> ModifyBuffTip)[] BuffHintModifiers = BuffID.Sets.Factory.CreateNamedSet(nameof(BuffHintModifiers))
 	.RegisterCustomSet<(Action<TextSnippet, Color> ModifyBuffSnippet, Action<List<string>, Item> ModifyBuffTip)>(default);
+	public static void ModifyTip(int id, float dps, params string[] infoKeys) {
+		BuffHintModifiers[id] = (BuffHintModifiers[id].ModifyBuffSnippet, BuffHintModifiers[id].ModifyBuffTip + ((lines, _) => {
+			if (dps > 0) lines.Add(Language.GetTextValue("Mods.PegasusLib.BuffTooltip.DOT", dps));
+			for (int i = 0; i < infoKeys.Length; i++) {
+				lines.Add(Language.GetTextValue("Mods.PegasusLib.BuffTooltip." + infoKeys[i]));
+			}
+		}));
+	}
+	public static void RemoveIcon(int id) {
+		BuffHintModifiers[id] = (BuffHintModifiers[id].ModifyBuffSnippet, BuffHintModifiers[id].ModifyBuffTip + ((lines, _) => {
+			lines[0] = lines[0].Replace($"{Buff_Hint_Snippet.GenerateBuffIcon(id)} ", "");
+		}));
+	}
+	public static void BuffDescription(int id) {
+		BuffHintModifiers[id] = (BuffHintModifiers[id].ModifyBuffSnippet, BuffHintModifiers[id].ModifyBuffTip + ((lines, _) => {
+			lines.Add(Lang.GetBuffDescription(id));
+		}));
+	}
 	public TextSnippet Parse(string text, Color baseColor = default, string options = null) {
 		if ((int.TryParse(text, out int buffType) && buffType < BuffLoader.BuffCount) || BuffID.Search.TryGetId(text, out buffType)) {
 			text = null;
+			Buff_Hint_Snippet.Options snoptions = new(false);
 			SnippetHelper.ParseOptions(options,
-				SnippetOption.CreateStringOption("dn", value => text = value)
+				SnippetOption.CreateStringOption("dn", value => text = value, '|'),
+				SnippetOption.CreateFlagOption("self", () => snoptions.OnSelf = true),
+				SnippetOption.CreateFlagOption("hide", () => snoptions.Hide = true)
 			);
-			return new Buff_Hint_Snippet(text, buffType, baseColor);
+			return new Buff_Hint_Snippet(text, buffType, baseColor, snoptions);
 		}
 		return new Buff_Hint_Snippet(text, -1, baseColor);
 	}
-
-	public static string GenerateTag(int buffID) => $"[bufftip:{buffID}]";
+	public static string GenerateTag(int buffID) => $"[buffhint:{(BuffID.Search.TryGetName(buffID, out string name) ? name : buffID)}]";
+	public static string GenerateTag<TBuff>() where TBuff : ModBuff => GenerateTag(ModContent.BuffType<TBuff>());
 }
 class DefaultHintModifiers : ModSystem {
 	public override void PostSetupContent() {
-		(Action<TextSnippet, Color> ModifyBuffSnippet, Action<List<string>, Item> ModifyBuffTip) ModifyTip(float dps, params string[] infoKeys) {
-			return (null, (lines, _) => {
-				if (dps > 0) lines.Add(Language.GetTextValue("Mods.PegasusLib.BuffTooltip.DOT", dps));
-				for (int i = 0; i < infoKeys.Length; i++) {
-					lines.Add(Language.GetTextValue("Mods.PegasusLib.BuffTooltip." + infoKeys[i]));
-				}
-			});
-		}
-		static void BuffDescription(int id) {
-			Buff_Hint_Handler.BuffHintModifiers[id] = (Buff_Hint_Handler.BuffHintModifiers[id].ModifyBuffSnippet, Buff_Hint_Handler.BuffHintModifiers[id].ModifyBuffTip + ((lines, _) => {
-				lines.Add(Lang.GetBuffDescription(id));
-			}));
-		}
-		Buff_Hint_Handler.BuffHintModifiers[BuffID.Poisoned] = ModifyTip(6);
-		Buff_Hint_Handler.BuffHintModifiers[BuffID.OnFire] = ModifyTip(4);
-		Buff_Hint_Handler.BuffHintModifiers[BuffID.OnFire3] = ModifyTip(15);
-		Buff_Hint_Handler.BuffHintModifiers[BuffID.ShadowFlame] = ModifyTip(15);
-		Buff_Hint_Handler.BuffHintModifiers[BuffID.Venom] = ModifyTip(30);
-		Buff_Hint_Handler.BuffHintModifiers[BuffID.CursedInferno] = ModifyTip(24, nameof(BuffID.CursedInferno));
-		Buff_Hint_Handler.BuffHintModifiers[BuffID.Ichor] = ModifyTip(0, nameof(BuffID.Ichor));
-		Buff_Hint_Handler.BuffHintModifiers[BuffID.Frostburn] = ModifyTip(8);
-		Buff_Hint_Handler.BuffHintModifiers[BuffID.Frostburn2] = ModifyTip(25);
-		Buff_Hint_Handler.BuffHintModifiers[BuffID.Oiled] = (null, (lines, _) => {
-			lines[0] = lines[0].Replace($"[sprite:Terraria/Images/Buff_{BuffID.Oiled}] ", "");
-			lines.Add(Language.GetTextValue("Mods.PegasusLib.BuffTooltip.Oiled"));
-		});
+		Buff_Hint_Handler.ModifyTip(BuffID.Poisoned, 6);
+		Buff_Hint_Handler.ModifyTip(BuffID.OnFire, 4);
+		Buff_Hint_Handler.ModifyTip(BuffID.OnFire3, 15);
+		Buff_Hint_Handler.ModifyTip(BuffID.ShadowFlame, 15);
+		Buff_Hint_Handler.ModifyTip(BuffID.Venom, 30);
+		Buff_Hint_Handler.ModifyTip(BuffID.CursedInferno, 24, nameof(BuffID.CursedInferno));
+		Buff_Hint_Handler.ModifyTip(BuffID.Ichor, 0, nameof(BuffID.Ichor));
+		Buff_Hint_Handler.ModifyTip(BuffID.Midas, 0, nameof(BuffID.Midas));
+		Buff_Hint_Handler.ModifyTip(BuffID.Frostburn, 8);
+		Buff_Hint_Handler.ModifyTip(BuffID.Frostburn2, 25);
+		Buff_Hint_Handler.ModifyTip(BuffID.Oiled, 0, nameof(BuffID.Oiled));
+		Buff_Hint_Handler.RemoveIcon(BuffID.Oiled);
 		Buff_Hint_Handler.BuffHintModifiers[BuffID.Daybreak] = (null, (lines, item) => {
-			lines[0] = lines[0].Replace($"[sprite:Terraria/Images/Buff_{BuffID.Daybreak}] ", "");
 			if (item.type == ItemID.DayBreak) {
 				lines.Add(Language.GetTextValue("Mods.PegasusLib.BuffTooltip.Daybreak"));
 			} else {
 				lines.Add(Language.GetTextValue("Mods.PegasusLib.BuffTooltip.DOT", 25));
 			}
 		});
-		BuffDescription(BuffID.Confused);
+		Buff_Hint_Handler.RemoveIcon(BuffID.Daybreak);
+		Buff_Hint_Handler.BuffDescription(BuffID.Confused);
 	}
 }
 public enum BuffListPosition {
@@ -226,13 +241,14 @@ public enum BuffListControl {
 }
 /* "But what if I want to use this feature when it's available without requiring PegasusLib?" you might ask
 //Behold:
+[ReinitializeDuringResizeArrays]
 public class Fallback_Buff_Hint_Handler : ITagHandler, ILoadable {
-	public static (Action<TextSnippet> ModifyBuffSnippet, Action<List<string>, Item> ModifyBuffTip)[] BuffHintModifiers = BuffID.Sets.Factory.CreateNamedSet(nameof(BuffHintModifiers))
+	public static (Action<TextSnippet> ModifyBuffSnippet, Action<List<string>, Item> ModifyBuffTip)[] BuffHintModifiers = BuffID.Sets.Factory.CreateNamedSet("PegasusLib", nameof(BuffHintModifiers))
 	.RegisterCustomSet<(Action<TextSnippet> ModifyBuffSnippet, Action<List<string>, Item> ModifyBuffTip)>(default);
 	public TextSnippet Parse(string text, Color baseColor = default, string options = null) {
 		if ((int.TryParse(text, out int buffType) && buffType < BuffLoader.BuffCount) || BuffID.Search.TryGetId(text, out buffType)) {
 			text = Lang.GetBuffName(buffType);
-			Regex regex = new("dn([^/]+)");
+			Regex regex = new("dn([^\\/\\|]+)");
 			string displayName = regex.Match(options).Groups[1].Value;
 			if (!string.IsNullOrEmpty(displayName)) text = displayName;
 			return new TextSnippet(text, baseColor);
@@ -240,11 +256,13 @@ public class Fallback_Buff_Hint_Handler : ITagHandler, ILoadable {
 		return new TextSnippet(text, baseColor);
 	}
 
-	public static string GenerateTag(int buffID) => $"[bufftip:{buffID}]";
+	public static string GenerateTag(int buffID) => $"[buffhint:{(BuffID.Search.TryGetName(buffID, out string name) ? name : buffID)}]";
+	public static string GenerateTag<TBuff>() where TBuff : ModBuff => GenerateTag(ModContent.BuffType<TBuff>());
 
 	public void Load(Mod mod) {
 		if (ModLoader.HasMod("PegasusLib")) return;
 		ChatManager.Register<Fallback_Buff_Hint_Handler>([
+			"buffhint",
 			"bufftip"
 		]);
 	}
