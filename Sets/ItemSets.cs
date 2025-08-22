@@ -4,7 +4,7 @@ using Terraria.ModLoader;
 namespace PegasusLib.Sets {
 	[ReinitializeDuringResizeArrays]
 	public static class ItemSets {
-		public static int[][] InflictsDebuffs { get; } = ItemID.Sets.Factory.CreateNamedSet($"{nameof(InflictsDebuffs)}")
+		public static int[][] InflictsExtraDebuffs { get; } = ItemID.Sets.Factory.CreateNamedSet($"{nameof(InflictsExtraDebuffs)}")
 		.Description("Buffs and debuffs that aren't mentioned in the item tooltip")
 		.RegisterCustomSet<int[]>(null,
 			ItemID.PygmyStaff, new int[] { BuffID.Venom },
