@@ -174,8 +174,9 @@ public class Buff_Hint_Handler : ITagHandler {
 		BuffHintModifiers[buffType] = (BuffHintModifiers[buffType].ModifyBuffSnippet + modifyBuffSnippet, BuffHintModifiers[buffType].ModifyBuffTip + modifyBuffTip);
 	}
 	public static void ModifyTip(int id, float dps, params string[] infoKeys) {
+		const string loc = "Mods.PegasusLib.BuffTooltip.";
 		CombineBuffHintModifiers(id, modifyBuffTip: (lines, _, _) => {
-			if (dps > 0) lines.Add(Language.GetTextValue("Mods.PegasusLib.BuffTooltip.DOT", dps));
+			if (dps > 0) lines.Add(Language.GetTextValue(loc + "DOT", dps));
 			for (int i = 0; i < infoKeys.Length; i++) {
 				lines.Add(Language.GetTextValue(infoKeys[i]));
 			}
@@ -209,28 +210,42 @@ public class Buff_Hint_Handler : ITagHandler {
 }
 class DefaultHintModifiers : ModSystem {
 	public override void PostSetupContent() {
+		const string loc = "Mods.PegasusLib.BuffTooltip.";
 		Buff_Hint_Handler.ModifyTip(BuffID.Poisoned, 6);
 		Buff_Hint_Handler.ModifyTip(BuffID.OnFire, 4);
 		Buff_Hint_Handler.ModifyTip(BuffID.OnFire3, 15);
 		Buff_Hint_Handler.ModifyTip(BuffID.ShadowFlame, 15);
 		Buff_Hint_Handler.ModifyTip(BuffID.Venom, 30);
-		Buff_Hint_Handler.ModifyTip(BuffID.CursedInferno, 24, "Mods.PegasusLib.BuffTooltip." + nameof(BuffID.CursedInferno));
-		Buff_Hint_Handler.ModifyTip(BuffID.Ichor, 0, "Mods.PegasusLib.BuffTooltip." + nameof(BuffID.Ichor));
-		Buff_Hint_Handler.ModifyTip(BuffID.Midas, 0, "Mods.PegasusLib.BuffTooltip." + nameof(BuffID.Midas));
+		Buff_Hint_Handler.ModifyTip(BuffID.CursedInferno, 24, loc + nameof(BuffID.CursedInferno));
+		Buff_Hint_Handler.ModifyTip(BuffID.Ichor, 0, loc + nameof(BuffID.Ichor));
+		Buff_Hint_Handler.ModifyTip(BuffID.Midas, 0, loc + nameof(BuffID.Midas));
 		Buff_Hint_Handler.ModifyTip(BuffID.Frostburn, 8);
 		Buff_Hint_Handler.ModifyTip(BuffID.Frostburn2, 25);
-		Buff_Hint_Handler.ModifyTip(BuffID.Oiled, 0, "Mods.PegasusLib.BuffTooltip." + nameof(BuffID.Oiled));
+		Buff_Hint_Handler.ModifyTip(BuffID.Suffocation, 20);
+		Buff_Hint_Handler.ModifyTip(BuffID.Oiled, 0, loc + nameof(BuffID.Oiled));
 		Buff_Hint_Handler.RemoveIcon(BuffID.Oiled);
 		Buff_Hint_Handler.BuffHintModifiers[BuffID.Daybreak] = (null, (lines, item, _) => {
 			if (item.type == ItemID.DayBreak) {
-				lines.Add(Language.GetTextValue("Mods.PegasusLib.BuffTooltip.Daybreak"));
+				lines.Add(Language.GetTextValue(loc + "Daybreak"));
 			} else {
-				lines.Add(Language.GetTextValue("Mods.PegasusLib.BuffTooltip.DOT", 25));
+				lines.Add(Language.GetTextValue(loc + "DOT", 25));
 			}
 		});
 		Buff_Hint_Handler.RemoveIcon(BuffID.Daybreak);
 		Buff_Hint_Handler.BuffDescription(BuffID.Confused);
 		Buff_Hint_Handler.BuffDescription(BuffID.Bleeding);
+		Buff_Hint_Handler.BuffDescription(BuffID.Silenced, true);
+		Buff_Hint_Handler.BuffDescription(BuffID.Darkness, true);
+		Buff_Hint_Handler.BuffDescription(BuffID.Blackout, true);
+		Buff_Hint_Handler.BuffDescription(BuffID.BrokenArmor, true);
+		Buff_Hint_Handler.BuffDescription(BuffID.Rabies, true);
+		Buff_Hint_Handler.BuffDescription(BuffID.MoonLeech, true);
+		Buff_Hint_Handler.BuffDescription(BuffID.PotionSickness, true);
+		Buff_Hint_Handler.BuffDescription(BuffID.Tipsy, true);
+		Buff_Hint_Handler.BuffDescription(BuffID.ChaosState, true);
+		Buff_Hint_Handler.BuffDescription(BuffID.WaterCandle, true);
+		Buff_Hint_Handler.BuffDescription(BuffID.ShadowCandle, true);
+		Buff_Hint_Handler.BuffDescription(BuffID.BrainOfConfusionBuff, true);
 	}
 }
 public enum BuffListPosition {
