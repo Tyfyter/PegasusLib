@@ -3,7 +3,9 @@ using PegasusLib.Sets;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Linq;
+using System.Security.Policy;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
@@ -107,15 +109,10 @@ class BuffHintItem : GlobalItem {
 			const int marginX = 14;
 			const int marginY = 9;
 			Vector2 pos = default;
-			bool left = false;
 			switch (PegasusConfig.Instance.buffHintListPosition) {
 				case BuffListPosition.Side:
 				pos = new(lines[0].X + marginX * 2 + 1 + lines.Max(line => ChatManager.GetStringSize(FontAssets.MouseText.Value, line.Text, line.BaseScale).X), lines[0].Y);
 				pos.Y -= marginY + 5;
-				left = pos.X >= Main.screenWidth;
-				if (left) {
-					pos.X = lines[0].X - (marginX * 2 + 1);
-				}
 				break;
 
 				case BuffListPosition.Below:
@@ -123,6 +120,8 @@ class BuffHintItem : GlobalItem {
 				break;
 			}
 			float tooltipOpacity = Main.mouseTextColor / 255f;
+			DrawableBuffHint[] boxen = new DrawableBuffHint[buffs.Count];
+			bool doBGBox = Main.SettingsEnabled_OpaqueBoxBehindTooltips;
 
 			for (int i = 0; i < buffs.Count; i++) {
 				Vector2 startPos = pos;
@@ -135,17 +134,62 @@ class BuffHintItem : GlobalItem {
 					}
 					size.Y += stringSize.Y;
 				}
-				if (Main.SettingsEnabled_OpaqueBoxBehindTooltips) {
+				Rectangle checkBox;
+				if (doBGBox) {
 					pos.Y += marginY + 5;
+					checkBox = new Rectangle((int)(pos.X - marginX), (int)pos.Y - marginY, (int)size.X + marginX * 2, (int)size.Y + marginY + marginY / 2);
+					startPos.Y += marginY * 1.5f;
+				} else {
+					checkBox = new Rectangle((int)(pos.X), (int)pos.Y, (int)size.X, (int)size.Y);
+				}
+				boxen[i] = new(startPos, size, buffLines, checkBox);
+				pos.Y += size.Y;
+			}
+			if (boxen[^1].Box.Bottom > Main.screenHeight) {
+				int diff = 0;
+				switch (PegasusConfig.Instance.buffHintListPosition) {
+					case BuffListPosition.Below:
+					diff = boxen[^1].Box.Bottom - lines[0].Y;
+					diff += marginY + 1;
+					break;
+
+					case BuffListPosition.Side:
+					diff = boxen[^1].Box.Bottom - Main.screenHeight;
+					break;
+				}
+				for (int i = 0; i < boxen.Length; i++) {
+					boxen[i].TextPos = boxen[i].TextPos - diff * Vector2.UnitY;
+					boxen[i].Box = boxen[i].Box with { Y = boxen[i].Box.Y - diff };
+				}
+			}
+			switch (PegasusConfig.Instance.buffHintListPosition) {
+				case BuffListPosition.Side: {
+					bool overflowing = false;
+					for (int i = 0; i < boxen.Length && !overflowing; i++) {
+						overflowing = boxen[i].Box.Right > Main.screenWidth;
+					}
+					if (overflowing) {
+						for (int i = 0; i < boxen.Length; i++) {
+							int diff = (boxen[i].Box.Right - lines[0].X) + 1;
+							diff += marginX;
+							boxen[i].TextPos = boxen[i].TextPos - diff * Vector2.UnitX;
+							boxen[i].Box = boxen[i].Box with { X = boxen[i].Box.X - diff };
+						}
+					}
+					break;
+				}
+			}
+
+			for (int i = 0; i < boxen.Length; i++) {
+				(Vector2 startPos, Vector2 size, string[] buffLines, Rectangle box) = boxen[i];
+				if (doBGBox) {
 					tooltipOpacity = MathHelper.Lerp(tooltipOpacity, 1f, 1f);
 					Utils.DrawInvBG(
 						Main.spriteBatch,
-						new Rectangle((int)(pos.X - marginX - left.ToInt() * size.X), (int)pos.Y - marginY, (int)size.X + marginX * 2, (int)size.Y + marginY + marginY / 2),
+						box,
 						new Color(23, 25, 81, 255) * 0.925f
 					);
-					startPos.Y += marginY * 1.5f;
 				}
-				pos.Y += size.Y;
 				float yOffset = 0;
 				for (int j = 0; j < buffLines.Length; j++) {
 					Vector2 lineSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, buffLines[j], Vector2.One) * scale;
@@ -153,18 +197,20 @@ class BuffHintItem : GlobalItem {
 						Main.spriteBatch,
 						FontAssets.MouseText.Value,
 						buffLines[j],
-						startPos + new Vector2(left.ToInt() * -size.X, yOffset),
+						startPos + yOffset * Vector2.UnitY,
 						Color.White * tooltipOpacity,
 						0,
 						new(0, -4),
 						scale,
-						size.X
+						size.X + 1
 					);
 					yOffset += lineSize.Y;
 				}
 			}
 		}
 	}
+
+	public record struct DrawableBuffHint(Vector2 TextPos, Vector2 TextSize, string[] Lines, Rectangle Box);
 }
 [ReinitializeDuringResizeArrays]
 public class Buff_Hint_Handler : ITagHandler {
@@ -263,29 +309,29 @@ public enum BuffListControl {
 //Behold:
 [ReinitializeDuringResizeArrays]
 public class Fallback_Buff_Hint_Handler : ITagHandler, ILoadable {
-	public static (Action<TextSnippet> ModifyBuffSnippet, Action<List<string>, Item> ModifyBuffTip)[] BuffHintModifiers = BuffID.Sets.Factory.CreateNamedSet("PegasusLib", nameof(BuffHintModifiers))
-	.RegisterCustomSet<(Action<TextSnippet> ModifyBuffSnippet, Action<List<string>, Item> ModifyBuffTip)>(default);
-	public TextSnippet Parse(string text, Color baseColor = default, string options = null) {
-		if ((int.TryParse(text, out int buffType) && buffType < BuffLoader.BuffCount) || BuffID.Search.TryGetId(text, out buffType)) {
-			text = Lang.GetBuffName(buffType);
-			Regex regex = new("dn([^\\/\\|]+)");
-			string displayName = regex.Match(options).Groups[1].Value;
-			if (!string.IsNullOrEmpty(displayName)) text = displayName;
-			return new TextSnippet(text, baseColor);
-		}
-		return new TextSnippet(text, baseColor);
-	}
+   public static (Action<TextSnippet> ModifyBuffSnippet, Action<List<string>, Item> ModifyBuffTip)[] BuffHintModifiers = BuffID.Sets.Factory.CreateNamedSet("PegasusLib", nameof(BuffHintModifiers))
+   .RegisterCustomSet<(Action<TextSnippet> ModifyBuffSnippet, Action<List<string>, Item> ModifyBuffTip)>(default);
+   public TextSnippet Parse(string text, Color baseColor = default, string options = null) {
+	   if ((int.TryParse(text, out int buffType) && buffType < BuffLoader.BuffCount) || BuffID.Search.TryGetId(text, out buffType)) {
+		   text = Lang.GetBuffName(buffType);
+		   Regex regex = new("dn([^\\/\\|]+)");
+		   string displayName = regex.Match(options).Groups[1].Value;
+		   if (!string.IsNullOrEmpty(displayName)) text = displayName;
+		   return new TextSnippet(text, baseColor);
+	   }
+	   return new TextSnippet(text, baseColor);
+   }
 
-	public static string GenerateTag(int buffID) => $"[buffhint:{(BuffID.Search.TryGetName(buffID, out string name) ? name : buffID)}]";
-	public static string GenerateTag<TBuff>() where TBuff : ModBuff => GenerateTag(ModContent.BuffType<TBuff>());
+   public static string GenerateTag(int buffID) => $"[buffhint:{(BuffID.Search.TryGetName(buffID, out string name) ? name : buffID)}]";
+   public static string GenerateTag<TBuff>() where TBuff : ModBuff => GenerateTag(ModContent.BuffType<TBuff>());
 
-	public void Load(Mod mod) {
-		if (ModLoader.HasMod("PegasusLib")) return;
-		ChatManager.Register<Fallback_Buff_Hint_Handler>([
-			"buffhint",
-			"bufftip"
-		]);
-	}
-	public void Unload() {}
+   public void Load(Mod mod) {
+	   if (ModLoader.HasMod("PegasusLib")) return;
+	   ChatManager.Register<Fallback_Buff_Hint_Handler>([
+		   "buffhint",
+		   "bufftip"
+	   ]);
+   }
+   public void Unload() {}
 }
 */
