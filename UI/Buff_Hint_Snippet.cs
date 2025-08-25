@@ -96,10 +96,10 @@ class BuffHintItem : GlobalItem {
 		}
 		currentItem = item;
 		List<Buff_Hint_Snippet> buffs = [];
-		HashSet<string> mentionedBuffs = [];
+		HashSet<(int type, string text)> mentionedBuffs = [];
 		for (int i = 0; i < lines.Count; i++) {
 			List<TextSnippet> textSnippets = ChatManager.ParseMessage(lines[i].Text, lines[i].Color);
-			buffs.AddRange(textSnippets.TryCast<Buff_Hint_Snippet>().Where(l => l.DisplayHint && mentionedBuffs.Add(string.Concat(l.GetBuffText().Skip(1)))));
+			buffs.AddRange(textSnippets.TryCast<Buff_Hint_Snippet>().Where(l => l.DisplayHint && mentionedBuffs.Add((l.buffType, string.Concat(l.GetBuffText().Skip(1))))));
 		}
 		if (!PegasusConfig.Instance.showAdditionalDebuffsTooltip && ItemSets.InflictsExtraDebuffs[item.type] is int[] extraBuffs) {
 			buffs.AddRange(extraBuffs.Select(static buff => new Buff_Hint_Snippet(null, buff, Color.White)));
