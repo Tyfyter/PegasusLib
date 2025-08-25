@@ -87,11 +87,21 @@ Configs: {
 
 BuffTooltip: {
 	DOT: Deals {0:0.#} damage per second
+	AffectDamage: "{0:+0%;-0%}{1} dealt"
 	CursedInferno: +10% knockback taken
 	Ichor: -15 defense
 	Oiled: Deals 25 damage per second to burning targets
 	Midas: Target drops 10-49% more coins on death
 	Daybreak: Deals 25 damage per second for every spear in the target
+	Frozen: Prevents movement and attacking
+	Webbed: Prevents movement
+	Stoned:
+		'''
+		{$Frozen}
+		Increases fall damage
+		'''
+	Shimmer: Something might happen!
+	DryadsWardDebuff: Deals damage based on slain bosses
 }
 
 InflictsDebuffs: Inflicts {0}

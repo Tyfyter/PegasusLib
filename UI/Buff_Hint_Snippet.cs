@@ -1,10 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
+using MonoMod.Cil;
 using PegasusLib.Sets;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Security.Policy;
 using Terraria;
 using Terraria.GameContent;
@@ -221,6 +223,7 @@ public class Buff_Hint_Handler : ITagHandler {
 	}
 	public static void ModifyTip(int id, float dps, params string[] infoKeys) {
 		const string loc = "Mods.PegasusLib.BuffTooltip.";
+		for (int i = 0; i < infoKeys.Length; i++) Language.GetOrRegister(infoKeys[i]);
 		CombineBuffHintModifiers(id, modifyBuffTip: (lines, _, _) => {
 			if (dps > 0) lines.Add(Language.GetTextValue(loc + "DOT", dps));
 			for (int i = 0; i < infoKeys.Length; i++) {
@@ -270,7 +273,7 @@ class DefaultHintModifiers : ModSystem {
 		Buff_Hint_Handler.ModifyTip(BuffID.Suffocation, 20);
 		Buff_Hint_Handler.ModifyTip(BuffID.Oiled, 0, loc + nameof(BuffID.Oiled));
 		Buff_Hint_Handler.RemoveIcon(BuffID.Oiled);
-		Buff_Hint_Handler.BuffHintModifiers[BuffID.Daybreak] = (null, (lines, item, _) => {
+		Buff_Hint_Handler.CombineBuffHintModifiers(BuffID.Daybreak, modifyBuffTip: (lines, item, _) => {
 			if (item.type == ItemID.DayBreak) {
 				lines.Add(Language.GetTextValue(loc + "Daybreak"));
 			} else {
@@ -281,6 +284,7 @@ class DefaultHintModifiers : ModSystem {
 		Buff_Hint_Handler.BuffDescription(BuffID.Confused);
 		Buff_Hint_Handler.BuffDescription(BuffID.Bleeding);
 		Buff_Hint_Handler.BuffDescription(BuffID.Silenced, true);
+		Buff_Hint_Handler.BuffDescription(BuffID.Cursed, true);
 		Buff_Hint_Handler.BuffDescription(BuffID.Darkness, true);
 		Buff_Hint_Handler.BuffDescription(BuffID.Blackout, true);
 		Buff_Hint_Handler.BuffDescription(BuffID.BrokenArmor, true);
@@ -292,6 +296,54 @@ class DefaultHintModifiers : ModSystem {
 		Buff_Hint_Handler.BuffDescription(BuffID.WaterCandle, true);
 		Buff_Hint_Handler.BuffDescription(BuffID.ShadowCandle, true);
 		Buff_Hint_Handler.BuffDescription(BuffID.BrainOfConfusionBuff, true);
+		Buff_Hint_Handler.ModifyTip(BuffID.Slow, 0, "BuffDescription.Slow");
+		Buff_Hint_Handler.ModifyTip(BuffID.Chilled, 0, "BuffDescription.Slow");
+		Buff_Hint_Handler.BuffDescription(BuffID.OgreSpit);
+		Buff_Hint_Handler.ModifyTip(BuffID.Frozen, 0, loc + nameof(BuffID.Frozen));
+		Buff_Hint_Handler.ModifyTip(BuffID.Webbed, 0, loc + nameof(BuffID.Webbed));
+		Buff_Hint_Handler.ModifyTip(BuffID.Stoned, 0, loc + nameof(BuffID.Stoned));
+		Buff_Hint_Handler.ModifyTip(BuffID.Shimmer, 0, loc + nameof(BuffID.Shimmer));
+		Buff_Hint_Handler.ModifyTip(BuffID.DryadsWardDebuff, 0, loc + nameof(BuffID.DryadsWardDebuff));
+		Buff_Hint_Handler.CombineBuffHintModifiers(BuffID.DryadsWardDebuff, modifyBuffTip: (lines, item, _) => {
+			if (DryadWardDamage.Get() is float value) {
+				lines.Add(Language.GetTextValue(loc + "DOT", -value));
+			}
+		});
+	}
+	public static int dryadWardNum = 0;
+}
+public class DryadWardDamage : ILoadable {
+	public static float? Get() {
+		if (doApplyDOT is null) return null;
+		fakeForDryadsWard.lifeRegen = 0;
+		doApplyDOT();
+		return result;
+	}
+	static NPC fakeForDryadsWard;
+	static Action doApplyDOT;
+	static int result;
+	public void Load(Mod mod) {
+		bool failedSetup = false;
+		IL_NPC.UpdateNPC_BuffApplyDOTs += (il) => {
+			ILCursor c = new(il);
+			if (c.TryGotoNext(MoveType.After, i => i.MatchCall(typeof(NPCLoader), nameof(NPCLoader.UpdateLifeRegen)))) {
+				c.EmitLdarg0();
+				c.EmitLdfld(typeof(NPC).GetField(nameof(NPC.lifeRegen)));
+				c.EmitStsfld(typeof(DryadWardDamage).GetField(nameof(result), BindingFlags.NonPublic | BindingFlags.Static));
+			} else {
+				failedSetup = true;
+			}
+		};
+		if (failedSetup) return;
+		fakeForDryadsWard = new() {
+			dryadBane = true,
+			immortal = true
+		};
+		doApplyDOT = typeof(NPC).GetMethod("UpdateNPC_BuffApplyDOTs", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).CreateDelegate<Action>(fakeForDryadsWard);
+	}
+	public void Unload() {
+		fakeForDryadsWard = null;
+		doApplyDOT = null;
 	}
 }
 public enum BuffListPosition {
