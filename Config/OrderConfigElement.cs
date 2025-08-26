@@ -58,6 +58,7 @@ namespace PegasusLib.Config {
 			Height.Pixels = height + 4;
 		}
 		public override void LeftClick(UIMouseEvent evt) {
+			if (!MemberInfo.CanWrite) return;
 			if (held != -1) {
 				int countBefore;
 				List<T> values = [];

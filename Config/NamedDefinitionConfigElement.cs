@@ -42,18 +42,19 @@ namespace PegasusLib.Config {
 		protected bool pendingChanges = false;
 		public override void OnBind() {
 			base.OnBind();
-			base.TextDisplayFunction = TextDisplayOverride ?? base.TextDisplayFunction;
+			TextDisplayFunction = TextDisplayOverride ?? TextDisplayFunction;
 			pendingChanges = true;
 			normalTooltip = TooltipFunction?.Invoke() ?? string.Empty;
 			TooltipFunction = () => tooltip;
 		}
 		Predicate<TDefinition>[] filters;
 		public Func<string> TextDisplayOverride { get; set; }
-		float height = 0;
-		bool opened = false;
-		string normalTooltip;
-		string tooltip = string.Empty;
+		public float height = 0;
+		public bool opened = false;
+		public string normalTooltip;
+		public string tooltip = string.Empty;
 		public override void LeftClick(UIMouseEvent evt) {
+			if (!MemberInfo.CanWrite || evt.Target != this) return;
 			opened = true;
 			RemoveAllChildren();
 			height = 30;
@@ -140,7 +141,7 @@ namespace PegasusLib.Config {
 					spriteBatch,
 					FontAssets.MouseText.Value,
 					text,
-					innerDimensions.Position() + new Vector2(innerDimensions.Width - size.X, (innerDimensions.Height - size.Y) * 0.5f + 4),
+					innerDimensions.Position() + new Vector2(innerDimensions.Width - size.X - 8, (innerDimensions.Height - size.Y) * 0.5f + 4),
 					Color.White,
 					0f,
 					Vector2.Zero,
