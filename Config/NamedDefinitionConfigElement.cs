@@ -48,24 +48,19 @@ namespace PegasusLib.Config {
 			TooltipFunction = () => tooltip;
 		}
 		Predicate<TDefinition>[] filters;
-		public override void OnInitialize() {
-			base.OnInitialize();
-			filters = MemberInfo.MemberInfo.GetCustomAttributes<DisplayConfigValuesFilterAttribute<TDefinition>>().Select(a => a.GetFilter(Parent)).ToArray();
-			SetupList();
-		}
 		public Func<string> TextDisplayOverride { get; set; }
 		float height = 0;
 		bool opened = false;
 		string normalTooltip;
 		string tooltip = string.Empty;
-		protected void SetupList() {
-			RemoveAllChildren();
-			Recalculate();
-		}
 		public override void LeftClick(UIMouseEvent evt) {
 			opened = true;
 			RemoveAllChildren();
 			height = 30;
+			filters ??=
+				MemberInfo.Type.GetCustomAttributes<DisplayConfigValuesFilterAttribute<TDefinition>>().Select(a => a.GetFilter(Parent)).Concat(
+				MemberInfo.MemberInfo.GetCustomAttributes<DisplayConfigValuesFilterAttribute<TDefinition>>().Select(a => a.GetFilter(Parent)))
+			.ToArray();
 			foreach (TDefinition option in TDefinition.GetOptions()) {
 				bool skip = false;
 				foreach (Predicate<TDefinition> filter in filters) {
@@ -105,7 +100,6 @@ namespace PegasusLib.Config {
 						OnSet?.Invoke(Value);
 					}
 					opened = false;
-					SetupList();
 				};
 				element.TextColor = Value.FullName == option.FullName ? Color.Goldenrod : Color.White;
 				panel.Append(element);
