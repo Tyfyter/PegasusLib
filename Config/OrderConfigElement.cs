@@ -71,7 +71,10 @@ namespace PegasusLib.Config {
 					if (i == countBefore) values.Add(Value[held]);
 					if (i != held) values.Add(Value[i]);
 				}
-				if (!values.SequenceEqual(Value)) Value = values.ToArray();
+				if (!values.SequenceEqual(Value)) {
+					Value = values.ToArray();
+					Setup();
+				}
 				held = -1;
 			} else if (evt.Target.Parent is ItemPanel itemPanel) {
 				held = itemPanel.Index;
