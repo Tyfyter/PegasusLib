@@ -194,15 +194,15 @@ namespace PegasusLib.Reflection {
 			}
 		}
 	}
-	[AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
 	public sealed class ReflectionMemberNameAttribute(string memberName) : Attribute {
 		public string MemberName { get; init; } = memberName;
 	}
-	[AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
 	public sealed class ReflectionParentTypeAttribute(Type type) : Attribute {
 		public Type ParentType { get; init; } = type;
 	}
-	[AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
 	public sealed class ReflectionDefaultInstanceAttribute(Type type, params string[] memberNames) : Attribute {
 		public Type Type { get; init; } = type;
 		public string[] MemberNames { get; init; } = memberNames;

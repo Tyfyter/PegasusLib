@@ -24,6 +24,7 @@ namespace PegasusLib.Config {
 			Setup();
 		}
 		public void Setup() {
+			RemoveAllChildren();
 			int height = 30;
 			T[] values = Value;
 			for (int i = 0; i < values.Length; i++) {
