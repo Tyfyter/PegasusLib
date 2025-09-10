@@ -335,7 +335,23 @@ namespace PegasusLib {
 		public override bool AppliesToEntity(Item entity, bool lateInstantiation) => entity.dye != 0;
 		public override void ModifyTooltips(Item item, List<TooltipLine> tooltips) {
 			if (text is not null) {
-				tooltips.Insert(0, new(Mod, "SlotName", text.Value));
+				TooltipLine itemName = tooltips[0];
+				List<TooltipLine> otherTooltips = tooltips[1..];
+				TooltipLine slotName = new(Mod, "SlotName", text.Value);
+				tooltips.Clear();
+				for (int i = 0; i < PegasusConfig.Instance.dyeSlotNamePlacement.Length; i++) {
+					switch (PegasusConfig.Instance.dyeSlotNamePlacement[i]) {
+						case SlotNamePlacement.SlotName:
+						tooltips.Add(slotName);
+						break;
+						case SlotNamePlacement.ItemName:
+						tooltips.Add(itemName);
+						break;
+						case SlotNamePlacement.OtherTooltips:
+						tooltips.AddRange(otherTooltips);
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -368,5 +384,10 @@ namespace PegasusLib {
 				);
 			}
 		}
+	}
+	public enum SlotNamePlacement {
+		SlotName,
+		ItemName,
+		OtherTooltips
 	}
 }

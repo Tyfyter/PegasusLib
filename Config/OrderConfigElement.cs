@@ -72,6 +72,7 @@ namespace PegasusLib.Config {
 					if (i == countBefore) values.Add(Value[held]);
 					if (i != held) values.Add(Value[i]);
 				}
+				if (countBefore == Value.Length) values.Add(Value[held]);
 				if (!values.SequenceEqual(Value)) {
 					Value = values.ToArray();
 					Setup();

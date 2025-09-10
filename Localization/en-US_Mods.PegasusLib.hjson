@@ -8,7 +8,7 @@ PluralityFormatting.NoValidFormat: No valid format for {0} arguments found in {1
 FlagsEnumConfigElement.NoneSelected: None
 ExtraDyeSlotsButton: Additional Dyes
 WeakSyncedAction_BothSide: WeakSyncedActions should not be added by Both-side mods for performance reasons, use SyncedAction instead
-WarningPrefaceText: Some errors were encountered during mod loading, these may be the result of incompatibility with other mods
+Warnings.WarningPrefaceText: Some errors were encountered during mod loading, these may be the result of incompatibility with other mods
 
 NotSynced_KeybindHandlerPlayer: {
 	Base: KeybindHandlerPlayer, but PegasusLib is not present on the server, some keybindings may not produce the expected effect for other clients
@@ -66,6 +66,11 @@ Configs: {
 			Label: Invert buff hint color for "on hit" effects
 			Tooltip: ""
 		}
+
+		dyeSlotNamePlacement: {
+			Label: Extra Dye Slot Name Placement
+			Tooltip: ""
+		}
 	}
 
 	BuffListPosition: {
@@ -83,6 +88,14 @@ Configs: {
 		Control.Label: Control
 		Alt.Label: Alt
 	}
+
+	SlotNamePlacement: {
+		SlotName: Slot Name
+		ItemName: Item Name
+		OtherTooltips: Other Tooltips
+	}
+
+	"SlotNamePlacement[].Tooltip": ""
 }
 
 BuffTooltip: {
