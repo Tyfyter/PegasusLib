@@ -10,6 +10,7 @@ using PegasusLib.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -74,6 +75,7 @@ namespace PegasusLib {
 					}
 				}
 			};
+			TextInputContainerExtensions.Load();
 			ChatManager.Register<Buff_Hint_Handler>([
 				"buffhint",
 				"bufftip"
@@ -340,5 +342,6 @@ namespace PegasusLib {
 		IComplexMineDamageTile_Hammer,
 		WrappingTextSnippet,
 		ExtraDyeSlots,
+		ITextInputContainer
 	}
 }

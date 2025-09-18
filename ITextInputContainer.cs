@@ -6,6 +6,8 @@ using ReLogic.OS;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using ReLogic.Graphics;
+using System;
+using MonoMod.Cil;
 
 namespace PegasusLib {
 	public interface ITextInputContainer {
@@ -16,6 +18,30 @@ namespace PegasusLib {
 		public void Reset() { }
 	}
 	public static class TextInputContainerExtensions {
+		internal static void Load() {
+			try {
+				IL_Main.GetInputText += IL_Main_GetInputText;
+			} catch (Exception e) {
+				PegasusLib.FeatureError(LibFeature.ITextInputContainer, e);
+			}
+		}
+		static void IL_Main_GetInputText(ILContext il) {
+			ILCursor cur = new(il);
+			ILLabel skipSpecial = cur.DefineLabel();
+			cur.GotoNext(MoveType.AfterLabel,
+				i => i.MatchLdsflda<Main>(nameof(Main.inputText)),//IL_006e: ldsflda valuetype [FNA]Microsoft.Xna.Framework.Input.KeyboardState Terraria.Main::inputText
+				i => i.MatchLdcI4((int)Keys.Z),//IL_0073: ldc.i4 165
+				i => i.MatchCall<KeyboardState>(nameof(KeyboardState.IsKeyDown))//IL_0078: call instance bool [FNA]Microsoft.Xna.Framework.Input.KeyboardState::IsKeyDown(valuetype [FNA]Microsoft.Xna.Framework.Input.Keys)
+			);
+			cur.EmitLdsfld(typeof(Main).GetField(nameof(Main.CurrentInputTextTakerOverride)));
+			cur.EmitIsinst(typeof(ITextInputContainer));
+			cur.EmitBrtrue(skipSpecial);
+			cur.GotoNext(MoveType.After,
+				i => i.MatchCall<Main>("PasteTextIn"),//IL_0147: call string Terraria.Main::PasteTextIn(bool, string)
+				i => i.MatchStloc(out _)//IL_014c: stloc.1
+			);
+			cur.MarkLabel(skipSpecial);
+		}
 		public static void Copy(this ITextInputContainer container, bool cut = false) {
 			Platform.Get<IClipboard>().Value = container.Text.ToString();
 			if (cut) container.Clear();

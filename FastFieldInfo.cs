@@ -83,7 +83,7 @@ namespace PegasusLib {
 		RefGetter refGetter;
 		Func<T> getter;
 		Action<T> setter;
-		public FastStaticFieldInfo(Type type, string name, BindingFlags bindingFlags, bool init = false) {
+		public FastStaticFieldInfo(Type type, string name, BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic, bool init = false) {
 			field = type.GetField(name, bindingFlags | BindingFlags.Static);
 			if (field is null) throw new InvalidOperationException($"No such static field {name} exists");
 			if (init) {

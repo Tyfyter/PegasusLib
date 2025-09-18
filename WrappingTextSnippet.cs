@@ -6,6 +6,7 @@ using ReLogic.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
@@ -16,9 +17,11 @@ using Terraria.ModLoader;
 using Terraria.UI.Chat;
 
 namespace PegasusLib {
-	public abstract class WrappingTextSnippet : TextSnippet {
+	public abstract class WrappingTextSnippet(string text, Color color, float scale = 1f) : TextSnippet(text, color, scale) {
+		public WrappingTextSnippet() : this("", Color.White, 1) { }
 		public static Vector2 BasePosition { get; internal set; }
 		public static float MaxWidth { get; internal set; }
+		public static Vector2 Origin { get; internal set; }
 		public bool IsHovered { get; protected set; }
 		public class PaddingSnippet(float width) : TextSnippet {
 			public override bool UniqueDraw(bool justCheckingString, out Vector2 size, SpriteBatch spriteBatch, Vector2 position = default, Color color = default, float scale = 1) {
@@ -32,6 +35,12 @@ namespace PegasusLib {
 			try {
 				On_ChatManager.DrawColorCodedString_SpriteBatch_DynamicSpriteFont_TextSnippetArray_Vector2_Color_float_Vector2_Vector2_refInt32_float_bool += On_ChatManager_DrawColorCodedString_SpriteBatch_DynamicSpriteFont_TextSnippetArray_Vector2_Color_float_Vector2_Vector2_refInt32_float_bool;
 				IL_ChatManager.DrawColorCodedString_SpriteBatch_DynamicSpriteFont_TextSnippetArray_Vector2_Color_float_Vector2_Vector2_refInt32_float_bool += IL_ChatManager_DrawColorCodedString_SpriteBatch_DynamicSpriteFont_TextSnippetArray_Vector2_Color_float_Vector2_Vector2_refInt32_float_bool;
+				MonoModHooks.Add(typeof(DynamicSpriteFont).GetMethod("InternalDraw", BindingFlags.NonPublic | BindingFlags.Instance), (orig_InternalDraw orig, DynamicSpriteFont self, string text, SpriteBatch spriteBatch, Vector2 startPosition, Color color, float rotation, Vector2 origin, ref Vector2 scale, SpriteEffects spriteEffects, float depth) => {
+					Vector2 oldOrigin = WrappingTextSnippet.Origin;
+					WrappingTextSnippet.Origin = origin;
+					orig(self, text, spriteBatch, startPosition, color, rotation, origin, ref scale, spriteEffects, depth);
+					WrappingTextSnippet.Origin = oldOrigin;
+				});
 			} catch (Exception exception) {
 				PegasusLib.FeatureError(LibFeature.WrappingTextSnippet, exception);
 #if DEBUG
@@ -39,6 +48,8 @@ namespace PegasusLib {
 #endif
 			}
 		}
+		delegate void orig_InternalDraw(DynamicSpriteFont self, string text, SpriteBatch spriteBatch, Vector2 startPosition, Color color, float rotation, Vector2 origin, ref Vector2 scale, SpriteEffects spriteEffects, float depth);
+		delegate void hook_InternalDraw(orig_InternalDraw orig, DynamicSpriteFont self, string text, SpriteBatch spriteBatch, Vector2 startPosition, Color color, float rotation, Vector2 origin, ref Vector2 scale, SpriteEffects spriteEffects, float depth);
 		public static void SetWrappingData(Vector2 basePosition, float maxWidth) {
 			WrappingTextSnippet.BasePosition = basePosition;
 			WrappingTextSnippet.MaxWidth = maxWidth;

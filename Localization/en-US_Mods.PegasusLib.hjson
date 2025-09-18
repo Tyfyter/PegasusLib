@@ -118,3 +118,11 @@ BuffTooltip: {
 }
 
 InflictsDebuffs: Inflicts {0}
+
+AdvancedTextSnippet: {
+	Waggle_Handler: {
+		Option_t: Time Factor
+		Option_x: X Factor
+		Option_y: Wiggle Scale
+	}
+}

@@ -35,8 +35,17 @@ public class Sprite_Snippet_Handler : ITagHandler {
 	public TextSnippet Parse(string text, Color baseColor = default, string options = null) {
 		Options settings = new(Vector2.One);
 		SnippetHelper.ParseOptions(options,
-			SnippetOption.CreateVector2Option("sc", value => settings.Scale = value),
-			SnippetOption.CreateFloatOption("sc", value => settings.Scale = new(value)),
+			SnippetOption.CreateFloatsOption("sc", 1..2, value => {
+				switch (value.Length) {
+					case 1:
+					settings.Scale = new(value[0]);
+					break;
+
+					case 2:
+					settings.Scale = new(value[0], value[1]);
+					break;
+				}
+			}),
 			SnippetOption.CreateRectangleOption("fr", value => settings.Frame = value),
 			SnippetOption.CreateColorOption("c", value => settings.Color = value)
 		);
