@@ -26,6 +26,7 @@ namespace PegasusLib.Networking {
 			type = actions.Count;
 			actions.Add(this);
 			actionIDsByType.Add(GetType(), type);
+			mod.Logger.Info($"{nameof(SyncedAction)} Loading {GetType().Name}");
 		}
 		public void Unload() { }
 		public SyncedAction Read(BinaryReader reader) {

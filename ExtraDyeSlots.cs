@@ -169,6 +169,7 @@ namespace PegasusLib {
 		public virtual LocalizedText DisplayText => this.GetLocalization(nameof(DisplayText), () => "{$LegacyInterface.57}");
 		FakeDyeSlot fakeDyeSlot;
 		protected sealed override void Register() {
+			if (Mod.Side != ModSide.Both) throw new Exception($"Extra Dye Slot {Name} loaded in mod {Mod}, Extra Dye Slots can only be loaded in {ModSide.Both}-side mods");
 			PegasusLib.Require(Mod, LibFeature.ExtraDyeSlots);
 			ModTypeLookup<ExtraDyeSlot>.Register(this);
 			Type = ExtraDyeSlots.extraDyeSlots.Count;
