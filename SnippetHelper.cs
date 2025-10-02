@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis.Options;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PegasusLib.Networking;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -146,6 +147,7 @@ namespace PegasusLib {
 			foreach (string name in Names) {
 				_handlers.Value[name.ToLower()] = this;
 			}
+			if (NetmodeActive.Server) return;
 			if (ModLoader.TryGetMod("ChatPlus", out Mod chatPlus)) {
 				foreach (string name in Names) {
 					chatPlus.Call("RegisterTagProvider",

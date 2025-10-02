@@ -76,6 +76,7 @@ namespace PegasusLib {
 				}
 			};
 			TextInputContainerExtensions.Load();
+			CollisionExt.Load();
 			ChatManager.Register<Buff_Hint_Handler>([
 				"buffhint",
 				"bufftip"
