@@ -101,7 +101,7 @@ namespace PegasusLib {
 			internal NormalFishingCatch(Func<Player, FishingAttempt, bool> canDrop, float weight) : base(canDrop, weight) { }
 		}
 		public static bool ShouldDropBiomeCrate(Player player, FishingAttempt attempt) {
-			if (!attempt.rare) return false;
+			if (!attempt.rare || attempt.veryrare || attempt.legendary) return false;
 			if (player.ZoneDungeon) return false;
 			if (player.ZoneBeach || (Main.remixWorld && attempt.heightLevel == 1 && attempt.Y >= Main.rockLayer && FishingLootPoolLoader.skipBiomeCratesIfRemixUGOcean)) return false;
 			return true;
