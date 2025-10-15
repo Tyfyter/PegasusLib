@@ -19,6 +19,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Security.Policy;
+using System.Text;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
@@ -299,6 +300,98 @@ namespace PegasusLib {
 			SyncedAction,
 			WeakSyncedAction,
 		}
+		// Unfortunately, GetLoadableTypes throws this idiotic error before even static constructors get run
+		/*static void AddRequirements(Action<string, byte[]> AddFile, IEnumerable requirements) {
+			StringBuilder builder = new();
+			foreach (object mod in requirements) {
+				if (builder.Length > 0) builder.Append('\n');
+				builder.Append(processLocalModVersion(mod));
+			}
+			if (builder.Length > 0) {
+				AddFile("BuiltAgainst.peg", Encoding.UTF8.GetBytes(builder.ToString()));
+			}
+		}
+		static readonly Func<object, string> processLocalModVersion;
+		static PegasusLib() {
+			const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance;
+			try {
+				Type ModCompile = typeof(ModLoader).Assembly.GetType("Terraria.ModLoader.Core.ModCompile");
+				Type displayClass = ModCompile.GetNestedType("<>c__DisplayClass25_0", flags);
+				Type LocalMod = typeof(UIModsFilterResults).Assembly.GetType("Terraria.ModLoader.Core.LocalMod");
+				Type TmodFile = typeof(TmodFile);
+				processLocalModVersion = Compile<Func<object, string>>("processLocalModVersion",
+					(OpCodes.Ldarg_0, null),
+					(OpCodes.Castclass, LocalMod),
+					(OpCodes.Call, LocalMod.GetProperty("Name", flags).GetMethod),
+					(OpCodes.Ldstr, ":"),
+					(OpCodes.Ldarg_0, null),
+					(OpCodes.Castclass, LocalMod),
+					(OpCodes.Call, LocalMod.GetProperty("Version", flags).GetMethod),
+					(OpCodes.Callvirt, typeof(Version).GetMethod(nameof(ToString), [])),
+					(OpCodes.Call, typeof(string).GetMethod(nameof(string.Concat), [typeof(string), typeof(string), typeof(string)])),
+					(OpCodes.Ret, null)
+				);
+				MonoModHooks.Modify(ModCompile.GetMethod("PackageMod", flags), il => {
+					ILCursor c = new(il);
+					c.GotoNext(MoveType.AfterLabel, i => i.MatchRet());
+					c.EmitLdloc0();
+					c.EmitLdfld(displayClass.GetField("mod", flags));
+					c.EmitLdfld(LocalMod.GetField("modFile", flags));
+					c.EmitLdftn(TmodFile.GetMethod("AddFile", flags));
+					c.EmitNewobj(typeof(Action<string, byte[]>).GetConstructor([typeof(object), typeof(nint)]));
+					c.EmitLdarg0();
+					c.EmitLdloc0();
+					c.EmitLdfld(displayClass.GetField("mod", flags));
+					c.EmitLdfld(LocalMod.GetField("properties", flags));
+					c.EmitCall(ModCompile.GetMethod("FindReferencedMods", flags, [LocalMod.GetField("properties", flags).FieldType]));
+					c.EmitBox(typeof(IEnumerable));
+					c.EmitCall(((Delegate)AddRequirements).Method);
+				});
+
+			} catch (Exception ex) {
+#if DEBUG
+				throw;
+#endif
+			}
+			try {
+				Type AssemblyManager = typeof(ModLoader).Assembly.GetType("Terraria.ModLoader.Core.AssemblyManager");
+				Type ModLoadContext = AssemblyManager.GetNestedType("ModLoadContext", flags);
+				Func<bool, IEnumerable> ModOrganizer_FindMods = typeof(ModLoader).Assembly.GetType("Terraria.ModLoader.Core.ModOrganizer").GetMethod("FindMods", flags).CreateDelegate<Func<bool, IEnumerable>>();
+				MonoModHooks.Modify(AssemblyManager.GetMethod("GetLoadableTypes", flags, [ModLoadContext, typeof(MetadataLoadContext)]), il => {
+					ILCursor c = new(il);
+					c.GotoNext(MoveType.AfterLabel, i => i.MatchLdstr(out string val) && val.StartsWith("This mod seems to inherit from classes in another mod"));
+					c.EmitLdloc2();
+					c.EmitLdarg0();
+					c.EmitLdfld(ModLoadContext.GetField("modFile", flags));
+					c.EmitDelegate<Action<Exception, TmodFile>>((exception, mod) => {
+						if (exception is not TypeLoadException typeEx) return;
+						if (!mod.HasFile("BuiltAgainst.peg")) return;
+						string[] lines = Encoding.UTF8.GetString(mod.GetBytes("BuiltAgainst.peg")).Split('\n');
+						Dictionary<string, Version> compiledAgainst = new(lines.Select(l => {
+							string[] parts = l.Split(':');
+							return new KeyValuePair<string, Version>(parts[0], Version.Parse(parts[1]));
+						}));
+						string modName = typeEx.TypeName.Split('.')[0];
+						if (compiledAgainst.TryGetValue(modName, out Version version)) {
+							AddRequirements((_, data) => {
+								string[] lines = Encoding.UTF8.GetString(data).Split('\n');
+								for (int i = 0; i < lines.Length; i++) {
+									if (lines[i].StartsWith(modName) && Version.Parse(lines[i].Split(':')[1]) < version) {
+										throw new Exception($"Mod {modName} is outdated or mod {mod.Name} was built against an unreleased mod version\nUpdate {modName} or contact the developers of {mod.Name}");
+									}
+								}
+							},
+							ModOrganizer_FindMods(false)
+							);
+						}
+					});
+				});
+			} catch (Exception ex) {
+#if DEBUG
+				throw;
+#endif
+			}
+		}*/
 	}
 	public ref struct ReverseEntityGlobalsEnumerator<TGlobal>(TGlobal[] baseGlobals, TGlobal[] entityGlobals) where TGlobal : GlobalType<TGlobal> {
 		static readonly Func<IEntityWithGlobals<TGlobal>, TGlobal[]> getArray = PegasusLib.Compile<Func<IEntityWithGlobals<TGlobal>, TGlobal[]>>("getEntityGlobals",
