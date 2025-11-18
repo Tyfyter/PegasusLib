@@ -273,6 +273,7 @@ class DefaultHintModifiers : ModSystem {
 		Buff_Hint_Handler.ModifyTip(BuffID.Suffocation, 20);
 		Buff_Hint_Handler.ModifyTip(BuffID.Oiled, 0, loc + nameof(BuffID.Oiled));
 		Buff_Hint_Handler.RemoveIcon(BuffID.Oiled);
+		Buff_Hint_Handler.ModifyTip(BuffID.Burning, 30, "BuffDescription.Slow");
 		Buff_Hint_Handler.CombineBuffHintModifiers(BuffID.Daybreak, modifyBuffTip: (lines, item, _) => {
 			if (item.type == ItemID.DayBreak) {
 				lines.Add(Language.GetTextValue(loc + "Daybreak"));
@@ -287,7 +288,10 @@ class DefaultHintModifiers : ModSystem {
 		Buff_Hint_Handler.BuffDescription(BuffID.Cursed, true);
 		Buff_Hint_Handler.BuffDescription(BuffID.Darkness, true);
 		Buff_Hint_Handler.BuffDescription(BuffID.Blackout, true);
+		Buff_Hint_Handler.BuffDescription(BuffID.Obstructed, true);
 		Buff_Hint_Handler.BuffDescription(BuffID.BrokenArmor, true);
+		Buff_Hint_Handler.ModifyTip(BuffID.WitheredArmor, 0, $"BuffDescription.{nameof(BuffID.BrokenArmor)}");
+		Buff_Hint_Handler.ModifyTip(BuffID.WitheredWeapon, 0, loc + nameof(BuffID.WitheredWeapon));
 		Buff_Hint_Handler.BuffDescription(BuffID.Rabies, true);
 		Buff_Hint_Handler.BuffDescription(BuffID.MoonLeech, true);
 		Buff_Hint_Handler.BuffDescription(BuffID.PotionSickness, true);
@@ -298,6 +302,7 @@ class DefaultHintModifiers : ModSystem {
 		Buff_Hint_Handler.BuffDescription(BuffID.BrainOfConfusionBuff, true);
 		Buff_Hint_Handler.ModifyTip(BuffID.Slow, 0, "BuffDescription.Slow");
 		Buff_Hint_Handler.ModifyTip(BuffID.Chilled, 0, "BuffDescription.Slow");
+		Buff_Hint_Handler.ModifyTip(BuffID.Weak, 0, loc + nameof(BuffID.Weak));
 		Buff_Hint_Handler.BuffDescription(BuffID.OgreSpit);
 		Buff_Hint_Handler.ModifyTip(BuffID.Frozen, 0, loc + nameof(BuffID.Frozen));
 		Buff_Hint_Handler.ModifyTip(BuffID.Webbed, 0, loc + nameof(BuffID.Webbed));

@@ -76,17 +76,45 @@ Configs: {
 	BuffListPosition: {
 		Tooltip: ""
 		Right.Label: Right
-		Below.Label: Below
-		Side.Label: Side
+
+		Below: {
+			Label: Below
+			Tooltip: ""
+		}
+
+		Side: {
+			Label: Side
+			Tooltip: ""
+		}
 	}
 
 	BuffListControl: {
 		Tooltip: ""
-		Shift.Label: Shift
-		Always.Label: Always
-		Never.Label: Never
-		Control.Label: Control
-		Alt.Label: Alt
+
+		Shift: {
+			Label: Shift
+			Tooltip: ""
+		}
+
+		Always: {
+			Label: Always
+			Tooltip: ""
+		}
+
+		Never: {
+			Label: Never
+			Tooltip: ""
+		}
+
+		Control: {
+			Label: Control
+			Tooltip: ""
+		}
+
+		Alt: {
+			Label: Alt
+			Tooltip: ""
+		}
 	}
 
 	SlotNamePlacement: {
@@ -106,6 +134,14 @@ BuffTooltip: {
 	Oiled: Deals 25 damage per second to burning targets
 	Midas: Target drops 10-49% more coins on death
 	Daybreak: Deals 25 damage per second for every spear in the target
+	Weak:
+		'''
+		-4 defense
+		-5.1% melee damage
+		-5.1% melee speed
+		-10% movement speed
+		'''
+	WitheredWeapon: Damage is cut in half
 	Frozen: Prevents movement and attacking
 	Webbed: Prevents movement
 	Stoned:

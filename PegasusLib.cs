@@ -10,16 +10,11 @@ using PegasusLib.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
-using System.Security.Policy;
-using System.Text;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
@@ -30,7 +25,6 @@ using Terraria.ModLoader.UI;
 using Terraria.ObjectData;
 using Terraria.UI;
 using Terraria.UI.Chat;
-using XPT.Core.Audio.MP3Sharp.Decoding;
 
 namespace PegasusLib {
 	// Please read https://github.com/tModLoader/tModLoader/wiki/Basic-tModLoader-Modding-Guide#mod-skeleton-contents for more information about the various files in a mod.
