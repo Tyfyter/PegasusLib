@@ -294,7 +294,7 @@ namespace PegasusLib {
 			SyncedAction,
 			WeakSyncedAction,
 		}
-		// Unfortunately, GetLoadableTypes throws this idiotic error before even static constructors get run
+		// Unfortunately, GetLoadableTypes throws this error before even static constructors get run
 		/*static void AddRequirements(Action<string, byte[]> AddFile, IEnumerable requirements) {
 			StringBuilder builder = new();
 			foreach (object mod in requirements) {
