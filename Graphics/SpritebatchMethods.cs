@@ -11,7 +11,11 @@ namespace PegasusLib.Graphics {
 		public static FastFieldInfo<SpriteBatch, Matrix> transformMatrix { get; private set; }
 		private delegate void PrepRenderState_Del();
 		[ReflectionParentType(typeof(SpriteBatch)), ReflectionMemberName("PrepRenderState"), ReflectionDefaultInstance(typeof(Terraria.Main), nameof(Terraria.Main.spriteBatch))]
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable CS0649 // Field is never assigned to
 		private static PrepRenderState_Del _PrepRenderState;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning restore CS0649 // Field is never assigned to
 		public static void PrepRenderState(SpriteBatch self) {
 			DelegateMethods._target.SetValue(_PrepRenderState, self);
 			_PrepRenderState();

@@ -187,5 +187,25 @@ namespace PegasusLib {
 			}
 			return false;
 		}
+		public static bool CycleDown(ref this float value, float from, float rate = 1) => value.CycleDown<float>(from, rate);
+		public static bool CycleDown(ref this int value, int from, int rate = 1) => value.CycleDown<int>(from, rate);
+		public static bool CycleDown<N>(ref this N value, N from, N rate) where N : struct, INumber<N> {
+			value -= rate;
+			if (value >= N.Zero) {
+				value += from;
+				return true;
+			}
+			return false;
+		}
+		public static bool CycleUp(ref this float value, float to, float rate = 1) => value.CycleUp<float>(to, rate);
+		public static bool CycleUp(ref this int value, int to, int rate = 1) => value.CycleUp<int>(to, rate);
+		public static bool CycleUp<N>(ref this N value, N to, N rate) where N : struct, INumber<N> {
+			value += rate;
+			if (value >= to) {
+				value -= to;
+				return true;
+			}
+			return false;
+		}
 	}
 }

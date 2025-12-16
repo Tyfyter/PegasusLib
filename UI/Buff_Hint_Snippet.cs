@@ -326,7 +326,11 @@ public class DryadWardDamage : ILoadable {
 	}
 	static NPC fakeForDryadsWard;
 	static Action doApplyDOT;
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable CS0649 // Field is never assigned to
 	static int result;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning restore CS0649 // Field is never assigned to
 	public void Load(Mod mod) {
 		bool failedSetup = false;
 		IL_NPC.UpdateNPC_BuffApplyDOTs += (il) => {

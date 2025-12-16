@@ -30,6 +30,7 @@ namespace PegasusLib {
 		public static bool operator false(ProgressFlag flag) => !flag.IsSet;
 		public static implicit operator Condition(ProgressFlag flag) => flag.condition;
 #pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable CS0169 // Field is never used
 		static bool out0;
 		static bool out1;
 		static bool out2;
@@ -39,6 +40,7 @@ namespace PegasusLib {
 		static bool out6;
 		static bool out7;
 #pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning restore CS0169 // Field is never used
 		public static void SetupFlags(Type type, out Action<TagCompound> saveData, out Action<TagCompound> loadData, out Action<BinaryWriter> netSend, out Action<BinaryReader> netReceive, out Action clearWorld) {
 			List<(FieldInfo field, string name)> fields = [];
 			Regex nameExtractorRegex = new("^<(@?\\w+)>k__BackingField$");

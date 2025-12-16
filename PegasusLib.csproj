@@ -5,7 +5,7 @@
 
 	<!-- General -->
 	<PropertyGroup>
-		
+		<LangVersion>13.0</LangVersion>
 	</PropertyGroup>
 
 	<!-- References -->
