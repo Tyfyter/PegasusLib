@@ -62,8 +62,8 @@ namespace PegasusLib {
 			asset = null;
 		}
 		public void LoadAsset() {
-			if (!triedLoading) {
-				triedLoading = true;
+			if (triedLoading.TrySet(true)) {
+				if (asset is null) return;
 				if (assetPath is null) {
 					asset.Value = Asset<T>.Empty;
 				} else {
