@@ -1,13 +1,13 @@
-﻿using Microsoft.Xna.Framework.Input;
-using System.Text;
-using Terraria.GameInput;
-using Terraria;
-using ReLogic.OS;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework;
-using ReLogic.Graphics;
-using System;
+﻿using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using MonoMod.Cil;
+using ReLogic.Graphics;
+using ReLogic.OS;
+using System;
+using System.Text;
+using Terraria;
+using Terraria.GameInput;
+using Terraria.UI.Chat;
 
 namespace PegasusLib {
 	public interface ITextInputContainer {
@@ -134,30 +134,143 @@ namespace PegasusLib {
 			}
 		}
 		public static void DrawInputContainerText(this ITextInputContainer container, SpriteBatch spriteBatch, Vector2 position, DynamicSpriteFont font, Color textColor, bool focused, float scale = 1f, Vector2 offset = default) {
+			container.DrawInputContainerText(spriteBatch, position, font, BasicStringDrawer(textColor), focused, scale, offset);
+		}
+		public static void DrawInputContainerText(this ITextInputContainer container, SpriteBatch spriteBatch, Vector2 position, DynamicSpriteFont font, StringDrawer drawer, bool focused, float scale = 1f, Vector2 offset = default) {
 			string text = container.TextDisplay.ToString();
 			if (focused && Main.timeForVisualEffects % 40 < 20) {
-				spriteBatch.DrawString(
+				string cursorChar = "";
+				Vector2 cursorOffset = default;
+				Vector2 cursorScale = new(scale);
+				switch (PegasusConfig.Instance.preferredTextCursor) {
+					case CursorType.Line:
+					cursorChar = "|";
+					break;
+
+					case CursorType.Caret: {
+						static float Tallness(char c, bool before) {
+							switch (c) {
+								case 'g':
+								return 1f;
+
+								case 'j':
+								case 'y':
+								return 0.75f;
+
+								case 'p':
+								if (!before) return 1;
+								break;
+								case 'q':
+								if (before) return 1;
+								break;
+							}
+							return 0;
+						}
+						cursorChar = "^";
+						cursorOffset = new(1, 16);
+						cursorOffset.Y += Math.Max(container.CursorIndex > 0 ? Tallness(text[container.CursorIndex - 1], true) : 0, container.CursorIndex < text.Length ? Tallness(text[container.CursorIndex], false) : 0)
+							* 6;
+						break;
+					}
+
+					case CursorType.Caron: {
+						static float Tallness(char c, bool before) {
+							switch (c) {
+								case 'f':
+								case 'l':
+								return 0.75f;
+
+								case 'i':
+								case 'j':
+								return 0.5f;
+
+								case 't':
+								return 0.5f;
+
+								case 'b':
+								case 'h':
+								if (!before) return 1;
+								break;
+								case 'd':
+								if (before) return 1;
+								break;
+							}
+							return 0;
+						}
+						cursorChar = "^";
+						cursorOffset = new(1, 8);
+						cursorOffset.Y -= Math.Max(container.CursorIndex > 0 ? Tallness(text[container.CursorIndex - 1], true) : 0, container.CursorIndex < text.Length ? Tallness(text[container.CursorIndex], false) : 0)
+							* 6;
+						cursorScale.Y *= -1;
+						break;
+					}
+					case CursorType.Underscore:
+					cursorChar = "_";
+					cursorOffset = new Vector2(offset.X * 0.5f, 0) / scale;
+					cursorOffset.X += 1;
+					cursorOffset.Y -= 3;
+					if (container.CursorIndex < text.Length) {
+						cursorScale.X = font.MeasureString(text[container.CursorIndex].ToString()).X / font.MeasureString(cursorChar).X;
+					} else {
+						cursorScale.X = 0.5f;
+					}
+					break;
+				}
+				drawer(spriteBatch,
 					font,
-					"|",
-					position + font.MeasureString(text[..container.CursorIndex]) * Vector2.UnitX * scale + offset * new Vector2(0.5f, 1),
-					textColor,
-					0,
-					new(0, 0),
-					scale,
-					0,
-				0);
+					cursorChar,
+					position + font.MeasureString(text[..container.CursorIndex]) * Vector2.UnitX * scale + offset * new Vector2(0.5f, 1) + cursorOffset * scale,
+					cursorScale
+				);
 			}
-			spriteBatch.DrawString(
+			drawer(spriteBatch,
 				font,
 				text,
 				position + offset,
+				new(scale)
+			);
+		}
+		public enum CursorType {
+			Line,
+			Caret,
+			Caron,
+			Underscore,
+		}
+		public delegate void StringDrawer(SpriteBatch spriteBatch, DynamicSpriteFont font, string text, Vector2 position, Vector2 scale);
+		public static StringDrawer BasicStringDrawer(Color textColor) => (spriteBatch, font, text, position, scale)  => {
+			spriteBatch.DrawString(
+				font,
+				text,
+				position,
 				textColor,
 				0,
 				new(0, 0),
 				scale,
 				0,
 			0);
-		}
+		};
+		public static StringDrawer ShadowedStringDrawer(Color textColor, float spread = 2) => (spriteBatch, font, text, position, scale) => {
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch,
+				font,
+				text,
+				position,
+				textColor,
+				0,
+				new(0, 0),
+				scale,
+				spread: spread
+			);
+		};
+		public static StringDrawer ShadowedStringDrawer(Color textColor, Color shadowColor, float spread = 2, bool hoverSnippets = false) => (spriteBatch, font, text, position, scale) => {
+			TextSnippet[] snippets = ChatManager.ParseMessage(text, textColor).ToArray();
+			ChatManager.ConvertNormalSnippets(snippets);
+			ChatManager.DrawColorCodedStringShadow(spriteBatch, font, snippets, position, shadowColor, 0, Vector2.Zero, scale, -1, spread);
+			ChatManager.DrawColorCodedString(spriteBatch, font, snippets, position, Color.White, 0, Vector2.Zero, scale, out int hoveredSnippet, -1);
+			if (hoverSnippets && hoveredSnippet != -1 && snippets[hoveredSnippet].CheckForHover) {
+				snippets[hoveredSnippet].OnHover();
+				if (Main.mouseLeft && Main.mouseLeftRelease) snippets[hoveredSnippet].OnClick();
+			}
+		};
 		public static bool PressingAlt(this KeyboardState state) => state.IsKeyDown(Keys.LeftAlt) || state.IsKeyDown(Keys.RightAlt);
 		public static bool JustPressed(Keys key) => Main.inputText.IsKeyDown(key) && !Main.oldInputText.IsKeyDown(key);
 	}

@@ -71,6 +71,11 @@ Configs: {
 			Label: Extra Dye Slot Name Placement
 			Tooltip: ""
 		}
+
+		preferredTextCursor: {
+			Label: Preferred Text Input Cursor
+			Tooltip: The type of text cursor which will be used by text input fields which use PegasusLib
+		}
 	}
 
 	BuffListPosition: {
@@ -124,6 +129,30 @@ Configs: {
 	}
 
 	"SlotNamePlacement[].Tooltip": ""
+
+	CursorType: {
+		Tooltip: ""
+
+		Line: {
+			Label: Line
+			Tooltip: ""
+		}
+
+		Caret: {
+			Label: Caret
+			Tooltip: ""
+		}
+
+		Caron: {
+			Label: Caron
+			Tooltip: ""
+		}
+
+		Underscore: {
+			Label: Underscore
+			Tooltip: ""
+		}
+	}
 }
 
 BuffTooltip: {
