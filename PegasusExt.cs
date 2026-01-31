@@ -207,5 +207,38 @@ namespace PegasusLib {
 			}
 			return false;
 		}
+		/// <summary>
+		/// Pushes the contents of <paramref name="pushIn"/> into the beginning <paramref name="array"/><br/>
+		/// Elements at the end of <paramref name="array"/> are removed to make room
+		/// </summary>
+		public static void Roll<T>(this T[] array, params T[] pushIn) {
+			if (pushIn.Length == 0) return;
+			for (int i = array.Length - 1; i >= 0; i--) {
+				int index = i - pushIn.Length;
+				array[i] = array.IndexInRange(index) ? array[index] : pushIn[i];
+			}
+		}
+		public static T GetIfInRange<T>(this T[] array, int index, T fallback = default) {
+			if (!array.IndexInRange(index)) return fallback;
+			return array[index];
+		}
+		public static T GetIfInRange<T>(this T[,] array, int i, int j, T fallback = default) {
+			if (!array.IndexInRange(i, j)) return fallback;
+			return array[i, j];
+		}
+		public static bool IndexInRange<T>(this T[,] array, int i, int j) {
+			return i >= 0
+				&& j >= 0
+				&& i < array.GetLength(0)
+				&& j < array.GetLength(1);
+		}
+		public static T GetIfInRange<T>(this List<T> array, int index, T fallback = default) {
+			if (!array.IndexInRange(index)) return fallback;
+			return array[index];
+		}
+		public static T GetIfInRange<T>(this IReadOnlyList<T> array, int index, T fallback = default) {
+			if (index < 0 || index >= array.Count) return fallback;
+			return array[index];
+		}
 	}
 }

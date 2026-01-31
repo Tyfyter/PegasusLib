@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using MonoMod.Utils;
 using PegasusLib.Networking;
+using PegasusLib.Sets;
 using PegasusLib.UI;
 using System;
 using System.Collections;
@@ -430,6 +431,9 @@ namespace PegasusLib {
 		IComplexMineDamageTile_Hammer,
 		WrappingTextSnippet,
 		ExtraDyeSlots,
-		ITextInputContainer
+		ITextInputContainer,
+		IgnoreRemainingInterface,
+		CustomExpertScaling,
+		CustomSizedContainers,
 	}
 }

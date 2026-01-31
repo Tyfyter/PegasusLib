@@ -26,6 +26,8 @@ namespace PegasusLib {
 		public bool invertOnHitBuffHintColor = false;
 		[DefaultValue(TextInputContainerExtensions.CursorType.Line)]
 		public TextInputContainerExtensions.CursorType preferredTextCursor = TextInputContainerExtensions.CursorType.Line;
+		[DefaultValue(10), Range(0, 60)]
+		public int ProceduralLightSourceDyeRate = 10;
 	}
 	public class SlotNameOrderElement : OrderConfigElement<SlotNamePlacement> {
 		public override UIElement GetElement(SlotNamePlacement value) => new UIText(Language.GetTextValue("Mods.PegasusLib.Configs.SlotNamePlacement." + value.ToString()), 0.8f) {
