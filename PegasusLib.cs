@@ -435,5 +435,6 @@ namespace PegasusLib {
 		IgnoreRemainingInterface,
 		CustomExpertScaling,
 		CustomSizedContainers,
+		DeprecatedItemTransformation,
 	}
 }
