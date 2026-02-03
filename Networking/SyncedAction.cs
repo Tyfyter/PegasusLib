@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Core;
@@ -113,7 +112,7 @@ namespace PegasusLib.Networking {
 		public static void WriteNPC(BinaryWriter writer, NPC npc) => writer.Write((byte)npc.whoAmI);
 		public static NPC ReadNPC(BinaryReader reader) => Main.npc[reader.ReadByte()];
 		/// <summary>
-		/// <paramref name="options"/> must be ordered
+		/// <paramref name="options"/> must have the same order as when used in <see cref="ReadUnorderedSet"/>
 		/// </summary>
 		public static void WriteUnorderedSet<T>(BinaryWriter writer, IEnumerable<T> options, params T[] values) {
 			BitArray array = new(options.Select(values.Contains).ToArray());
@@ -121,7 +120,7 @@ namespace PegasusLib.Networking {
 			Utils.SendBitArray(array, writer);
 		}
 		/// <summary>
-		/// <paramref name="options"/> must be ordered
+		/// <paramref name="options"/> must have the same order as when used in <see cref="WriteUnorderedSet"/>
 		/// </summary>
 		public static IEnumerable<T> ReadUnorderedSet<T>(BinaryReader reader, IEnumerable<T> options) {
 			BitArray array = Utils.ReceiveBitArray(reader.ReadUInt16(), reader);
@@ -129,6 +128,18 @@ namespace PegasusLib.Networking {
 			foreach (T item in options) {
 				if (array[i++]) yield return item;
 			}
+		}
+		/// <summary>
+		/// Reorders <paramref name="values"/> to follow the order of <paramref name="options"/>
+		/// </summary>
+		public static T[] ReorderSet<T>(IEnumerable<T> options, params T[] values) {
+			T[] output = new T[values.Length];
+			int i = 0;
+			foreach (T item in options) {
+				if (values.Contains(item)) output[i++] = item;
+			}
+			Array.Resize(ref output, i);
+			return output;
 		}
 		public static void WriteArray<T>(BinaryWriter writer, T[] items, Action<BinaryWriter, T> write) {
 			writer.Write((ushort)items.Length);

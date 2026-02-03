@@ -95,4 +95,7 @@ public static class GeometryUtils {
 		intersection = a1 + t * b;
 		return true;
 	}
+	public static bool Contains(this Rectangle area, Vector2 point) {
+		return area.Contains((int)point.X, (int)point.Y);
+	}
 }

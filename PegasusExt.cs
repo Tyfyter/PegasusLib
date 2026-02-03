@@ -1,4 +1,5 @@
-﻿using PegasusLib.Reflection;
+﻿using PegasusLib.Networking;
+using PegasusLib.Reflection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -252,5 +253,8 @@ namespace PegasusLib {
 			PegasusLib.attributedErrors.Add(mod, exception);
 			return false;
 		}
+		public static bool IsLocallyOwned(this Player player) => player.whoAmI == Main.myPlayer;
+		public static bool IsLocallyOwned(this Projectile projectile) => projectile.owner == Main.myPlayer;
+		public static bool IsLocallyOwned(this NPC npc) => Main.netMode is NetmodeID.SinglePlayer or NetmodeID.Server;
 	}
 }

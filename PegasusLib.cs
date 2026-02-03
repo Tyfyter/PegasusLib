@@ -1,3 +1,4 @@
+global using static PegasusLib.GlobalUtils;
 global using Color = Microsoft.Xna.Framework.Color;
 global using Rectangle = Microsoft.Xna.Framework.Rectangle;
 global using Vector2 = Microsoft.Xna.Framework.Vector2;
@@ -5,6 +6,7 @@ global using Vector3 = Microsoft.Xna.Framework.Vector3;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using MonoMod.Utils;
+using PegasusLib.Content;
 using PegasusLib.Networking;
 using PegasusLib.Sets;
 using PegasusLib.UI;
@@ -13,6 +15,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
@@ -99,6 +102,11 @@ namespace PegasusLib {
 				} else {
 					if (!requiredFeatures.TryGetValue(feature, out List<Mod> reqs)) requiredFeatures[feature] = reqs = [];
 					if (!reqs.Contains(mod)) reqs.Add(mod);
+				}
+				switch (feature) {
+					case LibFeature.WireChannel:
+					if (ModContent.GetInstance<ModWireChannel>() is null) mod.AddContent<ModWireChannel>();
+					break;
 				}
 			}
 		}
@@ -446,5 +454,35 @@ namespace PegasusLib {
 		CustomExpertScaling,
 		CustomSizedContainers,
 		DeprecatedItemTransformation,
+		WireChannel,
+	}
+	public static class GlobalUtils {
+		public static Color FromHexRGB(uint hex) => FromHexRGBA((hex << 8) | 0x000000ffu);
+		public static Color FromHexRGBA(uint hex) => new() {
+			PackedValue = ((hex & 0xff000000u) >> 24) | ((hex & 0x00ff0000u) >> 8) | ((hex & 0x0000ff00u) << 8) | ((hex & 0x000000ffu) << 24),
+		};
+		public static void Min<T>(ref T current, T @new) where T : IComparisonOperators<T, T, bool> {
+			if (current > @new) current = @new;
+		}
+		public static void Max<T>(ref T current, T @new) where T : IComparisonOperators<T, T, bool> {
+			if (current < @new) current = @new;
+		}
+		public static bool Minimize<T>(ref T current, T @new) where T : IComparisonOperators<T, T, bool> {
+			if (current > @new) {
+				current = @new;
+				return true;
+			}
+			return false;
+		}
+		public static bool Maximize<T>(ref T current, T @new) where T : IComparisonOperators<T, T, bool> {
+			if (current < @new) {
+				current = @new;
+				return true;
+			}
+			return false;
+		}
+		public static void MinMax<T>(ref T min, ref T max) where T : IComparisonOperators<T, T, bool> {
+			if (min > max) Utils.Swap(ref min, ref max);
+		}
 	}
 }
