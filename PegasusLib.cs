@@ -35,6 +35,8 @@ namespace PegasusLib {
 		internal static Dictionary<LibFeature, List<Mod>> requiredFeatures = [];
 		internal static Dictionary<LibFeature, Exception> erroredFeatures = [];
 		internal static Dictionary<LibFeature, Action<Exception>> onFeatureError = [];
+		internal static MultiDictionary<Mod, Exception> attributedErrors = [];
+		internal static bool canAttributeErrors = true;
 		public static bool unloading = false;
 		public override void Load() {
 			On_Main.DrawNPCDirect += IDrawNPCEffect.On_Main_DrawNPCDirect;
@@ -80,6 +82,14 @@ namespace PegasusLib {
 			ChatManager.Register<Sprite_Snippet_Handler>([
 				"sprite"
 			]);
+			MonoModHooks.Add(typeof(SystemLoader).GetMethod("PostSetupContent", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static), (Action<Mod> orig, Mod mod) => {
+				orig(mod);
+				if (attributedErrors.TryGetValue(mod, out IEnumerable<Exception> errors)) throw new AggregateException($"The following errors were attributed to {mod.Name}: ", errors);
+			});
+		}
+		public override void PostSetupContent() {
+			SyncedAction.TestAllSync();
+			canAttributeErrors = false;
 		}
 		public static void Require(Mod mod, params LibFeature[] features) {
 			for (int i = 0; i < features.Length; i++) {

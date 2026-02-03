@@ -74,7 +74,7 @@ namespace PegasusLib {
 			}
 			return true;
 		}
-		public static ReverseEntityGlobalsEnumerator<TGlobal> EnumerateReverse<TGlobal>(this GlobalHookList<TGlobal> hookList,  IEntityWithGlobals<TGlobal> entity) where TGlobal : GlobalType<TGlobal> {
+		public static ReverseEntityGlobalsEnumerator<TGlobal> EnumerateReverse<TGlobal>(this GlobalHookList<TGlobal> hookList, IEntityWithGlobals<TGlobal> entity) where TGlobal : GlobalType<TGlobal> {
 			return new ReverseEntityGlobalsEnumerator<TGlobal>(GlobalHookListMethods<TGlobal>.ForType(hookList, entity.Type), entity);
 		}
 		public static void InsertOrdered<T>(this IList<T> list, T item, IComparer<T> comparer = null) {
@@ -239,6 +239,18 @@ namespace PegasusLib {
 		public static T GetIfInRange<T>(this IReadOnlyList<T> array, int index, T fallback = default) {
 			if (index < 0 || index >= array.Count) return fallback;
 			return array[index];
+		}
+		public static IEnumerable<T> Select<T>(this Range range, Func<int, T> func) {
+			if (range.Start.IsFromEnd || range.End.IsFromEnd) throw new ArgumentException("Func select does not support indexing from end", nameof(range));
+			for (int i = range.Start.Value; i < range.End.Value; i++) yield return func(i);
+		}
+		/// <summary>
+		/// Returns false if the exception was successfully attributed to the responsible mod, <see langword="throw"/> if this returns true
+		/// </summary>
+		public static bool AttributeTo(this Exception exception, Mod mod) {
+			if (!PegasusLib.canAttributeErrors) return true;
+			PegasusLib.attributedErrors.Add(mod, exception);
+			return false;
 		}
 	}
 }
