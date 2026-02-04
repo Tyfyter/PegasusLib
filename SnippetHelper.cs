@@ -1,26 +1,16 @@
-﻿using Microsoft.CodeAnalysis.Options;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using PegasusLib.Networking;
+﻿using PegasusLib.Networking;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 using Terraria.UI.Chat;
-using static Mono.CompilerServices.SymbolWriter.CodeBlockEntry;
-using static ReLogic.Graphics.DynamicSpriteFont;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace PegasusLib {
 	public record struct SnippetOption(string Name, [StringSyntax(StringSyntaxAttribute.Regex)] string Data, Action<string> Action) {
@@ -29,7 +19,7 @@ namespace PegasusLib {
 		/// Creates an option which parses a color as an 8, 6, 4, or 3 digit hex code
 		/// </summary>
 		public static SnippetOption CreateColorOption(string name, Action<Color> setter) {
-			return new(name, "[\\da-fA-F]{3,8}", match => {
+			return new(name, "(?:[\\da-fA-F]{8}|[\\da-fA-F]{6}|[\\da-fA-F]{3,4})", match => {
 				int Parse(int index, int size) {
 					int startIndex = (index * size);
 					return Convert.ToInt32(match[startIndex..(startIndex + size)], 16);
@@ -213,8 +203,9 @@ namespace PegasusLib {
 		/// </summary>
 		public abstract IEnumerable<SnippetOption> GetOptions();
 		public abstract TextSnippet Parse(string text, Color baseColor, TOptions options);
+		public virtual TOptions DefaultOptions => new();
 		public TextSnippet Parse(string text, Color baseColor = default, string options = null) {
-			this.options = new();
+			this.options = DefaultOptions;
 			SnippetHelper.ParseOptions(options,
 				GetOptions().ToArray()
 			);
