@@ -31,7 +31,6 @@ using Terraria.UI;
 using Terraria.UI.Chat;
 
 namespace PegasusLib {
-	// Please read https://github.com/tModLoader/tModLoader/wiki/Basic-tModLoader-Modding-Guide#mod-skeleton-contents for more information about the various files in a mod.
 	public class PegasusLib : Mod {
 		internal static new bool IsNetSynced => ((Mod)ModContent.GetInstance<PegasusLib>()).IsNetSynced;
 		internal static List<IUnloadable> unloadables = [];
@@ -92,6 +91,7 @@ namespace PegasusLib {
 		}
 		public override void PostSetupContent() {
 			SyncedAction.TestAllSync();
+
 			canAttributeErrors = false;
 		}
 		public static void Require(Mod mod, params LibFeature[] features) {
@@ -448,12 +448,18 @@ namespace PegasusLib {
 		IDrawNPCEffect,
 		IComplexMineDamageTile_Hammer,
 		WrappingTextSnippet,
+		/// <summary>
+		/// This is automatically required if a mod extends <see cref="ExtraDyeSlot"/>
+		/// </summary>
 		ExtraDyeSlots,
 		ITextInputContainer,
 		IgnoreRemainingInterface,
 		CustomExpertScaling,
 		CustomSizedContainers,
 		DeprecatedItemTransformation,
+		/// <summary>
+		/// Requiring this will automatically register <see cref="ModWireChannel"/> to the first mod which does so
+		/// </summary>
 		WireChannel,
 	}
 	public static class GlobalUtils {
