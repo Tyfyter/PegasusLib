@@ -115,6 +115,16 @@ namespace PegasusLib {
 			});
 		}
 		/// <summary>
+		/// Creates an option which parses a <typeparamref name="TEnum"/>
+		/// </summary>
+		public static SnippetOption CreateEnumOption<TEnum>(string name, Action<TEnum> setter) where TEnum : struct, Enum {
+			IEnumerable<string> names = Enum.GetNames<TEnum>()
+				.Select(name => string.Concat(name.Select(c => $"[{char.ToUpperInvariant(c)}{char.ToLowerInvariant(c)}]")));
+			return new(name, $"(?:{string.Join('|', names)})", match => {
+				setter(Enum.Parse<TEnum>(match, true));
+			});
+		}
+		/// <summary>
 		/// Creates an option which sets a flag
 		/// </summary>
 		public static SnippetOption CreateFlagOption(string name, Action setter) {
