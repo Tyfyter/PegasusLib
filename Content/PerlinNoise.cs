@@ -4,6 +4,7 @@ using Terraria;
 using Terraria.ModLoader;
 
 namespace PegasusLib.Content {
+	[Autoload(Side = ModSide.Client)]
 	public class PerlinNoise : ILoadable {
 		static Asset<Texture2D> perlin;
 		static float[,] odds;

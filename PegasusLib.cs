@@ -308,10 +308,22 @@ namespace PegasusLib {
 				gameFrameCount++;
 			}
 		}
+
+		public static uint GameTickCount { get; private set; } = 0;
+		static void IncrementTickCount() {
+			unchecked {
+				GameTickCount++;
+			}
+		}
 		internal enum Packets : byte {
 			SyncKeybindHandler,
 			SyncedAction,
 			WeakSyncedAction,
+		}
+		class PegasusSystem : ModSystem {
+			public override void PreUpdateEntities() {
+				IncrementTickCount();
+			}
 		}
 		// Unfortunately, GetLoadableTypes throws this error before even static constructors get run
 		/*static void AddRequirements(Action<string, byte[]> AddFile, IEnumerable requirements) {
