@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Terraria;
+using Terraria.DataStructures;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Core;
 
@@ -95,6 +97,16 @@ namespace PegasusLib.Networking {
 		public class InaccurateSynchronizationException(SyncedAction tested, SyncedAction result) : Exception($"{tested.GetType()} not synchronized properly, {tested} -> {result}") {}
 		#endregion
 		#region helper methods
+		public static void WritePoint16(BinaryWriter writer, Point16 point) {
+			writer.Write((short)point.X);
+			writer.Write((short)point.Y);
+		}
+		public static Point16 ReadPoint16(BinaryReader reader) => new(reader.ReadInt16(), reader.ReadInt16());
+		public static void WritePoint(BinaryWriter writer, Point point) {
+			writer.Write((int)point.X);
+			writer.Write((int)point.Y);
+		}
+		public static Point16 ReadPoint(BinaryReader reader) => new(reader.ReadInt32(), reader.ReadInt32());
 		public static void WritePlayer(BinaryWriter writer, Player player) => writer.Write((byte)player.whoAmI);
 		public static Player ReadPlayer(BinaryReader reader) => Main.player[reader.ReadByte()];
 		public static void WriteProjectile(BinaryWriter writer, Projectile projectile) {
