@@ -16,6 +16,7 @@ using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.GameContent.Creative;
+using Terraria.GameContent.UI;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -65,6 +66,7 @@ public abstract class WireMode : ModTexturedType, IFlowerMenuItem<WirePetalData>
 		if (Mod.Side != ModSide.Both && Mod is not PegasusLib) throw new InvalidOperationException("WireModes can only be added by Both-side mods");
 		WireModeLoader.Register(this);
 		ModTypeLookup<WireMode>.Register(this);
+		if (Mod is not PegasusLib) PegasusLib.Require(Mod, LibFeature.WireChannel);
 	}
 	public sealed override void SetupContent() {
 		if (!Main.dedServ) Texture2D = ModContent.Request<Texture2D>(Texture);
@@ -147,6 +149,7 @@ public class Red_Wire_Mode : WireMode {
 	public override Color? WireKiteColor => new Color(253, 58, 61);
 	public override void SetupSets() {
 		Sets.NormalWires[Type] = true;
+		WireModeKite.EnabledWires[Type] = true;
 	}
 	public override bool GetWire(int x, int y) => Main.tile[x, y].RedWire;
 	public override bool SetWire(int x, int y, bool value) {
@@ -220,7 +223,7 @@ public interface IWireTool {
 public class WireModeKite : ItemModeFlowerMenu<WireMode, WirePetalData> {
 	public static bool Cutter { get; set; }
 	public static bool[] EnabledWires { get; } = WireMode.Sets.Factory.CreateBoolSet();
-	public static IWireTool WireTool => Main.LocalPlayer.HeldItem.ModItem as IWireTool;
+	public static IWireTool WireTool => GetWireTool(Main.LocalPlayer.HeldItem);
 	public override bool Toggle => RightClicked;
 	public override bool IsActive() => WireTool is not null;
 	AutoLoadingAsset<Texture2D> wireMiniIcons = "Origins/Items/Tools/Wiring/Mini_Wire_Icons";
@@ -254,6 +257,11 @@ public class WireModeKite : ItemModeFlowerMenu<WireMode, WirePetalData> {
 		EnabledWires[mode.Type] ^= true;
 	}
 	public override IEnumerable<WireMode> GetModes() => WireTool.Modes;
+	public static IWireTool GetWireTool(Item item) {
+		if (item?.ModItem is IWireTool wireTool) return wireTool;
+		if (item?.shoot == ModContent.ProjectileType<ModWireChannel>() && UseModWireChannel.VanillaWireModes.WireTools[item.type] is IWireTool vanillaWireTool) return vanillaWireTool;
+		return null;
+	}
 }
 [Autoload(false)]
 public class ModWireChannel : ModProjectile {
@@ -265,16 +273,18 @@ public class ModWireChannel : ModProjectile {
 		Projectile.hide = true;
 	}
 	public override bool ShouldUpdatePosition() => false;
+	IWireTool GetWireTool(Item item) {
+		if (WireModeKite.GetWireTool(item) is IWireTool wireTool) return wireTool;
+		Projectile.Kill();
+		return null;
+	}
 	public override void AI() {
 		if (!Projectile.IsLocallyOwned()) {
 			Projectile.timeLeft = 5;
 			return;
 		}
 		Player player = Main.player[Projectile.owner];
-		if (player.HeldItem?.ModItem is not IWireTool wireTool) {
-			Projectile.Kill();
-			return;
-		}
+		if (GetWireTool(player.HeldItem) is not IWireTool wireTool) return;
 		if (player.channel) {
 			Projectile.timeLeft = 5;
 			player.SetDummyItemTime(5);
@@ -294,10 +304,7 @@ public class ModWireChannel : ModProjectile {
 	public override bool PreDraw(ref Color lightColor) {
 		if (!Projectile.IsLocallyOwned()) return false;
 		Player player = Main.player[Projectile.owner];
-		if (player.HeldItem?.ModItem is not IWireTool wireTool) {
-			Projectile.Kill();
-			return false;
-		}
+		if (GetWireTool(player.HeldItem) is not IWireTool wireTool) return false;
 		Rectangle screen = new(-16 * 5, -16 * 5, Main.screenWidth + 16 * 10, Main.screenHeight + 16 * 10);
 		bool hasDrawn = false;
 		Point[] positions = GetWirePositions(player, new((int)Projectile.ai[0], (int)Projectile.ai[1]), new(Player.tileTargetX, Player.tileTargetY));
@@ -310,7 +317,9 @@ public class ModWireChannel : ModProjectile {
 			if (mode.WireKiteColor is Color innerColor) color = Color.Lerp(color, innerColor, 1f / ++colorsCount);
 			hasExtra |= mode.IsExtra;
 		}
-		color *= 2;
+		color.R = (byte)(color.R * (color.R > 127 ? 2f : 0.5f));
+		color.G = (byte)(color.G * (color.G > 127 ? 2f : 0.5f));
+		color.B = (byte)(color.B * (color.B > 127 ? 2f : 0.5f));
 		color.A = (byte)((255 - Math.Min(color.R + color.G + color.B, 255)) / 2);
 		for (int i = 0; i < positions.Length; i++) {
 			Vector2 screenPos = positions[i].ToWorldCoordinates(0, 0) - Main.screenPosition;
@@ -447,5 +456,65 @@ public record class Mass_Wire_Action(Player Player, Point Start, Point End, bool
 				}
 			}
 		}
+	}
+}
+[Autoload(false)]
+public sealed class UseModWireChannel : GlobalItem {
+	public override void Load() {
+		MonoModHooks.Add(typeof(WiresUI.Settings).GetProperty(nameof(WiresUI.Settings.DrawToolModeUI)).GetGetMethod(), () => false);
+	}
+	public override void SetDefaults(Item item) {
+		if (item.shoot == ProjectileID.WireKite && VanillaWireModes.WireTools[item.type] is not null) {
+			item.shoot = ModContent.ProjectileType<ModWireChannel>();
+			if (item.shoot == ProjectileID.None) item.shoot = ProjectileID.WireKite;
+		}
+	}
+	public override bool Shoot(Item item, Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback) {
+		if (item.shoot != ModContent.ProjectileType<ModWireChannel>() || VanillaWireModes.WireTools[item.type] is null) return true;
+		if (player.ownedProjectileCounts[type] > 0) return false;
+		Projectile.NewProjectile(
+			source,
+			player.Center,
+			default,
+			type,
+			0,
+			0,
+			-1,
+			Player.tileTargetX,
+			Player.tileTargetY
+		);
+		return false;
+	}
+	[ReinitializeDuringResizeArrays]
+	public static class VanillaWireModes {
+		public static IWireTool[] WireTools { get; } = ItemID.Sets.Factory.CreateCustomSet<IWireTool>(default,
+			ItemID.MulticolorWrench, new ConstantWireTool([ModContent.GetInstance<Red_Wire_Mode>(), ModContent.GetInstance<Blue_Wire_Mode>(), ModContent.GetInstance<Green_Wire_Mode>(), ModContent.GetInstance<Yellow_Wire_Mode>()]),
+			ItemID.WireKite, new GrandDesign()
+		);
+	}
+	public readonly struct ConstantWireTool(params WireMode[] modes) : IVanillaWireTool {
+		public IEnumerable<WireMode> Modes { get; } = modes.ToArray();
+	}
+	public readonly struct GrandDesign : IVanillaWireTool {
+		public IEnumerable<WireMode> Modes => WireModeLoader.GetSorted(WireMode.Sets.NormalWires);
+	}
+	public interface IVanillaWireTool : IWireTool, IConvertible {
+		TypeCode IConvertible.GetTypeCode() => TypeCode.Object;
+		object IConvertible.ToType(Type conversionType, IFormatProvider provider) => this;
+		bool IConvertible.ToBoolean(IFormatProvider provider) => throw new NotImplementedException();
+		byte IConvertible.ToByte(IFormatProvider provider) => throw new NotImplementedException();
+		char IConvertible.ToChar(IFormatProvider provider) => throw new NotImplementedException();
+		DateTime IConvertible.ToDateTime(IFormatProvider provider) => throw new NotImplementedException();
+		decimal IConvertible.ToDecimal(IFormatProvider provider) => throw new NotImplementedException();
+		double IConvertible.ToDouble(IFormatProvider provider) => throw new NotImplementedException();
+		short IConvertible.ToInt16(IFormatProvider provider) => throw new NotImplementedException();
+		int IConvertible.ToInt32(IFormatProvider provider) => throw new NotImplementedException();
+		long IConvertible.ToInt64(IFormatProvider provider) => throw new NotImplementedException();
+		sbyte IConvertible.ToSByte(IFormatProvider provider) => throw new NotImplementedException();
+		float IConvertible.ToSingle(IFormatProvider provider) => throw new NotImplementedException();
+		string IConvertible.ToString(IFormatProvider provider) => throw new NotImplementedException();
+		ushort IConvertible.ToUInt16(IFormatProvider provider) => throw new NotImplementedException();
+		uint IConvertible.ToUInt32(IFormatProvider provider) => throw new NotImplementedException();
+		ulong IConvertible.ToUInt64(IFormatProvider provider) => throw new NotImplementedException();
 	}
 }

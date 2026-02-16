@@ -105,7 +105,10 @@ namespace PegasusLib {
 				}
 				switch (feature) {
 					case LibFeature.WireChannel:
-					if (ModContent.GetInstance<ModWireChannel>() is null) mod.AddContent<ModWireChannel>();
+					if (ModContent.GetInstance<ModWireChannel>() is null) {
+						mod.AddContent<ModWireChannel>();
+						mod.AddContent<UseModWireChannel>();
+					}
 					break;
 				}
 			}
@@ -461,7 +464,7 @@ namespace PegasusLib {
 		IComplexMineDamageTile_Hammer,
 		WrappingTextSnippet,
 		/// <summary>
-		/// This is automatically required if a mod extends <see cref="ExtraDyeSlot"/>
+		/// This is automatically required if a mod adds a <see cref="ExtraDyeSlot"/>
 		/// </summary>
 		ExtraDyeSlots,
 		ITextInputContainer,
@@ -470,7 +473,8 @@ namespace PegasusLib {
 		CustomSizedContainers,
 		DeprecatedItemTransformation,
 		/// <summary>
-		/// Requiring this will automatically register <see cref="ModWireChannel"/> to the first mod which does so
+		/// This is automatically required if a mod adds a <see cref="WireMode"/>
+		/// Requiring this will automatically register <see cref="ModWireChannel"/> and <see cref="UseModWireChannel"/> to the first mod which does so
 		/// </summary>
 		WireChannel,
 	}

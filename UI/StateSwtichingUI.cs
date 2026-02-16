@@ -16,7 +16,7 @@ public abstract class AStateSwtichingUI() : UIState() {
 	public abstract bool IsActive { get; }
 	public abstract InterfaceScaleType ScaleType { get; }
 }
-public class State_Switching_UI(params SwitchableUIState[] states) : AStateSwtichingUI() {
+public class StateSwitchingUI(params SwitchableUIState[] states) : AStateSwtichingUI() {
 	readonly List<SwitchableUIState> states = states.ToList();
 	public SwitchableUIState CurrentState { get; private set; }
 	public override bool IsActive => CurrentState is not null;
@@ -46,7 +46,7 @@ public class State_Switching_UI(params SwitchableUIState[] states) : AStateSwtic
 		CurrentState.Draw(spriteBatch);
 	}
 }
-public class Multistate_Switching_UI(params SwitchableUIState[] states) : AStateSwtichingUI() {
+public class MultistateSwitchingUI(params SwitchableUIState[] states) : AStateSwtichingUI() {
 	readonly List<SwitchableUIState> states = states.ToList();
 	bool isActive;
 	bool optimized;
@@ -166,7 +166,7 @@ public class StateSwitchingInterface : UserInterface {
 				return true;
 			}
 		);
-		SetState(state = multi ? new Multistate_Switching_UI() : new State_Switching_UI());
+		SetState(state = multi ? new MultistateSwitchingUI() : new StateSwitchingUI());
 		this.after = after;
 	}
 	public void AddState(SwitchableUIState state) {
