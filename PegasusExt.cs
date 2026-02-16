@@ -11,6 +11,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Core;
 using Terraria.ModLoader.IO;
+using Terraria.Utilities;
 
 namespace PegasusLib {
 	public static class PegasusExt {
@@ -256,5 +257,23 @@ namespace PegasusLib {
 		public static bool IsLocallyOwned(this Player player) => player.whoAmI == Main.myPlayer;
 		public static bool IsLocallyOwned(this Projectile projectile) => projectile.owner == Main.myPlayer;
 		public static bool IsLocallyOwned(this NPC npc) => Main.netMode is NetmodeID.SinglePlayer or NetmodeID.Server;
+		public static int RandomRound(this UnifiedRandom random, float value) {
+			float amount = value % 1;
+			value -= amount;
+			if (amount == 0) return (int)value;
+			if (random.NextFloat() < amount) {
+				value++;
+			}
+			return (int)value;
+		}
+		public static int RandomRound(this UnifiedRandom random, double value) {
+			double amount = value % 1;
+			value -= amount;
+			if (amount == 0) return (int)value;
+			if (random.NextDouble() < amount) {
+				value++;
+			}
+			return (int)value;
+		}
 	}
 }
