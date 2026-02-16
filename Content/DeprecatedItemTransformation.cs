@@ -5,8 +5,8 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-namespace PegasusLib.Content; 
-internal class DeprecatedItemTransformation : ILoadable {
+namespace PegasusLib.Content;
+public class DeprecatedItemTransformation : ILoadable {
 	static readonly Dictionary<string, string> conversions = [];
 	public static void Add(string old, string @new) => conversions.Add(old, @new);
 	public static void Add(string old, int newVanilla) {
