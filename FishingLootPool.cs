@@ -144,6 +144,7 @@ namespace PegasusLib {
 				FishingLootPool pool = LootPools[i];
 				if (!pool.IsActive(Player, attempt)) continue;
 
+				if (attempt.crate) AddPool(0, pool.Crate);
 				if (attempt.legendary) AddPool(1, pool.Legendary);
 				if (attempt.veryrare) AddPool(2, pool.VeryRare);
 				if (attempt.rare) AddPool(3, pool.Rare);
