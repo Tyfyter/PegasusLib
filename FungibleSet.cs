@@ -13,7 +13,7 @@ namespace PegasusLib {
 
 		public Dictionary<T, int> Entries { get; private set; }
 		public int this[T key] {
-			get => Entries.ContainsKey(key) ? Entries[key] : 0;
+			get => Entries.TryGetValue(key, out int value) ? value : 0;
 			set {
 				if (value > 0) {
 					Entries[key] = value;
