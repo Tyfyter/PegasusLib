@@ -277,6 +277,8 @@ public class ModWireChannel : ModProjectile {
 		}
 		if (player.channel) {
 			Projectile.timeLeft = 5;
+			player.SetDummyItemTime(5);
+			player.itemRotation = 0;
 		} else {
 			new Mass_Wire_Action(
 				player,
