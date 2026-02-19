@@ -1,0 +1,991 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>PegasusLib</name>
+    </assembly>
+    <members>
+        <member name="M:PegasusLib.BidirectionalDictionary`2.Add(`0,`1)">
+            <exception cref="T:System.ArgumentException">An element with the same key or value already exists</exception>
+        </member>
+        <member name="M:PegasusLib.CollisionExt.Raymarch(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Predicate{Terraria.Tile},System.Single)">
+            <summary>
+            Throws <see cref="T:System.ArgumentException"/> if <paramref name="direction"/> is zero
+            </summary>
+            <param name="position"></param>
+            <param name="direction"></param>
+            <param name="maxLength"></param>
+            <returns>The distance traveled before a tile was reached, or <paramref name="maxLength"/> if the distance would exceed it</returns>
+            <exception cref="T:System.ArgumentException"></exception>
+        </member>
+        <member name="M:PegasusLib.CollisionExt.Raymarch(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Single)">
+            <summary>
+            Throws <see cref="T:System.ArgumentException"/> if <paramref name="direction"/> is zero
+            </summary>
+            <param name="position"></param>
+            <param name="direction"></param>
+            <param name="maxLength"></param>
+            <returns>The distance traveled before a tile was reached, or <paramref name="maxLength"/> if the distance would exceed it</returns>
+            <exception cref="T:System.ArgumentException"></exception>
+        </member>
+        <member name="M:PegasusLib.CollisionExt.GetCenterProjectedPoint(Microsoft.Xna.Framework.Rectangle,Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            
+            </summary>
+            <param name="rect"></param>
+            <param name="a"></param>
+            <returns>The intersection point between a line segment connecting <paramref name="a"/> to the center of <paramref name="rect"/> and <paramref name="rect"/></returns>
+        </member>
+        <member name="M:PegasusLib.CollisionExt.PolygonIntersectsRect(System.ValueTuple{Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2}[],Microsoft.Xna.Framework.Rectangle)">
+            <summary>
+            checks if a convex polygon defined by a set of line segments intersects a rectangle
+            </summary>
+            <param name="lines"></param>
+            <param name="hitbox"></param>
+            <returns></returns>
+        </member>
+        <member name="T:PegasusLib.Config.NamedDefinitionConfigElement`1">
+            <summary>
+            Respects <see cref="!:ValueFilterAttribute"/>
+            </summary>
+            <typeparam name="TDefinition">The definition type which NamedDefinitionConfigElement should use</typeparam>
+        </member>
+        <member name="M:PegasusLib.Content.IRightClickableAccessory.CanRightClickAccessory(Terraria.Item[],System.Int32,System.Int32)">
+            <summary>
+            If this returns false, the slot's normal right click behavior will apply instead of <see cref="M:PegasusLib.Content.IRightClickableAccessory.RightClickAccessory(Terraria.Item[],System.Int32,System.Int32)"/>
+            </summary>
+        </member>
+        <member name="M:PegasusLib.Content.IRightClickableAccessory.RightClickAccessory(Terraria.Item[],System.Int32,System.Int32)">
+            <summary>
+            If this returns true, the accessory will be synced to other players
+            </summary>
+        </member>
+        <member name="F:PegasusLib.Content.WireMode.WireModeID.Search">
+            <inheritdoc cref="T:ReLogic.Reflection.IdDictionary"/>
+        </member>
+        <member name="M:PegasusLib.DropRuleExt.FindDropRule``1(System.Collections.Generic.IEnumerable{Terraria.GameContent.ItemDropRules.IItemDropRule},System.Predicate{``0})">
+            <summary>
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="dropRules"></param>
+            <param name="predicate"></param>
+            <returns>The first <see cref="T:Terraria.GameContent.ItemDropRules.IItemDropRule"/> matching <paramref name="predicate"/> in <paramref name="dropRules"/>, or null if no matching rule was found</returns>
+        </member>
+        <member name="M:PegasusLib.DropRuleExt.FindDropRules``1(System.Collections.Generic.IEnumerable{Terraria.GameContent.ItemDropRules.IItemDropRule})">
+            <returns>All <see cref="T:Terraria.GameContent.ItemDropRules.IItemDropRule"/>s in <paramref name="dropRules"/></returns>
+        </member>
+        <member name="M:PegasusLib.DropRuleExt.FindDropRules``1(System.Collections.Generic.IEnumerable{Terraria.GameContent.ItemDropRules.IItemDropRule},System.Predicate{``0})">
+            <returns>All <see cref="T:Terraria.GameContent.ItemDropRules.IItemDropRule"/>s matching <paramref name="predicate"/> in <paramref name="dropRules"/></returns>
+        </member>
+        <member name="T:PegasusLib.FishingLootPool.FallthroughFishingCatch">
+            <summary>
+            Used to denote that a rarity pool should have a chance to fail, even if it contains a valid item, such as catches with <see cref="F:Terraria.DataStructures.FishingAttempt.legendary"/> not always catching legendary fish
+            </summary>
+        </member>
+        <member name="M:PegasusLib.FishingLootPool.FallthroughFishingCatch.#ctor(System.Func{Terraria.Player,Terraria.DataStructures.FishingAttempt,System.Boolean},System.Single)">
+            <summary>
+            Used to denote that a rarity pool should have a chance to fail, even if it contains a valid item, such as catches with <see cref="F:Terraria.DataStructures.FishingAttempt.legendary"/> not always catching legendary fish
+            </summary>
+        </member>
+        <member name="M:PegasusLib.FramingUtils.AutoFrame(System.Int32,System.Int32,System.Int32,System.Byte)">
+            <summary>
+            
+            </summary>
+            <param name="i"></param>
+            <param name="j"></param>
+            <param name="frameOption"></param>
+            <param name="mergeDirections">upLeft, up, upRight, left, right, downLeft, down, downRight</param>
+        </member>
+        <member name="M:PegasusLib.Graphics.GraphicsDeviceExtensions.UseOldRenderTargets(Microsoft.Xna.Framework.Graphics.GraphicsDevice,Microsoft.Xna.Framework.Graphics.RenderTargetBinding[])">
+            <summary>
+            Sets the spritebatch to use some list of old render targets without clearing them
+            </summary>
+        </member>
+        <member name="M:PegasusLib.Graphics.ShaderLayerTargetHandler.Capture(Microsoft.Xna.Framework.Graphics.SpriteBatch)">
+            <summary>
+            Begins capturing whatever is drawn to the spritebatch
+            When used in a global, should be placed in the respective IDraw____Effect.PrepareToDraw____ hook, not PreDraw
+            </summary>
+            <param name="spriteBatch">the SpriteBatch to be used, leave as null to use <see cref="F:Terraria.Main.spriteBatch"/></param>
+        </member>
+        <member name="M:PegasusLib.Graphics.ShaderLayerTargetHandler.Stack(Terraria.Graphics.Shaders.ArmorShaderData,Terraria.Entity)">
+            <summary>
+            Applies the shader to everything captured
+            </summary>
+            <param name="shader"></param>
+            <param name="entity">the Entity to be used in <see cref="M:Terraria.Graphics.Shaders.ArmorShaderData.Apply(Terraria.Entity,System.Nullable{Terraria.DataStructures.DrawData})"/></param>
+        </member>
+        <member name="M:PegasusLib.Graphics.ShaderLayerTargetHandler.Stack(Terraria.Graphics.Shaders.MiscShaderData,System.Nullable{Microsoft.Xna.Framework.Matrix})">
+            <summary>
+            Applies the shader to everything captured
+            </summary>
+            <param name="shader"></param>
+        </member>
+        <member name="M:PegasusLib.Graphics.ShaderLayerTargetHandler.Release">
+            <summary>
+            Sets the spritebatch to its state before <see cref="M:PegasusLib.Graphics.ShaderLayerTargetHandler.Capture(Microsoft.Xna.Framework.Graphics.SpriteBatch)"/> was called, then draws everything that was captured
+            When used in a global, should be placed in the respective IDraw____Effect.FinishDrawing____ hook, not PostDraw
+            </summary>
+        </member>
+        <member name="M:PegasusLib.Graphics.SpritebatchExt.GetState(Microsoft.Xna.Framework.Graphics.SpriteBatch)">
+            <summary>
+            Gets the current state of the <see cref="T:Microsoft.Xna.Framework.Graphics.SpriteBatch"/> as a <see cref="T:PegasusLib.Graphics.SpriteBatchState"/>
+            </summary>
+            <param name="spriteBatch"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PegasusLib.Graphics.SpritebatchExt.Restart(Microsoft.Xna.Framework.Graphics.SpriteBatch,PegasusLib.Graphics.SpriteBatchState,System.Nullable{Microsoft.Xna.Framework.Graphics.SpriteSortMode},Microsoft.Xna.Framework.Graphics.BlendState,Microsoft.Xna.Framework.Graphics.SamplerState,Microsoft.Xna.Framework.Graphics.RasterizerState,Microsoft.Xna.Framework.Graphics.Effect,System.Nullable{Microsoft.Xna.Framework.Matrix})">
+            <summary>
+            Restarts the spritebatch, using the provided values, any value not provided will use the respective value from spriteBatchState instead
+            </summary>
+        </member>
+        <member name="M:PegasusLib.Graphics.SpritebatchExt.Begin(Microsoft.Xna.Framework.Graphics.SpriteBatch,PegasusLib.Graphics.SpriteBatchState,System.Nullable{Microsoft.Xna.Framework.Graphics.SpriteSortMode},Microsoft.Xna.Framework.Graphics.BlendState,Microsoft.Xna.Framework.Graphics.SamplerState,Microsoft.Xna.Framework.Graphics.RasterizerState,Microsoft.Xna.Framework.Graphics.Effect,System.Nullable{Microsoft.Xna.Framework.Matrix})">
+            <summary>
+            Begin the spritebatch, using the provided values, any value not provided will use the respective value from spriteBatchState instead
+            </summary>
+        </member>
+        <member name="M:PegasusLib.ICustomDrawItem.DrawOverHand(Terraria.Player)">
+            <summary>
+            whether or not the item is drawn over the player's hand
+            </summary>
+        </member>
+        <member name="M:PegasusLib.ICustomDrawItem.BackHand(Terraria.Player)">
+            <summary>
+            whether or not the item is drawn in a layer further back than usual
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.None">
+            <summary>
+            Doesn't move.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Slime">
+            <summary>
+             Hops in one direction, slides on slopes, floats in water, follows player if damaged or it's nighttime. Grasshoppers, on the other hand, flees from nearby players.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Demon_Eye">
+            <summary>
+             Flies, follows player, bounces off walls in an arc.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Fighter">
+            <summary>
+             Will walk, jump over holes, follow player. It will try to line up vertically first. If it fails to reach its target, it will back up a bit, then re-attempt. It is the most common AI in Terraria.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Eye_of_Cthulhu">
+            <summary>
+             Alternates between trying to stay above the player and summoning Servants of Cthulhu, and charging at the player occasionally. Spins when at low health, and begins exclusively charging at the player. Always looks at player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Flying">
+            <summary>
+             Flies, looks at player, follows player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Worm">
+            <summary>
+             Burrows in ground (and/or air), passes through blocks, follows player. Truffle Worm instead flees from players.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Passive">
+            <summary>
+             "Walks semi-randomly, jumps over holes. As of the 1.3 update, all Town NPCs talk to each other and the player, and each Town NPC has a different weapon to defend themselves when an enemy is nearby."
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Caster">
+            <summary>
+             Casts spells at player, stays stationary, warps after three casts, warps if falling. It stops casting spells if damaged, then warps if left alone.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Spell">
+            <summary>
+             Travels in a direct line towards player, going through blocks. Used by casters.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Cursed_Skull">
+            <summary>
+             Tries to drift towards or around player, often stays a little bit out of reach once having touched the player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Head">
+            <summary>
+             Tries to stay above player, spins and moves towards player occasionally, enrages during the daytime.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Skeletron_Hand">
+            <summary>
+             Follows the Skeletron head, flails, waves, and attempts to damage player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Plant">
+            <summary>
+             Extends on a vine towards player, looks at player. Dies if not rooted to a block.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Bat">
+            <summary>
+             Spasmodically flies towards player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.King_Slime">
+            <summary>
+             Hops towards the player and releases Blue Slimes when damaged. Teleports to the player when the player is out of reach; releases Spiked Slimes when damaged in Expert Mode.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Swimming">
+            <summary>
+             Swims back and forth and moves towards the player if they are in water, except for Goldfish, Gold Goldfish and Pupfish.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Vulture">
+            <summary>
+             Stands still until player gets within five blocks of AI or it is damaged. AI then acts similarly to the Flying AI.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Jellyfish">
+            <summary>
+             Floats back and forth, swims towards player in small bursts if player is in water.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Antlion">
+            <summary>
+             Looks at player, climbs overlapping blocks, shoots falling sand at nearby players.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Spike_Ball">
+            <summary>
+             Swings in a circle from a pivot point on a chain.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Blazing_Wheel">
+            <summary>
+             Moves along walls, floors and closed doors.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Hovering">
+            <summary>
+             Similar to the Fighter AI, floats over the ground instead of jumping.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Flying_Weapon">
+            <summary>
+             Doesn't adhere to gravity or tile collisions. Spins several times, then heads straight towards the player. Any damage cancels its attack and forces it to spin again.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Bird">
+            <summary>
+             Stands still until player gets nearby, then flies away. Avoids walls and obstacles and changes direction if one is in the way.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Mimic">
+            <summary>
+             Stands still until player approaches or attacks, then leaps towards them with varying heights.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Unicorn">
+            <summary>
+             Slowly gains speed while moving, jumps over obstacles.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Wall_of_Flesh">
+            <summary>
+             Wall of Flesh Mouth with Wall image attached. Traverses the world horizontally. Also spawns with two Wall of Flesh Eyes which share its health.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Wall_of_Flesh_Eye">
+            <summary>
+             Bound to an entity, watches player, and shoots projectiles. The more damaged it is, the more it shoots.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.The_Hungry">
+            <summary>
+             Similar to the Plant AI, but attached to an entity.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Retinazer">
+            <summary>
+             Alternates between attempting to stay diagonally above player while shooting projectiles slowly, and attempting to stay beside player and shooting projectiles very rapidly.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Spazmatism">
+            <summary>
+             Alternates between shooting projectiles and staying beside player, and charging toward player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Skeletron_Prime_Head">
+            <summary>
+             Same as Head AI.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Prime_Saw">
+            <summary>
+             Occasionally charges at the player, heads directly towards player when enraged.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Prime_Vice">
+            <summary>
+             Occasionally charges at the player, rapidly charges when enraged.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Prime_Cannon">
+            <summary>
+             Fires bombs upwards, aims directly at player when enraged.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Prime_Laser">
+            <summary>
+             Fires projectiles at player, shoots very rapidly when enraged.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.The_Destroyer">
+            <summary>
+             Similar to Worm AI except it will shoot projectiles from the body and tail and is unable to "fly" in air. It will also release Probes.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Snowman">
+            <summary>
+             Jumps and runs towards the player, similar to Fighter AI.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Tortoise">
+            <summary>
+             Crawls a bit, then leaps towards player. Will indefinitely leap towards the player in water.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Spider">
+            <summary>
+             Capable of climbing background walls as well as through platforms. Used only when crawling on a wall. Without a wall listed enemies seamlessly transform into their walking variants, which use Fighter AI.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Herpling">
+            <summary>
+             Jumps high and attempts to land on the player. It can strafe to the sides in midair.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Lost_Girl">
+            <summary>
+             Turns into a Nymph when a player gets too close.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Queen_Bee">
+            <summary>
+             Alternates between attempting to stay above player while firing projectiles downwards or spawning bees, and charging back and forth very rapidly.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Flying_Fish">
+            <summary>
+             Flies straight towards player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Golem_Body">
+            <summary>
+             Jumps towards player every few seconds, shoots lasers.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Golem_Head">
+            <summary>
+             Bound to an entity.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Golem_Fist">
+            <summary>
+             Flies towards player, returns when hit.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Free_Golem_Head">
+            <summary>
+             Attempts to fly back and forth, shoots projectiles at player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Angry_Nimbus">
+            <summary>
+             Attempts to stay directly above the player, and fires projectiles downwards.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Spore">
+            <summary>
+             Drifts downwards while following player, destroyed on contact.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Plantera">
+            <summary>
+             Clings to nearby blocks, chases player, fires projectiles and spiky balls that bounce around.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Plantera_Hook">
+            <summary>
+             Moves forward briefly before latching onto a block.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Plantera_Tentacle">
+            <summary>
+             Acts very similar to the Plant AI, only bound to a certain entity.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Brain_of_Cthulhu">
+            <summary>
+             Doesn't adhere to gravity or tile collisions, and teleports occasionally in first form. Once all Creepers are killed, it will begin rapidly teleporting and moving towards the player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Creeper">
+            <summary>
+             Circles around an entity, charging at player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Dungeon_Spirit">
+            <summary>
+             Moves directly towards player, gaining momentum. Emits blueish particles.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Mourning_Wood">
+            <summary>
+             Moves towards player, stops, and fires projectiles straight at the player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Pumpking">
+            <summary>
+             Very similar to the Head AI. Spawns with two Pumpking Scythes.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Pumpking_Scythe">
+            <summary>
+             Very similar to the Skeletron Hand AI.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Ice_Queen">
+            <summary>
+             Flies around, shooting a barrage of ice-based projectiles.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Santank">
+            <summary>
+             Moves across the ground, stops moving, and launches many different types of projectiles.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Elf_Copter">
+            <summary>
+             Attempts to fly around the player, shooting bullets rapidly if they are in sight.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Flocko">
+            <summary>
+             Flies towards the player at high speed.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Firefly">
+            <summary>
+             Flies slowly in any direction and occasionally glows.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Butterfly">
+            <summary>
+             Flies slowly in any direction.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Passive_Worm">
+            <summary>
+             Moves along the ground, pause for a bit, then continue moving. Will avoid walls and moves in the other direction if it has hit one.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Snail">
+            <summary>
+             Acts similarly to the Passive Worm AI, but climbs up walls instead of moving away.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Duck">
+            <summary>
+             Swims on water and walks on land. Will fly away when a player is nearby, but only while swimming. Lands after flying for a while.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Duke_Fishron">
+            <summary>
+             Rams player multiple times before summoning entities. In second form, it flies in circles and summons entities.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Detonating_Bubble">
+            <summary>
+             Flies through the air, chases player, and disappears after a period of time. Explodes and deals damage if it succeeds in reaching player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Sharkron">
+            <summary>
+             Follows an arcing path, dies when it touches a wall or player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Bubble_Shield">
+            <summary>
+             Created by the Martian Officer, absorbs all damage dealt to the officer.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Tesla_Turret">
+            <summary>
+             Built by Martian Engineers on the ground.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Corite">
+            <summary>
+             Travels through blocks, charges at the player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Rider">
+            <summary>
+             Has a Rider and a corresponding mount, if one is destroyed the other keeps attacking.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Martian_Saucer">
+            <summary>
+             Flies around the player, fires a Death Ray straight down, can only be damaged if all four turrets have been destroyed.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Moon_Lord_Core">
+            <summary>
+             Positions behind the player, invulnerable until the Moon Lord's head and hands are defeated.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Moon_Lord_Hand">
+            <summary>
+             Flees to the left and right of the player, opens and closes, fires Phantasmal Spheres, Phantasmal Eyes, and Phantasmal Bolts. Spawns True Eye of Cthulhu when health is depleted.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Moon_Lord_Head">
+            <summary>
+             Flies above the player, shoots a Phantasmal Deathray and then some Phantasmal Bolts, spawns True Eye of Cthulhu when defeated.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Martian_Probe">
+            <summary>
+             Floats at a constant height, turns red and files away if the player gets near it, triggers the Martian Madness event if it gets off screen.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.True_Eye_of_Cthulhu">
+            <summary>
+             Flies around the Moon Lord, shoots Phantasmal Sphere, Phantasmal Deathray, Phantasmal Eye and Phantasmal Bolts at the player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Moon_Leech_Clot">
+            <summary>
+             Travels from the player to the Moon Lord's head, heals part of the Moon Lord for 1000 HP if it reaches the mouth.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Lunatic_Devote">
+            <summary>
+             Never moves, causes the Lunatic Cultist to spawn when all are killed.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Lunatic_Cultist">
+            <summary>
+             Teleports around the player, fires shadow fireballs, ice mist, fireballs and lighting orbs. Creates duplicates of itself and summons Phantasm Dragons and Ancient Visions, triggers Lunar events when defeated.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Star_Cell">
+            <summary>
+             Flies around the player, slowly floats towards them. Usually sticks to the player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Ancient_Vision">
+            <summary>
+             Flies around the player, does not adhere to gravity or tile collisions.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Biome_Mimic">
+            <summary>
+             Passive until approached by the player. Attacks by jumping, dashing rapidly, and jumping into the air and slamming down on the player, ignoring block collision. Periodically "shuts" and becomes immune to damage and reflects projectiles in Expert Mode.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Mothron">
+            <summary>
+             Flies through blocks, lunges at the player, occasionally lays a Mothron Egg.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Mothron_Egg">
+            <summary>
+             Doesn't move, spawns Baby Mothrons after a while.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Baby_Mothron">
+            <summary>
+             Spawns from Mothron Eggs, flies, lunges at the player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Granite_Elemental">
+            <summary>
+             Floats towards the player, passing through tiles if the player is far enough. Drops to the ground when hurt in Expert mode.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Target_Dummy">
+            <summary>
+             Stationary, recoils when damaged.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Flying_Dutchman">
+            <summary>
+             Floats about the player, is defeated when all 4 cannons are destroyed.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Celestial_Pillar">
+            <summary>
+             Bobs up and down in place, can only be damaged when 100 / 150 of its event enemies are defeated. Triggers Moon Lord to spawn when all 4 are defeated.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Small_Star_Cell">
+            <summary>
+             Remains stationary, eventually grows into a full sized star cell.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Flow_Invader">
+            <summary>
+             Floats around the player, summons 3 orbiting minions, fires projectiles at the player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Nebula_Floater">
+            <summary>
+             Floats around the player, summons 3 orbiting minions, charges at the player and fires laser while teleporting.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Unknown_1">
+            <summary>
+             Stays still and shoots fire.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Solar_Fragment">
+            <summary>
+             Spawned from the top of the Solar Pillar. Shot upward on spawn and gradually falls down to the ground, destroyed on contact with blocks or the player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Ancient_Light">
+            <summary>
+             Fired in spreads of five by the Lunatic Cultist.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Ancient_Doom">
+            <summary>
+             Spawned from Lunatic Cultist in Expert Mode, fires 4 projectiles in a "+" shape when defeated/summoned.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Sand_Elemental">
+            <summary>
+             Floats around, moving towards the player, and occasionally spawns three 'sandnados'. Gets faster the more it is damaged.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Sand_Shark">
+            <summary>
+             Hides under sand (and its variants), occasionally dashes at the player.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Unknown_2">
+            <summary>
+             Currently, no NPCs follow this AI. Its specifics are unknown.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Eternia_Crystal">
+            <summary>
+             Stays still, targeted by Old One's Army monsters, ends the Old One's Army event if health reaches 0.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Mysterious_Portal">
+            <summary>
+             Spawns Etherian enemies.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Attacker">
+            <summary>
+             Moves towards the Eternia Crystal to attack it, and floats through blocks if it can't reach the crystal.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Flying_Attacker">
+            <summary>
+             Flies above the Eternia Crystal, pauses, and then dives for it. The cycle then repeats.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Dark_Mage">
+            <summary>
+             Slowly moves towards the Eternia Crystal. Occasionally summons multiple Old One's Skeletons around it and heals enemies.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Betsy">
+            <summary>
+             AI behaves similarly to the Duke Fishron AI. Shoots fireballs and rarely sweeps over the crystal with Flame Breath.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Etherian_Lightning_Bug">
+            <summary>
+             AI behaves similarly to the Hovering AI. Shoots lightning below it repeatedly.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Fairy">
+            <summary>
+             Moves towards the player, floats around them if no treasure is nearby, moves towards nearby treasure if detected, then waits for the player to go near it, despawns when on top of treasure.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Windy_Balloon">
+            <summary>
+             Spawns attached to an entity, floats up and down along with attached entity, rapidly flies up if attached entity dies, dies if it hits a block.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Dragonfly">
+            <summary>
+             Flies in bursts in random directions, flies away at fast speeds if a player approaches.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Ladybug">
+            <summary>
+             Alternates between flying slowly in any direction and walking back and forth on the ground.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Water_Strider">
+            <summary>
+             Glides on water and hops on land.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Dreadnautilus">
+            <summary>
+             Cycles between firing blood projectiles at the player, charging and spinning around the player, and summoning Blood Squids.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Seahorse">
+            <summary>
+             Swims in bursts in random directions.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Angry_Dandelion">
+            <summary>
+             Doesn't move, shoots projectiles at nearby players, but only in the wind’s direction.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Empress_of_Light">
+            <summary>
+             Hovers slightly above the player, cycles between several projectile attacks and charging the player. Disappears and reappears at half health, and starts cycling through attacks faster. Enrages during the daytime.
+            </summary>
+        </member>
+        <member name="F:PegasusLib.ID.NPCAIStyleID.Queen_Slime">
+            <summary>
+             Cycles between performing hops, leaping towards the player to pound them, and firing Regal Gel. Grows wings at half health, and begins flying towards the player's position, firing Regal Gel and attempting to pound the player when above them. Spawns Crystal Slimes, Heavenly Slimes, and Bouncy Slimes when damaged.
+            </summary>
+        </member>
+        <member name="P:PegasusLib.AutoKeybind.Current">
+            <summary>
+            Returns true if this keybind is pressed currently. Useful for creating a behavior that relies on the keybind being held down.
+            </summary>
+        </member>
+        <member name="P:PegasusLib.AutoKeybind.JustPressed">
+            <summary>
+            Returns true if this keybind has just been pressed this update. This is a fire-once-per-press behavior.
+            </summary>
+        </member>
+        <member name="P:PegasusLib.AutoKeybind.JustReleased">
+            <summary>
+            Returns true if this keybind has just been released this update.
+            </summary>
+        </member>
+        <member name="P:PegasusLib.AutoKeybind.Old">
+            <summary>
+            Returns true if this keybind has been pressed during the previous update.
+            </summary>
+        </member>
+        <member name="M:PegasusLib.MathUtils.MatrixMult(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2)">
+            <summary>
+            Multiplies a vector by a matrix
+            </summary>
+            <param name="x">the vector used to determine the x component of the output</param>
+            <param name="y">the vector used to determine the y component of the output</param>
+        </member>
+        <member name="P:PegasusLib.Networking.SyncedAction.ServerOnly">
+            <summary>
+            In multiplayer, this is used to determine whether or not the action runs on clients
+            Return true for anything that should only be run by the process that handles NPCs, the world, etc.
+            </summary>
+        </member>
+        <member name="M:PegasusLib.Networking.SyncedAction.Perform(System.Int32)">
+            <summary>
+            Performs the action, then sends it if appropriate
+            </summary>
+            <param name="fromClient"></param>
+        </member>
+        <member name="P:PegasusLib.Networking.SyncedAction.SyncTests">
+            <summary>
+            Any actions returned here will be used to verify that the action is synced properly, used from <see cref="M:Terraria.ModLoader.Mod.PostSetupContent"/>
+            </summary>
+        </member>
+        <member name="M:PegasusLib.Networking.SyncedAction.WriteUnorderedSet``1(System.IO.BinaryWriter,System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>
+            <paramref name="options"/> must have the same order as when used in <see cref="M:PegasusLib.Networking.SyncedAction.ReadUnorderedSet``1(System.IO.BinaryReader,System.Collections.Generic.IEnumerable{``0})"/>
+            </summary>
+        </member>
+        <member name="M:PegasusLib.Networking.SyncedAction.ReadUnorderedSet``1(System.IO.BinaryReader,System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            <paramref name="options"/> must have the same order as when used in <see cref="M:PegasusLib.Networking.SyncedAction.WriteUnorderedSet``1(System.IO.BinaryWriter,System.Collections.Generic.IEnumerable{``0},``0[])"/>
+            </summary>
+        </member>
+        <member name="M:PegasusLib.Networking.SyncedAction.ReorderSet``1(System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>
+            Reorders <paramref name="values"/> to follow the order of <paramref name="options"/>
+            </summary>
+        </member>
+        <member name="T:PegasusLib.Networking.WeakSyncedAction">
+            <summary>
+            For use by Client-Side and NoSync mods which should be able to optionally communicate with other clients
+            </summary>
+        </member>
+        <member name="M:PegasusLib.Networking.WeakSyncedAction.Perform(System.Int32)">
+            <summary>
+            Performs the action, then sends it if appropriate
+            </summary>
+            <param name="fromClient"></param>
+        </member>
+        <member name="M:PegasusLib.PegasusExt.SafeGet``1(Terraria.ModLoader.IO.TagCompound,System.String,``0)">
+            <typeparam name="T"></typeparam>
+            <param name="self"></param>
+            <param name="key"></param>
+            <param name="fallback"></param>
+            <returns>The value of <paramref name="key"/> in <paramref name="self"/>, or <paramref name="fallback"/> if <paramref name="self"/> does not contain <paramref name="key"/></returns>
+        </member>
+        <member name="M:PegasusLib.PegasusExt.GetDefaultTMLName(System.Type)">
+            <summary>
+            Gets the default texture path of this type
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PegasusLib.PegasusExt.GetFlags``1(``0)">
+            <typeparam name="T"></typeparam>
+            <param name="value"></param>
+            <returns>Every flag <paramref name="value"/> matches</returns>
+        </member>
+        <member name="M:PegasusLib.PegasusExt.Matches(Terraria.Recipe,System.Nullable{System.ValueTuple{System.Int32,System.Nullable{System.Int32}}},System.Int32[],System.ValueTuple{System.Int32,System.Nullable{System.Int32}}[])">
+            <summary>
+            Checks if a recipe matches the provided pattern
+            </summary>
+            <param name="recipe">the recipe being checked</param>
+            <param name="result">the result item, set to null to ignore the recipe's result, set count to null to ignore the amount of items the recipe crafts</param>
+            <param name="tiles">the required tiles, set to null to ignore the tiles the recipe requires</param>
+            <param name="ingredients">the ingredients, set to null to ignore the recipe's ingredients, set count to null to ignore the amount of the ingredient used</param>
+            <returns></returns>
+        </member>
+        <member name="M:PegasusLib.PegasusExt.Roll``1(``0[],``0[])">
+            <summary>
+            Pushes the contents of <paramref name="pushIn"/> into the beginning <paramref name="array"/><br/>
+            Elements at the end of <paramref name="array"/> are removed to make room
+            </summary>
+        </member>
+        <member name="M:PegasusLib.PegasusExt.AttributeTo(System.Exception,Terraria.ModLoader.Mod)">
+            <summary>
+            Returns false if the exception was successfully attributed to the responsible mod, <see langword="throw"/> if this returns true
+            </summary>
+        </member>
+        <member name="M:PegasusLib.PegasusLib.GetMultiTileTopLeft(System.Int32,System.Int32,Terraria.ObjectData.TileObjectData,System.Int32@,System.Int32@)">
+            <inheritdoc cref="M:PegasusLib.TileUtils.GetMultiTileTopLeft(System.Int32,System.Int32,Terraria.ObjectData.TileObjectData,System.Int32@,System.Int32@)"/>
+        </member>
+        <member name="F:PegasusLib.LibFeature.ExtraDyeSlots">
+            <summary>
+            This is automatically required if a mod adds a <see cref="T:PegasusLib.ExtraDyeSlot"/>
+            </summary>
+        </member>
+        <member name="F:PegasusLib.LibFeature.WireChannel">
+            <summary>
+            This is automatically required if a mod adds a <see cref="T:PegasusLib.Content.WireMode"/>
+            Requiring this will automatically register <see cref="T:PegasusLib.Content.ModWireChannel"/> and <see cref="T:PegasusLib.Content.UseModWireChannel"/> to the first mod which does so
+            </summary>
+        </member>
+        <member name="T:PegasusLib.Reflection.ReflectionLoader">
+            <summary>
+            Automatically loads any <see cref="T:PegasusLib.FastFieldInfo`2"/>s, <see cref="T:PegasusLib.FastStaticFieldInfo`2"/>s, <see cref="T:PegasusLib.FastStaticFieldInfo`1"/>s, and delegates in <see cref="P:PegasusLib.Reflection.ReflectionLoader.HostType"/>
+            use <see cref="T:PegasusLib.Reflection.ReflectionMemberNameAttribute"/> to specify the name to search for, if it doesn't match the field/property name
+            use <see cref="T:PegasusLib.Reflection.ReflectionParentTypeAttribute"/> to specify the type to search in, <see cref="T:PegasusLib.FastFieldInfo`2"/>s and <see cref="T:PegasusLib.FastStaticFieldInfo`2"/>s will automatically use TParent
+            use <see cref="T:PegasusLib.Reflection.ReflectionDefaultInstanceAttribute"/> to specify a default instance, necessary for instanced delegates
+            </summary>
+        </member>
+        <member name="T:PegasusLib.Sets.BakedSet`2">
+            <summary>
+            Should be used with <see cref="T:PegasusLib.Sets.ForceInitializeAttribute"/>
+            </summary>
+        </member>
+        <member name="M:PegasusLib.SnippetOption.CreateColorOption(System.String,System.Action{Microsoft.Xna.Framework.Color})">
+            <summary>
+            Creates an option which parses a color as an 8, 6, 4, or 3 digit hex code
+            </summary>
+        </member>
+        <member name="M:PegasusLib.SnippetOption.CreateFloatOption(System.String,System.Action{System.Single})">
+            <summary>
+            Creates an option which parses a floating point number
+            </summary>
+        </member>
+        <member name="M:PegasusLib.SnippetOption.CreateIntOption(System.String,System.Action{System.Int32})">
+            <summary>
+            Creates an option which parses an integer
+            </summary>
+        </member>
+        <member name="M:PegasusLib.SnippetOption.CreateFloatsOption(System.String,System.Range,System.Action{System.Single[]})">
+            <summary>
+            Creates an option which parses a floating point number
+            </summary>
+        </member>
+        <member name="M:PegasusLib.SnippetOption.CreateIntsOption(System.String,System.Range,System.Action{System.Int32[]})">
+            <summary>
+            Creates an option which parses an integer
+            </summary>
+        </member>
+        <member name="M:PegasusLib.SnippetOption.CreateVector2Option(System.String,System.Action{Microsoft.Xna.Framework.Vector2})">
+            <summary>
+            Creates an option which parses a Vector2
+            </summary>
+        </member>
+        <member name="M:PegasusLib.SnippetOption.CreateRectangleOption(System.String,System.Action{Microsoft.Xna.Framework.Rectangle})">
+            <summary>
+            Creates an option which parses a Rectangle
+            </summary>
+        </member>
+        <member name="M:PegasusLib.SnippetOption.CreateStringOption(System.String,System.Action{System.String},System.Char[])">
+            <summary>
+            Creates an option which parses a string terminated with any of the specified delimiters
+            </summary>
+        </member>
+        <member name="M:PegasusLib.SnippetOption.CreateEnumOption``1(System.String,System.Action{``0})">
+            <summary>
+            Creates an option which parses a <typeparamref name="TEnum"/>
+            </summary>
+        </member>
+        <member name="M:PegasusLib.SnippetOption.CreateFlagOption(System.String,System.Action)">
+            <summary>
+            Creates an option which sets a flag
+            </summary>
+        </member>
+        <member name="M:PegasusLib.AdvancedTextSnippetHandler`1.GetOptions">
+            <summary>
+            Set <see cref="F:PegasusLib.AdvancedTextSnippetHandler`1.options"/> in the <see cref="T:PegasusLib.SnippetOption"/>s returned here
+            </summary>
+        </member>
+        <member name="M:PegasusLib.StructureUtils.Structure.Place(System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            places the structure
+            </summary>
+            <returns>the amount of blocks changed</returns>
+        </member>
+        <member name="M:PegasusLib.StructureUtils.StructureTile.#ctor(System.UInt16,PegasusLib.StructureUtils.StructureTilePlacementType,Terraria.ID.BlockType,System.Int32,System.Byte)">
+            <param name="slopeType">5 is half-brick</param>
+        </member>
+        <member name="F:PegasusLib.TextUtils.CreateSelfLocalization">
+             <summary>
+            IL_0010: ldarg.0
+            IL_0011: ldarg.0
+            IL_0012: newobj instance void Terraria.Localization.LocalizedText::.ctor(string, string)
+            IL_0017: ret
+             </summary>
+        </member>
+        <member name="M:PegasusLib.TileUtils.GetMultiTileTopLeft(System.Int32,System.Int32,Terraria.ObjectData.TileObjectData,System.Int32@,System.Int32@)">
+            <summary>
+            Gets the top left tile of a multitile
+            </summary>
+            <param name="i"></param>
+            <param name="j"></param>
+            <param name="data"></param>
+            <param name="left"></param>
+            <param name="top"></param>
+        </member>
+        <member name="T:PegasusLib.UnstableHooking">
+            <summary>
+            For hooking methods which 
+            </summary>
+        </member>
+    </members>
+</doc>
