@@ -4,6 +4,11 @@
         <name>PegasusLib</name>
     </assembly>
     <members>
+        <member name="M:PegasusLib.AutoModCall.DefaultValueAttribute.#ctor">
+            <summary>
+            Uses the containing type and parameter name as the type and path
+            </summary>
+        </member>
         <member name="M:PegasusLib.BidirectionalDictionary`2.Add(`0,`1)">
             <exception cref="T:System.ArgumentException">An element with the same key or value already exists</exception>
         </member>
