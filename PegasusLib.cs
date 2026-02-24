@@ -39,6 +39,8 @@ namespace PegasusLib {
 		internal static Dictionary<LibFeature, Action<Exception>> onFeatureError = [];
 		internal static MultiDictionary<Mod, Exception> attributedErrors = [];
 		internal static bool canAttributeErrors = true;
+		static FastStaticFieldInfo<bool> contentLoadingFinished = new (typeof(ModLoader).Assembly.GetType("Terraria.ModLoader.ContentCache"), "contentLoadingFinished");
+		public static bool ContentLoadingFinished => contentLoadingFinished.Value;
 		public static bool unloading = false;
 		public override void Load() {
 			On_Main.DrawNPCDirect += IDrawNPCEffect.On_Main_DrawNPCDirect;

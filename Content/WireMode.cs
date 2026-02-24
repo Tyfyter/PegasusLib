@@ -115,6 +115,7 @@ public abstract class WireMode : ModTexturedType, IFlowerMenuItem<WirePetalData>
 		public static BitArray NormalWires = new(Factory.CreateBoolSet());
 		public static BitArray AshenWires = new(Factory.CreateBoolSet());
 		static Sets() {
+			if (!PegasusLib.ContentLoadingFinished) return;
 			foreach (WireMode mode in ModContent.GetContent<WireMode>()) mode.SetupPreSort();
 			WireModeLoader.Sort();
 			foreach (WireMode mode in ModContent.GetContent<WireMode>()) mode.SetupSets();
