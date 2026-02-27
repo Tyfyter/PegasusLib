@@ -7,10 +7,12 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
+using System.Xml;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Core;
+using Terraria.ModLoader.IO;
 
 namespace PegasusLib.Networking;
 public abstract record class SyncedAction : ILoadable {
@@ -209,7 +211,9 @@ public abstract record class AutoSyncedAction : SyncedAction {
 			if (property.GetMethod is not MethodInfo get) continue;
 			if (property.SetMethod is not MethodInfo set) continue;
 			if (!set.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(System.Runtime.CompilerServices.IsExternalInit))) continue;
-			if (!syncSets.TryGetValue(property.PropertyType, out (MethodInfo write, MethodInfo read) sync, out int inaccuracy)) continue;
+			if (!syncSets.TryGetValue(property.PropertyType, out (MethodInfo write, MethodInfo read) sync, out int inaccuracy)) {
+				throw new NotSupportedException($"\nProperty {property} is unsupported type {property.PropertyType}, you can add support with {nameof(AutoSyncSendAttribute)} and {nameof(AutoSyncReceiveAttribute)}");
+			}
 			if (inaccuracy > 0) warnings.Append($"\nProperty {property} falling back to ");
 			(MethodInfo send, MethodInfo receive) = sync;
 			write.Emit(OpCodes.Ldarg_1);
@@ -233,6 +237,14 @@ public abstract record class AutoSyncedAction : SyncedAction {
 	}
 	LooseDictionary<Type, (MethodInfo write, MethodInfo read)> GetSyncSets() {
 		LooseDictionary<Type, (MethodInfo write, MethodInfo read)> syncSets = new(LooseDictionary.ParentType);
+		void TryAddVanilla<T>(Action<BinaryWriter, T> _write, Func<BinaryReader, T> _read) {
+			MethodInfo write = _write.Method;
+			MethodInfo read = _read.Method;
+			if (write.ReturnType != typeof(void)) throw new ArgumentException($"Invalid write return type {write.ReturnType}", nameof(write));
+			if (write.GetParameters().Length != 2) throw new ArgumentException($"Invalid write arg count {write.GetParameters().Length}", nameof(write));
+			if (read.GetParameters().Length != 1) throw new ArgumentException($"Invalid read arg count {read.GetParameters().Length}", nameof(read));
+			syncSets.TryAdd(read.ReturnType, (write, read));
+		}
 
 		Type type = GetType();
 		do {
@@ -268,15 +280,15 @@ public abstract record class AutoSyncedAction : SyncedAction {
 			HashSet<Type> warnings = writes.Keys.ToHashSet();
 			warnings.SymmetricExceptWith(reads.Keys.ToHashSet());
 			if (warnings.Count > 0) {
-				Mod.Logger.Warn($"Ignoring send/receive methods in {GetType()} due to not being balanced:[{
-					string.Join(", ", warnings.Select(type => $"{type} missing {(reads.ContainsKey(type) ? "send" : "receive")}"))
-				}]");
+				Mod.Logger.Warn($"Ignoring send/receive methods in {GetType()} due to not being balanced:[{string.Join(", ", warnings.Select(type => $"{type} missing {(reads.ContainsKey(type) ? "send" : "receive")}"))}]");
 			}
 		} while ((type = type.BaseType) is not null);
+		TryAddVanilla(Utils.WriteVector2, Utils.ReadVector2);
 		return syncSets;
 	}
 	public override void NetSend(BinaryWriter writer) => ((AutoSyncedAction)Get(type)).write(this, writer);
 	public override SyncedAction NetReceive(BinaryReader reader) => read(this, reader);
+	#region attributes
 	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
 	protected internal class AutoSyncSendAttribute(Type type) : Attribute {
 		public Type Type { get; } = type;
@@ -287,4 +299,78 @@ public abstract record class AutoSyncedAction : SyncedAction {
 		public Type Type { get; } = type;
 	}
 	protected internal sealed class AutoSyncReceiveAttribute<T>() : AutoSyncReceiveAttribute(typeof(T)) { }
+	#endregion
+	#region helper methods
+	#pragma warning disable IDE0051
+	[AutoSyncSend<Boolean>]
+	static void WriteBoolean(BinaryWriter writer, Boolean value) => writer.Write(value);
+	[AutoSyncReceive<Boolean>]
+	static Boolean ReadBoolean(BinaryReader reader) => reader.ReadBoolean();
+
+	[AutoSyncSend<Byte>]
+	static void WriteByte(BinaryWriter writer, Byte value) => writer.Write(value);
+	[AutoSyncReceive<Byte>]
+	static Byte ReadByte(BinaryReader reader) => reader.ReadByte();
+
+	[AutoSyncSend<Char>]
+	static void WriteChar(BinaryWriter writer, Char value) => writer.Write(value);
+	[AutoSyncReceive<Char>]
+	static Char ReadChar(BinaryReader reader) => reader.ReadChar();
+
+	[AutoSyncSend<Decimal>]
+	static void WriteDecimal(BinaryWriter writer, Decimal value) => writer.Write(value);
+	[AutoSyncReceive<Decimal>]
+	static Decimal ReadDecimal(BinaryReader reader) => reader.ReadDecimal();
+
+	[AutoSyncSend<Double>]
+	static void WriteDouble(BinaryWriter writer, Double value) => writer.Write(value);
+	[AutoSyncReceive<Double>]
+	static Double ReadDouble(BinaryReader reader) => reader.ReadDouble();
+
+	[AutoSyncSend<Half>]
+	static void WriteHalf(BinaryWriter writer, Half value) => writer.Write(value);
+	[AutoSyncReceive<Half>]
+	static Half ReadHalf(BinaryReader reader) => reader.ReadHalf();
+
+	[AutoSyncSend<Int32>]
+	static void WriteInt32(BinaryWriter writer, Int32 value) => writer.Write(value);
+	[AutoSyncReceive<Int32>]
+	static Int32 ReadInt32(BinaryReader reader) => reader.ReadInt32();
+
+	[AutoSyncSend<Int64>]
+	static void WriteInt64(BinaryWriter writer, Int64 value) => writer.Write(value);
+	[AutoSyncReceive<Int64>]
+	static Int64 ReadInt64(BinaryReader reader) => reader.ReadInt64();
+
+	[AutoSyncSend<SByte>]
+	static void WriteSByte(BinaryWriter writer, SByte value) => writer.Write(value);
+	[AutoSyncReceive<SByte>]
+	static SByte ReadSByte(BinaryReader reader) => reader.ReadSByte();
+
+	[AutoSyncSend<Single>]
+	static void WriteSingle(BinaryWriter writer, Single value) => writer.Write(value);
+	[AutoSyncReceive<Single>]
+	static Single ReadSingle(BinaryReader reader) => reader.ReadSingle();
+
+	[AutoSyncSend<String>]
+	static void WriteString(BinaryWriter writer, String value) => writer.Write(value);
+	[AutoSyncReceive<String>]
+	static String ReadString(BinaryReader reader) => reader.ReadString();
+
+	[AutoSyncSend<UInt16>]
+	static void WriteUInt16(BinaryWriter writer, UInt16 value) => writer.Write(value);
+	[AutoSyncReceive<UInt16>]
+	static UInt16 ReadUInt16(BinaryReader reader) => reader.ReadUInt16();
+
+	[AutoSyncSend<UInt32>]
+	static void WriteUInt32(BinaryWriter writer, UInt32 value) => writer.Write(value);
+	[AutoSyncReceive<UInt32>]
+	static UInt32 ReadUInt32(BinaryReader reader) => reader.ReadUInt32();
+
+	[AutoSyncSend<UInt64>]
+	static void WriteUInt64(BinaryWriter writer, UInt64 value) => writer.Write(value);
+	[AutoSyncReceive<UInt64>]
+	static UInt64 ReadUInt64(BinaryReader reader) => reader.ReadUInt64();
+	#pragma warning restore IDE0051
+	#endregion
 }
