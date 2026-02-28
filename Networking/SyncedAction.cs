@@ -7,12 +7,10 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
-using System.Xml;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Core;
-using Terraria.ModLoader.IO;
 
 namespace PegasusLib.Networking;
 public abstract record class SyncedAction : ILoadable {
@@ -39,6 +37,21 @@ public abstract record class SyncedAction : ILoadable {
 		ownedByMod.Add(GetType(), mod);
 		mod.Logger.Info($"{nameof(SyncedAction)} Loading {GetType().Name}");
 		Load();
+	}
+	static void Load(Mod mod, Type type) {
+		if (!type.IsAssignableTo(typeof(SyncedAction))) throw new InvalidOperationException($"Attempted to register invalid type {type} as {nameof(SyncedAction)}");
+		if (mod.Side != ModSide.Both && mod is not PegasusLib) throw new InvalidOperationException("SyncedActions can only be added by Both-side mods");
+		ConstructorInfo ctor = type.GetConstructors()[0];
+		actionIDsByType.Add(type, actions.Count);
+		ownedByMod.Add(type, mod);
+		SyncedAction empty = (SyncedAction)ctor.Invoke([..ctor.GetParameters().Select(static parameter => {
+			if (parameter.ParameterType.IsValueType)
+				return Activator.CreateInstance(parameter.ParameterType);
+			return null;
+		})]);
+		actions.Add(empty);
+		mod.Logger.Info($"{nameof(SyncedAction)} Loading {type.Name}");
+		empty.Load();
 	}
 	public virtual void Load() { }
 	void ILoadable.Unload() { }
@@ -301,7 +314,7 @@ public abstract record class AutoSyncedAction : SyncedAction {
 	protected internal sealed class AutoSyncReceiveAttribute<T>() : AutoSyncReceiveAttribute(typeof(T)) { }
 	#endregion
 	#region helper methods
-	#pragma warning disable IDE0051
+#pragma warning disable IDE0051
 	[AutoSyncSend<Boolean>]
 	static void WriteBoolean(BinaryWriter writer, Boolean value) => writer.Write(value);
 	[AutoSyncReceive<Boolean>]
@@ -371,6 +384,6 @@ public abstract record class AutoSyncedAction : SyncedAction {
 	static void WriteUInt64(BinaryWriter writer, UInt64 value) => writer.Write(value);
 	[AutoSyncReceive<UInt64>]
 	static UInt64 ReadUInt64(BinaryReader reader) => reader.ReadUInt64();
-	#pragma warning restore IDE0051
+#pragma warning restore IDE0051
 	#endregion
 }
