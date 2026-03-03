@@ -275,7 +275,7 @@ namespace PegasusLib {
 				}
 
 				case Packets.SyncedAction:
-				SyncedAction.Get(SyncedAction.ReadType(reader)).Read(reader).Perform(whoAmI);
+				ISyncedAction.GetReader(ISyncedAction.ReadType(reader))(reader).Perform(whoAmI);
 				break;
 
 				case Packets.WeakSyncedAction: {
