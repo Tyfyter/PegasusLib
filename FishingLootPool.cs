@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.DataStructures;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.Utilities;
 using static PegasusLib.FishingLootPool;
@@ -206,5 +207,11 @@ namespace PegasusLib {
 	}
 	public record struct FishingDropChain(float Chance) {
 		public static FishingDropChain operator *(FishingDropChain chain, float scalar) => new(chain.Chance * scalar);
+	}
+	public class JunkLootPool : FishingLootPool {
+		public override bool IsActive(Player player, FishingAttempt attempt) => attempt.rolledItemDrop >= ItemID.OldShoe && attempt.rolledItemDrop <= ItemID.TinCan;
+		public override void SetStaticDefaults() {
+			Any.Add(new FallthroughFishingCatch(weight: 4));
+		}
 	}
 }
