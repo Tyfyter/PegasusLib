@@ -158,7 +158,7 @@ namespace PegasusLib {
 
             Nothing = 128
         }
-        public struct StructureTile {
+        public readonly struct StructureTile {
             public readonly ushort type;
             public readonly StructureTilePlacementType placementType;
             public readonly BlockType blockType;
@@ -178,7 +178,6 @@ namespace PegasusLib {
                 style = 0;
                 paint = 0;
             }
-            /// <param name="slopeType">5 is half-brick</param>
             public StructureTile(ushort type, StructureTilePlacementType placementType, BlockType slopeType = 0, int style = 0, byte paint = 0) {
                 this.type = type;
                 this.placementType = placementType;

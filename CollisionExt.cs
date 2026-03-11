@@ -93,11 +93,10 @@ namespace PegasusLib {
 		/// <summary>
 		/// Throws <see cref="ArgumentException"/> if <paramref name="direction"/> is zero
 		/// </summary>
-		/// <param name="position"></param>
-		/// <param name="direction"></param>
-		/// <param name="maxLength"></param>
+		/// <param name="extraCheck">An additional check to be run on every tile crossed, if this returns false the raymarch will end immediately</param>
 		/// <returns>The distance traveled before a tile was reached, or <paramref name="maxLength"/> if the distance would exceed it</returns>
 		/// <exception cref="ArgumentException"></exception>
+#pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
 		public static float Raymarch(Vector2 position, Vector2 direction, Predicate<Tile> extraCheck, float maxLength = float.PositiveInfinity) {
 			if (direction == Vector2.Zero) throw new ArgumentException($"{nameof(direction)} may not be zero");
 			float length = 0;
@@ -252,6 +251,7 @@ namespace PegasusLib {
 			if (length > maxLength) return maxLength;
 			return length;
 		}
+#pragma warning restore CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
 		/// <summary>
 		/// Throws <see cref="ArgumentException"/> if <paramref name="direction"/> is zero
 		/// </summary>

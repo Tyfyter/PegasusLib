@@ -275,5 +275,12 @@ namespace PegasusLib {
 			}
 			return (int)value;
 		}
+#pragma warning disable CS0618 // Type or member is obsolete
+		public static IEnumerable<int> ReportDrops(this List<FishingLootPool.FishingCatch> catches) => catches.SelectMany(c => c.ReportDrops());
+#pragma warning restore CS0618 // Type or member is obsolete
+		public static IEnumerable<FishingDropInfo> ReportDropRates(this List<FishingLootPool.FishingCatch> catches, Player player, FishingAttempt attempt, FishingDropChain? chain = null) {
+			FishingDropChain _chain = chain ?? new(1);
+			return catches.SelectMany(c => c.ReportDropRates(_chain, player, attempt));
+		}
 	}
 }

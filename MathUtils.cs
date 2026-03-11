@@ -21,6 +21,7 @@ namespace PegasusLib {
 		/// <summary>
 		/// Multiplies a vector by a matrix
 		/// </summary>
+		/// <param name="value"> the input vector</param>
 		/// <param name="x">the vector used to determine the x component of the output</param>
 		/// <param name="y">the vector used to determine the y component of the output</param>
 		public static Vector2 MatrixMult(this Vector2 value, Vector2 x, Vector2 y) {

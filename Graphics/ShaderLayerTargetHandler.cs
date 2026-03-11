@@ -70,7 +70,6 @@ namespace PegasusLib.Graphics {
 		/// <summary>
 		/// Applies the shader to everything captured
 		/// </summary>
-		/// <param name="shader"></param>
 		public void Stack(MiscShaderData shader, Matrix? matrix = null) {
 			if (Main.dedServ) return;
 			matrix ??= Matrix.Identity;

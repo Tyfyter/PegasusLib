@@ -35,7 +35,7 @@ namespace PegasusLib.Config {
 		public static abstract IEnumerable<TDefinition> GetOptions();
 	}
 	/// <summary>
-	/// Respects <see cref="ValueFilterAttribute"/>
+	/// Respects <see cref="DisplayConfigValuesFilterAttribute{TFiltered}"/>
 	/// </summary>
 	/// <typeparam name="TDefinition">The definition type which NamedDefinitionConfigElement should use</typeparam>
 	public class NamedDefinitionConfigElement<TDefinition> : ConfigElement<TDefinition> where TDefinition : EntityDefinition, INamedDefinition, IEnumerableDefinition<TDefinition> {
