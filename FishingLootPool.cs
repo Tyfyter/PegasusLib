@@ -150,9 +150,7 @@ namespace PegasusLib {
 			int oldItemDrop = itemDrop;
 			int oldNPCSpawn = npcSpawn;
 			WeightedRandom<FishingCatch>[] drops = new WeightedRandom<FishingCatch>[8];
-			for (int i = 0; i < drops.Length; i++) {
-				drops[i] = new();
-			}
+			for (int i = 0; i < drops.Length; i++) drops[i] = new();
 			for (int i = 0; i < LootPools.Count; i++) {
 				FishingLootPool pool = LootPools[i];
 				if (!pool.IsActive(Player, attempt)) continue;
