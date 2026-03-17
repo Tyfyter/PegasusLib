@@ -50,7 +50,7 @@ namespace PegasusLib {
 		);
 		static void ProcessLocalizationFile(bool isFallback, Mod mod, string name, string prefix) {
 			LanguageTree languageTree = isFallback ? FallbackLanguageTree : LanguageTree;
-			using Stream stream = mod.GetFileStream(name);
+			using Stream stream = mod.GetFileStream(name, true);
 			using StreamReader streamReader = new(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
 			string translationFileContents = streamReader.ReadToEnd();
 			string jsonString;
