@@ -24,6 +24,8 @@ NotSynced_WeakSyncedAction: {
 	Any: "[{n}, ]and {n} use {$Base}"
 }
 
+UnboundKey: '''"{0}" (not bound)'''
+
 Configs: {
 	PegasusConfig: {
 		DisplayName: Config
@@ -199,5 +201,13 @@ AdvancedTextSnippet: {
 		Option_t: Time Factor
 		Option_x: X Factor
 		Option_y: Wiggle Scale
+	}
+
+	KeybindSnippetHandler: {
+		Option_Keyboard: Mods.PegasusLib.AdvancedTextSnippet.KeybindSnippetHandler.Option_Keyboard
+		Option_KeyboardUI: Mods.PegasusLib.AdvancedTextSnippet.KeybindSnippetHandler.Option_KeyboardUI
+		Option_Mouse: Mods.PegasusLib.AdvancedTextSnippet.KeybindSnippetHandler.Option_Mouse
+		Option_XBoxGamepad: Mods.PegasusLib.AdvancedTextSnippet.KeybindSnippetHandler.Option_XBoxGamepad
+		Option_XBoxGamepadUI: Mods.PegasusLib.AdvancedTextSnippet.KeybindSnippetHandler.Option_XBoxGamepadUI
 	}
 }

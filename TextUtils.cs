@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using Terraria.UI.Chat;
 
 namespace PegasusLib {
 	public static class TextUtils {
@@ -155,8 +156,36 @@ namespace PegasusLib {
 				}
 			}
 		}
+		internal static void Load() {
+			LoadDrawingShadows();
+		}
+		static void LoadDrawingShadows() {
+			On_ChatManager.DrawColorCodedStringShadow_SpriteBatch_DynamicSpriteFont_TextSnippetArray_Vector2_Color_float_Vector2_Vector2_float_float += (orig, spriteBatch, font, text, position, baseColor, rotation, origin, baseScale, maxWidth, spread) => {
+				DrawingShadows = true;
+				try {
+					orig(spriteBatch, font, text, position, baseColor, rotation, origin, baseScale, maxWidth, spread);
+				} catch (Exception) {
+					DrawingShadows = false;
+					throw;
+				}
+				DrawingShadows = false;
+			};
+			On_ChatManager.DrawColorCodedStringShadow_SpriteBatch_DynamicSpriteFont_string_Vector2_Color_float_Vector2_Vector2_float_float += (orig, spriteBatch, font, text, position, baseColor, rotation, origin, baseScale, maxWidth, spread) => {
+				DrawingShadows = true;
+				try {
+					orig(spriteBatch, font, text, position, baseColor, rotation, origin, baseScale, maxWidth, spread);
+				} catch (Exception) {
+					DrawingShadows = false;
+					throw;
+				}
+				DrawingShadows = false;
+			};
+		}
+
+		public static bool DrawingShadows { get; private set; }
 	}
 	internal class PluralityFormattingSystem : ModSystem {
+		public override void Load() => TextUtils.Load();
 		public override void OnLocalizationsLoaded() {
 			TextUtils.LoadTranslations();
 		}

@@ -1,16 +1,9 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using MonoMod.Cil;
 using PegasusLib.Reflection;
 using ReLogic.Graphics;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
-using System.Runtime.Intrinsics.X86;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ModLoader;
@@ -28,6 +21,33 @@ namespace PegasusLib {
 				size = new(width, 28);
 				return true;
 			}
+		}
+		public static Vector2 GetSnippetArraySize(TextSnippet[] snippets, float scale) {
+			Vector2 size = new(0, FontAssets.MouseText.Value.LineSpacing * scale);
+			for (int i = 0; i < snippets.Length; i++) {
+				if (snippets[i].UniqueDraw(true, out Vector2 _size, null)) {
+					size.X += _size.X;
+				} else {
+					size.X += FontAssets.MouseText.Value.MeasureString(snippets[i].Text).X;
+				}
+			}
+			if (MaxWidth > -1 && float.IsFinite(MaxWidth)) {
+				float maxWidth = MaxWidth - BasePosition.X;
+				if (size.X > maxWidth) {
+					size.Y *= (int)((size.X + maxWidth - 1) / MaxWidth);
+					size.X = maxWidth;
+				}
+			}
+			return size;
+		}
+		public static void DrawSnippetArray(TextSnippet[] snippets, SpriteBatch spriteBatch, Vector2 position, Color color, float scale, out int hovered, bool ignoreColors = false) {
+			TextSnippet[] _snippets = new TextSnippet[snippets.Length + 1];
+			float padding = position.X - BasePosition.X;
+			_snippets[0] = new PaddingSnippet(padding);
+			snippets.CopyTo(_snippets, 1);
+			position.X = BasePosition.X;
+			ChatManager.DrawColorCodedString(spriteBatch, FontAssets.MouseText.Value, _snippets, position, color, 0, Origin, new(scale), out hovered, MaxWidth, ignoreColors);
+			if (hovered > -1) hovered--;
 		}
 	}
 	public class WrappingTextSnippetSetup : ILoadable {

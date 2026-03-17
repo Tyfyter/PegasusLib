@@ -1,7 +1,8 @@
-﻿using System;
+﻿using JetBrains.Annotations;
+using System;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Reflection;
+using System.Reflection.Emit;
 using Terraria.ModLoader;
 
 namespace PegasusLib.Reflection {
@@ -20,6 +21,7 @@ namespace PegasusLib.Reflection {
 	/// use <see cref="ReflectionParentTypeAttribute"/> to specify the type to search in, <see cref="FastFieldInfo{TParent, T}"/>s and <see cref="FastStaticFieldInfo{TParent, T}"/>s will automatically use TParent
 	/// use <see cref="ReflectionDefaultInstanceAttribute"/> to specify a default instance, necessary for instanced delegates
 	/// </summary>
+	[UsedImplicitly(ImplicitUseKindFlags.Assign)]
 	public abstract class ReflectionLoader : ILoadable {
 		public virtual Type HostType => GetType();
 		public void Load(Mod mod) {
@@ -117,6 +119,7 @@ namespace PegasusLib.Reflection {
 				LoadReflection(item);
 			}
 		}
+		static ReflectionParentTypeAttribute GetParentType(MemberInfo item) => item.GetCustomAttribute<ReflectionParentTypeAttribute>() ?? item.DeclaringType.GetCustomAttribute<ReflectionParentTypeAttribute>();
 		public static void LoadReflection(MemberInfo item) {
 			Action<object, object> setValue;
 			Type fieldType;
@@ -133,7 +136,7 @@ namespace PegasusLib.Reflection {
 			}
 			string name = item.GetCustomAttribute<ReflectionMemberNameAttribute>()?.MemberName ?? item.Name;
 			if (fieldType.IsAssignableTo(typeof(Delegate))) {
-				Type parentType = item.GetCustomAttribute<ReflectionParentTypeAttribute>().ParentType;
+				Type parentType = GetParentType(item).ParentType;
 				ParameterInfo[] parameters = fieldType.GetMethod("Invoke").GetParameters();
 				Type[] paramTypes = new Type[parameters.Length];
 				//ParameterModifier paramMods = new ParameterModifier(parameters.Length);
@@ -142,6 +145,7 @@ namespace PegasusLib.Reflection {
 					//paramMods[i] = parameters[i].ParameterType.IsByRef;
 				}
 				MethodInfo info = parentType.GetMethod(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static, paramTypes);
+				if (info is null) return;
 				if (info.IsStatic) {
 					setValue(null, info.CreateDelegate(fieldType));
 				} else {
@@ -181,7 +185,7 @@ namespace PegasusLib.Reflection {
 					setValue(
 					null,
 						fieldType.GetConstructor([typeof(Type), typeof(string), typeof(BindingFlags), typeof(bool)])
-						.Invoke([item.GetCustomAttribute<ReflectionParentTypeAttribute>().ParentType, name, BindingFlags.Public | BindingFlags.NonPublic, true])
+						.Invoke([GetParentType(item).ParentType, name, BindingFlags.Public | BindingFlags.NonPublic, true])
 					);
 				}
 			}
@@ -198,7 +202,7 @@ namespace PegasusLib.Reflection {
 	public sealed class ReflectionMemberNameAttribute(string memberName) : Attribute {
 		public string MemberName { get; init; } = memberName;
 	}
-	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Class, AllowMultiple = false)]
 	public sealed class ReflectionParentTypeAttribute(Type type) : Attribute {
 		public Type ParentType { get; init; } = type;
 	}

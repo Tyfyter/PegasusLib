@@ -282,5 +282,6 @@ namespace PegasusLib {
 			FishingDropChain _chain = chain ?? new(1);
 			return catches.SelectMany(c => c.ReportDropRates(_chain, player, attempt));
 		}
+		public static string FullName(this ModKeybind keybind) => KeybindLoaderMethods._get_FullName(keybind);
 	}
 }

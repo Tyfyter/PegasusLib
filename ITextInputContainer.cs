@@ -162,7 +162,7 @@ namespace PegasusLib {
 			);
 		}
 		public static void DrawInputTextCursor(CursorType cursor, string text, int cursorIndex, SpriteBatch spriteBatch, Vector2 position, DynamicSpriteFont font, StringDrawer drawer, float scale = 1f, Vector2 offset = default, int blinkRate = 20) {
-			if (Main.timeForVisualEffects % (blinkRate * 2) < blinkRate) {
+			if (blinkRate == 0 || Main.timeForVisualEffects % (blinkRate * 2) < blinkRate) {
 				string cursorChar = "";
 				Vector2 cursorOffset = default;
 				Vector2 cursorScale = new(scale);
