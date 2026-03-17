@@ -8,7 +8,7 @@ ItemTooltip: {
 	FlaskofPoison: Melee and Whip attacks [buffhint/dnpoison:Poisoned] enemies
 	VenomArrow: Inflicts target with [buffhint:Venom]
 	VenomBullet: Inflicts target with [buffhint:Venom]
-	NanoBullet: Causes [buffhint/dnconfusion:Confused] and bounces back after hitting a wall [key:Origins/LunaticsRune]/[key:Origins/Debug Screen Shader]
+	NanoBullet: Causes [buffhint/dnconfusion:Confused] and bounces back after hitting a wall
 	GoldenBullet: Enemies killed will [buffhint/dndrop more money:Midas]
 	ShadowFlameKnife: Inflicts [buffhint:ShadowFlame] on hit
 	BeeKeeper:
