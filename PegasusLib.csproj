@@ -7,7 +7,7 @@
 	<PropertyGroup>
 		<LangVersion>13.0</LangVersion>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<DocumentationFile>$(MSBuildProjectDirectory)\Properties\$(MSBuildProjectName).xml</DocumentationFile>
+		<DocumentationFile>$(MSBuildProjectDirectory)\$(MSBuildProjectName).xml</DocumentationFile>
 	</PropertyGroup>
 
 	<!-- References -->
