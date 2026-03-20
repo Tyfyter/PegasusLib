@@ -2,15 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Terraria.ModLoader.IO;
-using Terraria.ID;
-using Terraria;
+using System.Reflection.Emit;
 using System.Text.RegularExpressions;
+using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.IO;
 
 namespace PegasusLib {
 	public class ProgressFlag {
@@ -26,9 +24,17 @@ namespace PegasusLib {
 			}
 		}
 		public override string ToString() => $"[{condition.Description}: {IsSet}]";
-		public static bool operator true(ProgressFlag flag) => flag.IsSet;
-		public static bool operator false(ProgressFlag flag) => !flag.IsSet;
+		public static implicit operator bool(ProgressFlag flag) => flag.IsSet;
 		public static implicit operator Condition(ProgressFlag flag) => flag.condition;
+		//public static bool operator true(ProgressFlag flag) => flag.IsSet;
+		//public static bool operator false(ProgressFlag flag) => !flag.IsSet;
+		//public static bool operator |(ProgressFlag left, ProgressFlag right) => left.IsSet | right.IsSet;
+		//public static bool operator |(bool left, ProgressFlag right) => left | right.IsSet;
+		//public static bool operator |(ProgressFlag left, bool right) => left.IsSet | right;
+		//public static bool operator &(ProgressFlag left, ProgressFlag right) => left.IsSet & right.IsSet;
+		//public static bool operator &(bool left, ProgressFlag right) => left & right.IsSet;
+		//public static bool operator &(ProgressFlag left, bool right) => left.IsSet & right;
+
 #pragma warning disable IDE0044 // Add readonly modifier
 #pragma warning disable CS0169 // Field is never used
 		static bool out0;
