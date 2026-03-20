@@ -24,10 +24,10 @@ namespace PegasusLib {
 			}
 		}
 		public override string ToString() => $"[{condition.Description}: {IsSet}]";
+		public static bool operator true(ProgressFlag flag) => flag.IsSet;
+		public static bool operator false(ProgressFlag flag) => !flag.IsSet;
 		public static implicit operator bool(ProgressFlag flag) => flag.IsSet;
 		public static implicit operator Condition(ProgressFlag flag) => flag.condition;
-		//public static bool operator true(ProgressFlag flag) => flag.IsSet;
-		//public static bool operator false(ProgressFlag flag) => !flag.IsSet;
 		//public static bool operator |(ProgressFlag left, ProgressFlag right) => left.IsSet | right.IsSet;
 		//public static bool operator |(bool left, ProgressFlag right) => left | right.IsSet;
 		//public static bool operator |(ProgressFlag left, bool right) => left.IsSet | right;
