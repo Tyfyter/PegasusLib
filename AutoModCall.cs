@@ -1,25 +1,45 @@
-﻿using System;
+﻿using MonoMod.Utils;
+using ReLogic.Content;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Terraria.ModLoader;
 
 namespace PegasusLib;
 public abstract class AutoModCall : ILoadable, IModType {
-	readonly Dictionary<ParameterSequence, ModCall> calls = [];
+	readonly Dictionary<ParameterSequence, (ParameterSequence parameters, ModCall call)> calls = [];
 	public Mod Mod { get; private set; }
 	public virtual string Name => GetType().Name;
+	public virtual bool GetCallingMod => false;
 	public string FullName => $"{Mod.Name}/{Name}";
+	private static Mod _callingMod;
+	protected Mod CallingMod {
+		get => GetCallingMod ? _callingMod : throw new InvalidOperationException($"{nameof(GetCallingMod)} must be true to get the calling mod");
+		private set => _callingMod = value;
+	}
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public static object TryDoCall(Mod mod, object[] args, out bool callExists) {
+		string name = (string)args[0];
+		args = args[1..];
+		callExists = mod.TryFind(name, out AutoModCall call);
+		return call?.Invoke(args);
+	}
+	[MethodImpl(MethodImplOptions.NoInlining)]
 	public static object DoCall(Mod mod, object[] args) {
 		string name = (string)args[0];
 		args = args[1..];
 		return mod.Find<AutoModCall>(name).Invoke(args);
 	}
+	[MethodImpl(MethodImplOptions.NoInlining)]
 	public object Invoke(object[] args) {
 		ParameterSequence sequence = new(args);
-		if (!calls.TryGetValue(sequence, out ModCall call)) {
+		if (!calls.TryGetValue(sequence, out (ParameterSequence parameters, ModCall call) call)) {
 			string correction;
 			if (calls.Count == 1) {
 				correction = $"Correct parameters are {calls.Keys.First()}";
@@ -28,7 +48,20 @@ public abstract class AutoModCall : ILoadable, IModType {
 			}
 			throw new KeyNotFoundException($"Cannot find call {FullName}{sequence}, {correction}");
 		}
-		return call(args);
+		CallingMod = null;
+		if (GetCallingMod || call.call.Method.GetCustomAttribute<GetCallingModAttribute>() is not null) {
+			StackTrace trace = new(0);
+			for (int i = 4; i < trace.FrameCount; i++) {
+				Assembly assembly = trace.GetFrame(i).GetMethod()?.DeclaringType?.Assembly;
+				if (assembly is null) continue;
+				if (modsByAssembly.TryGetValue(assembly, out Mod callingMod)) {
+					CallingMod = callingMod;
+					break;
+				}
+			}
+		}
+		call.parameters.CastDelegates(args);
+		return call.call(args);
 	}
 	void ILoadable.Load(Mod mod) {
 		Mod = mod;
@@ -38,6 +71,8 @@ public abstract class AutoModCall : ILoadable, IModType {
 		}
 		if (calls.Count == 0) throw new NotImplementedException($"{nameof(AutoModCall)} must have at least one public static Call method");
 		ModTypeLookup<AutoModCall>.Register(this);
+		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, [Name.ToLower(), Name.ToUpper()]);
+		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, LegacyNameAttribute.GetLegacyNamesOfType(GetType()).SelectMany<string, string>(n => [n.ToLower(), n.ToUpper()]).ToArray());
 	}
 	void GenerateCalls(MethodInfo method) {
 		ParameterInfo[] parameters = method.GetParameters();
@@ -118,21 +153,22 @@ public abstract class AutoModCall : ILoadable, IModType {
 
 		gen.Emit(OpCodes.Ret);
 
-		calls[new ParameterSequence(parameters.Take(length))] = call.CreateDelegate<ModCall>();
+		ParameterSequence parameterSequence = new(parameters.Take(length));
+		calls[parameterSequence] = (parameterSequence, call.CreateDelegate<ModCall>());
 	}
 	void ILoadable.Unload() { }
 	delegate object ModCall(object[] args);
 	class ParameterSequence {
-		readonly Type[] parameters;
+		readonly ParameterType[] parameters;
 		readonly bool[] isByRef;
 		public int Length => parameters.Length;
 		public ParameterSequence(Type[] parameters) {
-			this.parameters = parameters.ToArray();
+			this.parameters = parameters.Select(t => new ParameterType(t)).ToArray();
 			isByRef = new bool[parameters.Length];
 			for (int i = 0; i < this.parameters.Length; i++) {
-				if (this.parameters[i].IsByRef) {
+				if (this.parameters[i].type.IsByRef) {
 					isByRef[i] = true;
-					this.parameters[i] = this.parameters[i].GetElementType();
+					this.parameters[i] = this.parameters[i].type.GetElementType();
 				}
 			}
 		}
@@ -146,6 +182,11 @@ public abstract class AutoModCall : ILoadable, IModType {
 				if (other.parameters[i] != parameters[i]) return false;
 			}
 			return true;
+		}
+		public void CastDelegates(object[] args) {
+			for (int i = 0; i < args.Length; i++) {
+				if (parameters[i].IsDelegate && args[i].GetType() != parameters[i].type) args[i] = ((Delegate)args[i]).CastDelegate(parameters[i].type);
+			}
 		}
 		public override int GetHashCode() {
 			HashCode code = default;
@@ -161,6 +202,32 @@ public abstract class AutoModCall : ILoadable, IModType {
 			}
 			builder.Append(']');
 			return builder.ToString();
+		}
+	}
+	public readonly struct ParameterType(Type type) {
+		public readonly Type type = type;
+		readonly DelegateSignature delegateSignature = type.IsAssignableTo(typeof(Delegate)) ? 
+			new(type.GetMethod("Invoke"))
+			: null;
+		public readonly bool IsDelegate => delegateSignature is not null;
+		public override string ToString() => IsDelegate ? $"delegate {delegateSignature.ReturnType} {delegateSignature.Parameters}" : type.ToString();
+		public override bool Equals([NotNullWhen(true)] object obj) {
+			if (obj is not ParameterType other) return false;
+			switch ((delegateSignature, other.delegateSignature)) {
+				case (DelegateSignature, DelegateSignature):
+				return delegateSignature.Equals(other.delegateSignature);
+
+				case (null, null):
+				return type.Equals(other.type);
+			}
+			return false;
+		}
+		public static implicit operator ParameterType(Type type) => new(type);
+		public override int GetHashCode() => delegateSignature?.GetHashCode() ?? type.GetHashCode();
+		public static bool operator ==(ParameterType left, ParameterType right) => left.Equals(right);
+		public static bool operator !=(ParameterType left, ParameterType right) => !(left == right);
+		sealed record class DelegateSignature(ParameterSequence Parameters, ParameterType ReturnType) {
+			public DelegateSignature(MethodInfo invoke) : this(new(invoke), invoke.ReturnType) { }
 		}
 	}
 	[AttributeUsage(AttributeTargets.Parameter)]
@@ -209,4 +276,10 @@ public abstract class AutoModCall : ILoadable, IModType {
 		}
 		public override string ToString() => $"{inType}.{string.Join('.', path)}";
 	}
+	static Dictionary<Assembly, Mod> modsByAssembly;
+	internal static void Initialize() {
+		modsByAssembly = ModLoader.Mods.ToDictionary(mod => mod.Code);
+	}
+	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
+	protected sealed class GetCallingModAttribute : Attribute { }
 }

@@ -43,6 +43,7 @@ namespace PegasusLib {
 		public static bool ContentLoadingFinished => contentLoadingFinished.Value;
 		public static bool unloading = false;
 		public override void Load() {
+			AutoModCall.Initialize();
 			On_Main.DrawNPCDirect += IDrawNPCEffect.On_Main_DrawNPCDirect;
 			On_Main.DrawProj_Inner += IDrawProjectileEffect.On_Main_DrawProj_Inner;
 			On_Main.DrawItem += IDrawItemInWorldEffect.On_Main_DrawItem;
@@ -155,7 +156,7 @@ namespace PegasusLib {
 				}
 				return false;
 			}
-			return null;
+			return AutoModCall.TryDoCall(this, args, out _);
 		}
 		public static Color GetRarityColor(int rare, bool expert = false, bool master = false) {
 			if (expert || rare == ItemRarityID.Expert) {
