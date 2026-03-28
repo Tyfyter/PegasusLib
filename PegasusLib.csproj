@@ -8,6 +8,7 @@
 		<LangVersion>13.0</LangVersion>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<DocumentationFile>$(MSBuildProjectDirectory)\$(MSBuildProjectName).xml</DocumentationFile>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<!-- References -->

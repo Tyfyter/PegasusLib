@@ -31,9 +31,13 @@ namespace PegasusLib {
 		public void SetValue<Ref_TParent>(Ref_TParent parent, T value) where Ref_TParent : class, TParent {
 			(setter ??= CreateSetter())(parent, value);
 		}
-		public void SetValue(ref TParent parent, T value) {
-			(refGetter ??= CreateRefGetter())(ref parent) = value;
-		}
+		public void SetValue(ref TParent parent, T value) => (refGetter ??= CreateRefGetter())(ref parent) = value;
+		/// <summary>
+		/// Creates a <see cref="ScopedOverride{T}"/> setting the value to <paramref name="value"/>
+		/// Remember to use a <see langword="using"/> statement!
+		/// </summary>
+		public ScopedOverride<T> ScopedOverride(ref TParent parent, T value) => new(ref (refGetter ??= CreateRefGetter())(ref parent), value);
+		#region setup
 		private delegate ref T RefGetter(ref TParent parent);
 		private Func<TParent, T> CreateGetter() {
 			if (field.FieldType != typeof(T)) throw new InvalidOperationException($"type of {field.Name} does not match provided type {typeof(T)}");
@@ -73,6 +77,7 @@ namespace PegasusLib {
 
 			return getterMethod.CreateDelegate<RefGetter>();
 		}
+		#endregion
 		public static implicit operator FastFieldInfo<TParent, T>(string name) => new(name, BindingFlags.NonPublic | BindingFlags.Public);
 	}
 	public class FastStaticFieldInfo<TParent, T>(string name, BindingFlags bindingFlags, bool init = false) : FastStaticFieldInfo<T>(typeof(TParent), name, bindingFlags, init) {
@@ -102,12 +107,14 @@ namespace PegasusLib {
 			}
 		}
 		public ref T Value => ref (refGetter ??= CreateRefGetter())();
-		public T GetValue() {
-			return (getter ??= CreateGetter())();
-		}
-		public void SetValue(T value) {
-			(setter ??= CreateSetter())(value);
-		}
+		public T GetValue() => (getter ??= CreateGetter())();
+		public void SetValue(T value) => (setter ??= CreateSetter())(value);
+		/// <summary>
+		/// Creates a <see cref="ScopedOverride{T}"/> setting the value to <paramref name="value"/>
+		/// Remember to use a <see langword="using"/> statement!
+		/// </summary>
+		public ScopedOverride<T> ScopedOverride(T value) => new(this, value);
+		#region setup
 		private Func<T> CreateGetter() {
 			if (field.FieldType != typeof(T)) throw new InvalidOperationException($"type of {field.Name} does not match provided type {typeof(T)}");
 			string methodName = field.ReflectedType.FullName + ".get_" + field.Name;
@@ -143,6 +150,7 @@ namespace PegasusLib {
 
 			return getterMethod.CreateDelegate<RefGetter>();
 		}
+		#endregion
 		public static explicit operator T(FastStaticFieldInfo<T> fastFieldInfo) {
 			return fastFieldInfo.GetValue();
 		}
