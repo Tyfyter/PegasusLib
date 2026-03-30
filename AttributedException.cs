@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.ModLoader;
 
