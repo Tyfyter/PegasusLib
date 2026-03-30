@@ -189,7 +189,7 @@ namespace PegasusLib {
 				yield return (typed + options[i].Name, CreateText(this.GetLocalization("Option_" + options[i].Name)));
 			}
 		}
-		static UIElement CreateText(LocalizedText text) {
+		protected static UIElement CreateText(LocalizedText text) {
 			Vector2 size = FontAssets.MouseText.Value.MeasureString(text.Value);
 			return new UIText(text) {
 				Width = new(size.X, 0),

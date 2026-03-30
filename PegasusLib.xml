@@ -7,13 +7,13 @@
         <member name="T:PegasusLib.AttributedException">
             <summary>
             <para/>Should only be used when a mod must behave in a manner which cannot be expected or accounted for in order for an exception to be thrown
-            <para/>Examples include calling <see cref="M:Terraria.ModLoader.DamageClass.CountsAsClass(Terraria.ModLoader.DamageClass)"/> in <see cref="M:Terraria.ModLoader.DamageClass.GetEffectInheritance(Terraria.ModLoader.DamageClass)"/>, or throwing an exception in <see cref="!:IItemDropRule.ReportDroprates(List&lt;DropRateInfo&gt;, DropRateInfoChainFeed)"/>
+            <para/>Examples include calling <see cref="M:Terraria.ModLoader.DamageClass.CountsAsClass(Terraria.ModLoader.DamageClass)"/> in <see cref="M:Terraria.ModLoader.DamageClass.GetEffectInheritance(Terraria.ModLoader.DamageClass)"/>, or throwing an exception in <see cref="M:Terraria.GameContent.ItemDropRules.IItemDropRule.ReportDroprates(System.Collections.Generic.List{Terraria.GameContent.ItemDropRules.DropRateInfo},Terraria.GameContent.ItemDropRules.DropRateInfoChainFeed)"/>
             </summary>
         </member>
         <member name="M:PegasusLib.AttributedException.#ctor(System.Exception,Terraria.ModLoader.Mod,System.String)">
             <summary>
             <para/>Should only be used when a mod must behave in a manner which cannot be expected or accounted for in order for an exception to be thrown
-            <para/>Examples include calling <see cref="M:Terraria.ModLoader.DamageClass.CountsAsClass(Terraria.ModLoader.DamageClass)"/> in <see cref="M:Terraria.ModLoader.DamageClass.GetEffectInheritance(Terraria.ModLoader.DamageClass)"/>, or throwing an exception in <see cref="!:IItemDropRule.ReportDroprates(List&lt;DropRateInfo&gt;, DropRateInfoChainFeed)"/>
+            <para/>Examples include calling <see cref="M:Terraria.ModLoader.DamageClass.CountsAsClass(Terraria.ModLoader.DamageClass)"/> in <see cref="M:Terraria.ModLoader.DamageClass.GetEffectInheritance(Terraria.ModLoader.DamageClass)"/>, or throwing an exception in <see cref="M:Terraria.GameContent.ItemDropRules.IItemDropRule.ReportDroprates(System.Collections.Generic.List{Terraria.GameContent.ItemDropRules.DropRateInfo},Terraria.GameContent.ItemDropRules.DropRateInfoChainFeed)"/>
             </summary>
         </member>
         <member name="M:PegasusLib.AutoModCall.DefaultValueAttribute.#ctor">
