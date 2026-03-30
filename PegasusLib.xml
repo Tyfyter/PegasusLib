@@ -4,6 +4,18 @@
         <name>PegasusLib</name>
     </assembly>
     <members>
+        <member name="T:PegasusLib.AttributedException">
+            <summary>
+            <para/>Should only be used when a mod must behave in a manner which cannot be expected or accounted for in order for an exception to be thrown
+            <para/>Examples include calling <see cref="M:Terraria.ModLoader.DamageClass.CountsAsClass(Terraria.ModLoader.DamageClass)"/> in <see cref="M:Terraria.ModLoader.DamageClass.GetEffectInheritance(Terraria.ModLoader.DamageClass)"/>, or throwing an exception in <see cref="!:IItemDropRule.ReportDroprates(List&lt;DropRateInfo&gt;, DropRateInfoChainFeed)"/>
+            </summary>
+        </member>
+        <member name="M:PegasusLib.AttributedException.#ctor(System.Exception,Terraria.ModLoader.Mod,System.String)">
+            <summary>
+            <para/>Should only be used when a mod must behave in a manner which cannot be expected or accounted for in order for an exception to be thrown
+            <para/>Examples include calling <see cref="M:Terraria.ModLoader.DamageClass.CountsAsClass(Terraria.ModLoader.DamageClass)"/> in <see cref="M:Terraria.ModLoader.DamageClass.GetEffectInheritance(Terraria.ModLoader.DamageClass)"/>, or throwing an exception in <see cref="!:IItemDropRule.ReportDroprates(List&lt;DropRateInfo&gt;, DropRateInfoChainFeed)"/>
+            </summary>
+        </member>
         <member name="M:PegasusLib.AutoModCall.DefaultValueAttribute.#ctor">
             <summary>
             Uses the containing type and parameter name as the type and path
@@ -78,6 +90,18 @@
         </member>
         <member name="M:PegasusLib.DropRuleExt.FindDropRules``1(System.Collections.Generic.IEnumerable{Terraria.GameContent.ItemDropRules.IItemDropRule},System.Predicate{``0})">
             <returns>All <see cref="T:Terraria.GameContent.ItemDropRules.IItemDropRule"/>s matching <paramref name="predicate"/> in <paramref name="dropRules"/></returns>
+        </member>
+        <member name="M:PegasusLib.FastFieldInfo`2.ScopedOverride(`0@,`1)">
+            <summary>
+            Creates a <see cref="T:PegasusLib.ScopedOverride`1"/> setting the value to <paramref name="value"/>
+            Remember to use a <see langword="using"/> statement!
+            </summary>
+        </member>
+        <member name="M:PegasusLib.FastStaticFieldInfo`1.ScopedOverride(`0)">
+            <summary>
+            Creates a <see cref="T:PegasusLib.ScopedOverride`1"/> setting the value to <paramref name="value"/>
+            Remember to use a <see langword="using"/> statement!
+            </summary>
         </member>
         <member name="T:PegasusLib.FishingLootPool.FallthroughFishingCatch">
             <summary>
@@ -874,6 +898,15 @@
         <member name="M:PegasusLib.PegasusExt.AttributeTo(System.Exception,Terraria.ModLoader.Mod)">
             <summary>
             Returns false if the exception was successfully attributed to the responsible mod, <see langword="throw"/> if this returns true
+            <para/>Should only be used when a mod must behave in a manner which cannot be expected or accounted for in order for an exception to be thrown
+            <para/>Examples include calling <see cref="M:Terraria.ModLoader.DamageClass.CountsAsClass(Terraria.ModLoader.DamageClass)"/> in <see cref="M:Terraria.ModLoader.DamageClass.GetEffectInheritance(Terraria.ModLoader.DamageClass)"/>, or throwing an exception in <see cref="M:Terraria.GameContent.ItemDropRules.IItemDropRule.ReportDroprates(System.Collections.Generic.List{Terraria.GameContent.ItemDropRules.DropRateInfo},Terraria.GameContent.ItemDropRules.DropRateInfoChainFeed)"/>
+            </summary>
+        </member>
+        <member name="M:PegasusLib.PegasusExt.AttributedTo(System.Exception,Terraria.ModLoader.Mod,System.String)">
+            <summary>
+            Returns an exception which will be attributed to the provided mod
+            <para/>Should only be used when a mod must behave in a manner which cannot be expected or accounted for in order for an exception to be thrown
+            <para/>Examples include calling <see cref="M:Terraria.ModLoader.DamageClass.CountsAsClass(Terraria.ModLoader.DamageClass)"/> in <see cref="M:Terraria.ModLoader.DamageClass.GetEffectInheritance(Terraria.ModLoader.DamageClass)"/>, or throwing an exception in <see cref="M:Terraria.GameContent.ItemDropRules.IItemDropRule.ReportDroprates(System.Collections.Generic.List{Terraria.GameContent.ItemDropRules.DropRateInfo},Terraria.GameContent.ItemDropRules.DropRateInfoChainFeed)"/>
             </summary>
         </member>
         <member name="M:PegasusLib.PegasusLib.GetMultiTileTopLeft(System.Int32,System.Int32,Terraria.ObjectData.TileObjectData,System.Int32@,System.Int32@)">

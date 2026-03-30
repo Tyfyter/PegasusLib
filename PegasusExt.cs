@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics;
 using Terraria;
 using Terraria.DataStructures;
+using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Core;
@@ -248,12 +249,21 @@ namespace PegasusLib {
 		}
 		/// <summary>
 		/// Returns false if the exception was successfully attributed to the responsible mod, <see langword="throw"/> if this returns true
+		/// <para/>Should only be used when a mod must behave in a manner which cannot be expected or accounted for in order for an exception to be thrown
+		/// <para/>Examples include calling <see cref="DamageClass.CountsAsClass"/> in <see cref="DamageClass.GetEffectInheritance"/>, or throwing an exception in <see cref="IItemDropRule.ReportDroprates(List{DropRateInfo}, DropRateInfoChainFeed)"/>
 		/// </summary>
+		[Obsolete("Superseded by AttributedTo")]
 		public static bool AttributeTo(this Exception exception, Mod mod) {
 			if (!PegasusLib.canAttributeErrors) return true;
 			PegasusLib.attributedErrors.Add(mod, exception);
 			return false;
 		}
+		/// <summary>
+		/// Returns an exception which will be attributed to the provided mod
+		/// <para/>Should only be used when a mod must behave in a manner which cannot be expected or accounted for in order for an exception to be thrown
+		/// <para/>Examples include calling <see cref="DamageClass.CountsAsClass"/> in <see cref="DamageClass.GetEffectInheritance"/>, or throwing an exception in <see cref="IItemDropRule.ReportDroprates(List{DropRateInfo}, DropRateInfoChainFeed)"/>
+		/// </summary>
+		public static Exception AttributedTo(this Exception exception, Mod mod, string message = null) => new AttributedException(exception, mod, message);
 		public static bool IsLocallyOwned(this Player player) => player.whoAmI == Main.myPlayer;
 		public static bool IsLocallyOwned(this Projectile projectile) => projectile.owner == Main.myPlayer;
 		public static bool IsLocallyOwned(this NPC npc) => Main.netMode is NetmodeID.SinglePlayer or NetmodeID.Server;

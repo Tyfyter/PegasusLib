@@ -108,7 +108,7 @@ public abstract record class SyncedAction : ILoadable {
 				if (syncTest != result) throw new InaccurateSynchronizationException(syncTest, result);
 			});
 		} catch (Exception e) {
-			if (e.AttributeTo(ownedByMod[action.GetType()])) throw;
+			throw e.AttributedTo(ownedByMod[action.GetType()]);
 		}
 	}
 	internal static void TestAllSync() {
