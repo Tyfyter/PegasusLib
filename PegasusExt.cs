@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent.ItemDropRules;
@@ -293,5 +294,6 @@ namespace PegasusLib {
 			return catches.SelectMany(c => c.ReportDropRates(_chain, player, attempt));
 		}
 		public static string FullName(this ModKeybind keybind) => KeybindLoaderMethods._get_FullName(keybind);
+		public static Mod GetMod(this Assembly assembly) => AssemblyManager.GetAssemblyOwner(assembly, out string modName) && ModLoader.TryGetMod(modName, out Mod mod) ? mod : null;
 	}
 }

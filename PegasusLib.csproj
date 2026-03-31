@@ -5,7 +5,7 @@
 
 	<!-- General -->
 	<PropertyGroup>
-		<LangVersion>13.0</LangVersion>
+		<LangVersion>preview</LangVersion>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<DocumentationFile>$(MSBuildProjectDirectory)\$(MSBuildProjectName).xml</DocumentationFile>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>

@@ -1,6 +1,8 @@
-﻿using MonoMod.Utils;
+﻿#nullable enable
+using MonoMod.Utils;
 using ReLogic.Content;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -13,22 +15,29 @@ using Terraria.ModLoader;
 
 namespace PegasusLib;
 public abstract class AutoModCall : ILoadable, IModType {
-	readonly Dictionary<ParameterSequence, (ParameterSequence parameters, ModCall call)> calls = [];
+	readonly List<CallData> calls = new();
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 	public Mod Mod { get; private set; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 	public virtual string Name => GetType().Name;
 	public virtual bool GetCallingMod => false;
+	static bool canGetCallingMod = false;
 	public string FullName => $"{Mod.Name}/{Name}";
-	private static Mod _callingMod;
-	protected Mod CallingMod {
-		get => GetCallingMod ? _callingMod : throw new InvalidOperationException($"{nameof(GetCallingMod)} must be true to get the calling mod");
-		private set => _callingMod = value;
+	protected static Mod? CallingMod {
+		get => canGetCallingMod ? field : throw new InvalidOperationException($"{nameof(GetCallingMod)} must be true or {nameof(GetCallingModAttribute)} must be used to get the calling mod");
+		private set => field = value;
+	}
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public static bool TryCall(Mod mod, object[] args, out object result) {
+		result = TryDoCall(mod, args, out bool callExists);
+		return callExists;
 	}
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public static object TryDoCall(Mod mod, object[] args, out bool callExists) {
 		string name = (string)args[0];
 		args = args[1..];
 		callExists = mod.TryFind(name, out AutoModCall call);
-		return call?.Invoke(args);
+		return call?.Invoke(args)!;
 	}
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public static object DoCall(Mod mod, object[] args) {
@@ -39,50 +48,73 @@ public abstract class AutoModCall : ILoadable, IModType {
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public object Invoke(object[] args) {
 		ParameterSequence sequence = new(args);
-		if (!calls.TryGetValue(sequence, out (ParameterSequence parameters, ModCall call) call)) {
+		if (!GetApprorpriateCall(sequence, out CallData call)) {
 			string correction;
 			if (calls.Count == 1) {
-				correction = $"Correct parameters are {calls.Keys.First()}";
+				correction = $"Correct parameters are {calls[0].Parameters}";
 			} else {
-				correction = $"Available overloads are {string.Join(", ", calls.Keys)}";
+				correction = $"Available overloads are {string.Join(", ", calls.Select(p => p.Parameters.ToString()))}";
 			}
 			throw new KeyNotFoundException($"Cannot find call {FullName}{sequence}, {correction}");
 		}
 		CallingMod = null;
-		if (GetCallingMod || call.call.Method.GetCustomAttribute<GetCallingModAttribute>() is not null) {
+		canGetCallingMod = false;
+		if (call.CanGetCallingMod) {
+			canGetCallingMod = true;
 			StackTrace trace = new(0);
 			for (int i = 4; i < trace.FrameCount; i++) {
-				Assembly assembly = trace.GetFrame(i).GetMethod()?.DeclaringType?.Assembly;
-				if (assembly is null) continue;
-				if (modsByAssembly.TryGetValue(assembly, out Mod callingMod)) {
+				if (trace.GetFrame(i)?.GetMethod()?.DeclaringType?.Assembly is not Assembly assembly) continue;
+				if (assembly.GetMod() is Mod callingMod) {
 					CallingMod = callingMod;
 					break;
 				}
 			}
 		}
-		call.parameters.CastDelegates(args);
-		return call.call(args);
+		call.Parameters.CastDelegates(args);
+		return call.Call(args);
+	}
+	bool GetApprorpriateCall(ParameterSequence sequence, out CallData call) {
+		List<CallData> matchingCalls = [];
+		foreach(CallData callData in calls) {
+			if (callData.Parameters.CanAccept(sequence)) matchingCalls.Add(callData);
+		}
+		switch (matchingCalls.Count) {
+			case 0:
+			call = default;
+			return false;
+			case 1:
+			call = matchingCalls[0];
+			return true;
+			default:
+			throw new AmbiguousMatchException($"Ambiguous match found for {FullName}{sequence} found: {string.Join(", ", matchingCalls.Select(c => c.Parameters.ToString()))}");
+		}
 	}
 	void ILoadable.Load(Mod mod) {
 		Mod = mod;
-		foreach (MethodInfo method in GetType().GetMethods(BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.Static)) {
-			if (method.Name != "Call") continue;
-			GenerateCalls(method);
-		}
+		GenerateCalls(GetType().GetMethods(BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.Static).Where(method => method.Name == "Call").ToArray());
 		if (calls.Count == 0) throw new NotImplementedException($"{nameof(AutoModCall)} must have at least one public static Call method");
 		ModTypeLookup<AutoModCall>.Register(this);
 		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, [Name.ToLower(), Name.ToUpper()]);
 		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, LegacyNameAttribute.GetLegacyNamesOfType(GetType()).SelectMany<string, string>(n => [n.ToLower(), n.ToUpper()]).ToArray());
 	}
-	void GenerateCalls(MethodInfo method) {
-		ParameterInfo[] parameters = method.GetParameters();
-		for (int i = parameters.Length; i >= 0; i--) {
-			GenerateCall(method, i);
-			if (i <= 0) break;
-			if (!parameters[i - 1].HasDefaultValue && parameters[i - 1].GetCustomAttribute<DefaultValueAttribute>() is null) break;
+	void GenerateCalls(MethodInfo[] methods) {
+		bool[] broken = new bool[methods.Length];
+		ParameterInfo[][] parameterLists = methods.Select(m => m.GetParameters()).ToArray();
+		for (int i = 0; broken.Contains(false); i++) {
+			for (int m = 0; m < methods.Length; m++) {
+				if (broken[m]) continue;
+				ParameterSequence parameterSequence = new(parameterLists[m].Take(parameterLists[m].Length - i));
+				calls.Add(new(
+					parameterSequence,
+					GenerateCall(methods[m], parameterSequence.Length),
+					GetCallingMod || methods[m].GetCustomAttribute<GetCallingModAttribute>() is not null
+				));
+				if (i >= parameterLists[m].Length) broken[m] = true;
+				else if (!parameterLists[m][^(i + 1)].HasDefaultValue && parameterLists[m][^(i + 1)].GetCustomAttribute<DefaultValueAttribute>() is null) broken[m] = true;
+			}
 		}
 	}
-	void GenerateCall(MethodInfo method, int length) {
+	private static ModCall GenerateCall(MethodInfo method, int length) {
 		ParameterInfo[] parameters = method.GetParameters();
 		DynamicMethod call = new("Call", typeof(object), [typeof(object[])]);
 		ILGenerator gen = call.GetILGenerator();
@@ -92,9 +124,9 @@ public abstract class AutoModCall : ILoadable, IModType {
 			gen.Emit(OpCodes.Ldarg_0);
 			gen.Emit(OpCodes.Ldc_I4, i);
 			if (parameters[i].ParameterType.IsByRef) {
-				locals.Add((gen.DeclareLocal(parameters[i].ParameterType.GetElementType()), i));
+				locals.Add((gen.DeclareLocal(parameters[i].ParameterType.GetElementType()!), i));
 				gen.Emit(OpCodes.Ldelem, typeof(object));
-				gen.Emit(OpCodes.Unbox_Any, parameters[i].ParameterType.GetElementType());
+				gen.Emit(OpCodes.Unbox_Any, parameters[i].ParameterType.GetElementType()!);
 				gen.Emit(OpCodes.Stloc, locals[^1].local);
 				gen.Emit(OpCodes.Ldloca, locals[^1].local);
 			} else {
@@ -153,29 +185,30 @@ public abstract class AutoModCall : ILoadable, IModType {
 
 		gen.Emit(OpCodes.Ret);
 
-		ParameterSequence parameterSequence = new(parameters.Take(length));
-		calls[parameterSequence] = (parameterSequence, call.CreateDelegate<ModCall>());
+		return call.CreateDelegate<ModCall>();
 	}
 	void ILoadable.Unload() { }
 	delegate object ModCall(object[] args);
 	class ParameterSequence {
 		readonly ParameterType[] parameters;
 		readonly bool[] isByRef;
+		public readonly bool containsNulls;
 		public int Length => parameters.Length;
-		public ParameterSequence(Type[] parameters) {
-			this.parameters = parameters.Select(t => new ParameterType(t)).ToArray();
+		public ParameterSequence(Type?[] parameters) {
+			this.parameters = parameters.Select(t => new ParameterType(t ?? typeof(NullParameter))).ToArray();
 			isByRef = new bool[parameters.Length];
 			for (int i = 0; i < this.parameters.Length; i++) {
 				if (this.parameters[i].type.IsByRef) {
 					isByRef[i] = true;
-					this.parameters[i] = this.parameters[i].type.GetElementType();
+					this.parameters[i] = this.parameters[i].type.GetElementType() ?? typeof(NullParameter);
 				}
 			}
+			containsNulls = this.parameters.Contains(typeof(NullParameter));
 		}
-		public ParameterSequence(IEnumerable<object> parameters) : this(parameters.Select(p => p.GetType()).ToArray()) { }
+		public ParameterSequence(IEnumerable<object> parameters) : this(parameters.Select(p => p?.GetType()).ToArray()) { }
 		public ParameterSequence(IEnumerable<ParameterInfo> parameters) : this(parameters.Select(p => p.ParameterType).ToArray()) { }
 		public ParameterSequence(MethodInfo method) : this(method.GetParameters()) { }
-		public override bool Equals(object obj) => obj is ParameterSequence other && Equals(other);
+		public override bool Equals(object? obj) => obj is ParameterSequence other && Equals(other);
 		public bool Equals(ParameterSequence other) {
 			if (other.parameters.Length != parameters.Length) return false;
 			for (int i = 0; i < parameters.Length; i++) {
@@ -183,6 +216,15 @@ public abstract class AutoModCall : ILoadable, IModType {
 			}
 			return true;
 		}
+		public bool CanAccept(ParameterSequence other) {
+			if (other.parameters.Length != parameters.Length) return false;
+			for (int i = 0; i < parameters.Length; i++) {
+				if (!parameters[i].CanAccept(other.parameters[i])) return false;
+			}
+			return true;
+		}
+		public static bool operator ==(ParameterSequence left, ParameterSequence right) => left.Equals(right);
+		public static bool operator !=(ParameterSequence left, ParameterSequence right) => !(left == right);
 		public void CastDelegates(object[] args) {
 			for (int i = 0; i < args.Length; i++) {
 				if (parameters[i].IsDelegate && args[i].GetType() != parameters[i].type) args[i] = ((Delegate)args[i]).CastDelegate(parameters[i].type);
@@ -197,7 +239,11 @@ public abstract class AutoModCall : ILoadable, IModType {
 			StringBuilder builder = new("[");
 			for (int i = 0; i < parameters.Length; i++) {
 				if (i > 0) builder.Append(", ");
-				builder.Append(parameters[i].ToString());
+				if (parameters[i] == typeof(NullParameter)) {
+					builder.Append("null");
+				} else {
+					builder.Append(parameters[i].ToString());
+				}
 				if (isByRef[i]) builder.Append('&');
 			}
 			builder.Append(']');
@@ -206,12 +252,12 @@ public abstract class AutoModCall : ILoadable, IModType {
 	}
 	public readonly struct ParameterType(Type type) {
 		public readonly Type type = type;
-		readonly DelegateSignature delegateSignature = type.IsAssignableTo(typeof(Delegate)) ? 
-			new(type.GetMethod("Invoke"))
+		readonly DelegateSignature? delegateSignature = type.IsAssignableTo(typeof(Delegate)) ? 
+			new(type.GetMethod("Invoke")!)
 			: null;
 		public readonly bool IsDelegate => delegateSignature is not null;
-		public override string ToString() => IsDelegate ? $"delegate {delegateSignature.ReturnType} {delegateSignature.Parameters}" : type.ToString();
-		public override bool Equals([NotNullWhen(true)] object obj) {
+		public override string ToString() => IsDelegate ? $"delegate {delegateSignature!.ReturnType} {delegateSignature.Parameters}" : type.ToString();
+		public override bool Equals([NotNullWhen(true)] object? obj) {
 			if (obj is not ParameterType other) return false;
 			switch ((delegateSignature, other.delegateSignature)) {
 				case (DelegateSignature, DelegateSignature):
@@ -219,6 +265,16 @@ public abstract class AutoModCall : ILoadable, IModType {
 
 				case (null, null):
 				return type.Equals(other.type);
+			}
+			return false;
+		}
+		public bool CanAccept(ParameterType other) {
+			switch ((delegateSignature, other.delegateSignature)) {
+				case (DelegateSignature, DelegateSignature):
+				return delegateSignature.Equals(other.delegateSignature);
+
+				case (null, null):
+				return type.IsAssignableFrom(other.type) || (other.type == typeof(NullParameter) && (type.IsClass || type.IsInterface));
 			}
 			return false;
 		}
@@ -235,11 +291,11 @@ public abstract class AutoModCall : ILoadable, IModType {
 		/// <summary>
 		/// Uses the containing type and parameter name as the type and path
 		/// </summary>
-		public DefaultValueAttribute() : this(null) { }
+		public DefaultValueAttribute() : this(null!) { }
 		public Type Generate(ILGenerator gen, ParameterInfo forParameter) {
-			inType ??= forParameter.Member.DeclaringType;
+			inType ??= forParameter.Member.DeclaringType!;
 			Type type = inType;
-			if (path.Length == 0) path = [forParameter.Name];
+			if (path.Length == 0) path = [forParameter.Name!];
 			static MemberInfo GetValidMember(Type type, string name, BindingFlags bindingFlags) {
 				bindingFlags |= BindingFlags.Public | BindingFlags.NonPublic;
 				if (type.GetField(name, bindingFlags) is FieldInfo field) return field;
@@ -276,10 +332,21 @@ public abstract class AutoModCall : ILoadable, IModType {
 		}
 		public override string ToString() => $"{inType}.{string.Join('.', path)}";
 	}
-	static Dictionary<Assembly, Mod> modsByAssembly;
-	internal static void Initialize() {
-		modsByAssembly = ModLoader.Mods.ToDictionary(mod => mod.Code);
-	}
 	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
 	protected sealed class GetCallingModAttribute : Attribute { }
+	record struct CallData(ParameterSequence Parameters, ModCall Call, bool CanGetCallingMod);
+	struct NullParameter { }
 }
+#if DEBUG
+public class TestCall : AutoModCall {
+	[GetCallingMod]
+	public static string Call(string value, int test = 7) {
+		switch (value) {
+			case "Bees?":
+			return "Bees!";
+		}
+		return CallingMod?.Name ?? "No calling mod";
+	}
+	public static string Call(ModItem value) => value.FullName;
+}
+#endif

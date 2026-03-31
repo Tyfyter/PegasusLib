@@ -25,6 +25,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Core;
+using Terraria.ModLoader.Default;
 using Terraria.ModLoader.UI;
 using Terraria.ObjectData;
 using Terraria.UI;
@@ -39,11 +40,10 @@ namespace PegasusLib {
 		internal static Dictionary<LibFeature, Action<Exception>> onFeatureError = [];
 		internal static MultiDictionary<Mod, Exception> attributedErrors = [];
 		internal static bool canAttributeErrors = true;
-		static FastStaticFieldInfo<bool> contentLoadingFinished = new (typeof(ModLoader).Assembly.GetType("Terraria.ModLoader.ContentCache"), "contentLoadingFinished");
+		static readonly FastStaticFieldInfo<bool> contentLoadingFinished = new (typeof(ModLoader).Assembly.GetType("Terraria.ModLoader.ContentCache"), "contentLoadingFinished");
 		public static bool ContentLoadingFinished => contentLoadingFinished.Value;
 		public static bool unloading = false;
 		public override void Load() {
-			AutoModCall.Initialize();
 			On_Main.DrawNPCDirect += IDrawNPCEffect.On_Main_DrawNPCDirect;
 			On_Main.DrawProj_Inner += IDrawProjectileEffect.On_Main_DrawProj_Inner;
 			On_Main.DrawItem += IDrawItemInWorldEffect.On_Main_DrawItem;
@@ -96,6 +96,10 @@ namespace PegasusLib {
 			SyncedAction.TestAllSync();
 
 			canAttributeErrors = false;
+#if DEBUG
+			Logger.Info(Call(nameof(TestCall), "Bees?"));
+			Logger.Info(Call(nameof(TestCall), ModContent.GetInstance<UnloadedItem>()));
+#endif
 		}
 		public static void Require(Mod mod, params LibFeature[] features) {
 			for (int i = 0; i < features.Length; i++) {
@@ -149,6 +153,7 @@ namespace PegasusLib {
 			DropRuleExt.Unload();
 		}
 		public override object Call(params object[] args) {
+			if (AutoModCall.TryCall(this, args, out object result)) return result;
 			switch (((string)args[0]).ToUpperInvariant()) {
 				case "ADDRULECHILDFINDER":
 				if (args[1] is Type type && args[2] is Delegate del && del.TryCastDelegate(out DropRuleExt.RuleChildFinder finder)) {
@@ -156,7 +161,7 @@ namespace PegasusLib {
 				}
 				return false;
 			}
-			return AutoModCall.TryDoCall(this, args, out _);
+			return null;
 		}
 		public static Color GetRarityColor(int rare, bool expert = false, bool master = false) {
 			if (expert || rare == ItemRarityID.Expert) {
