@@ -113,12 +113,10 @@ public abstract class WireMode : ModTexturedType, IFlowerMenuItem<WirePetalData>
 	public static class Sets {
 		public static SetFactory Factory = new(WireModeLoader.WireModeCount, $"{nameof(PegasusLib)}/{nameof(WireModeID)}", WireModeID.Search);
 		public static BitArray NormalWires = new(Factory.CreateBoolSet());
-		public static BitArray AshenWires = new(Factory.CreateBoolSet());
 		static Sets() {
 			if (!PegasusLib.ContentLoadingFinished) return;
 			foreach (WireMode mode in ModContent.GetContent<WireMode>()) mode.SetupPreSort();
 			WireModeLoader.Sort();
-			foreach (WireMode mode in ModContent.GetContent<WireMode>()) mode.SetupSets();
 		}
 	}
 	private class WireModeID {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
+using PegasusLib.Content;
 using ReLogic.Utilities;
 using System;
 using System.Collections.Generic;
@@ -81,6 +82,7 @@ namespace PegasusLib.Sets {
 					(Action<bool> orig, bool unloading) => {
 						orig(unloading);
 						tooLateToCreate = !unloading;
+						foreach (WireMode mode in ModContent.GetContent<WireMode>()) mode.SetupSets();
 					}
 				);
 				MonoModHooks.Add(
