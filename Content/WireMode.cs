@@ -61,6 +61,7 @@ public abstract class WireMode : ModTexturedType, IFlowerMenuItem<WirePetalData>
 	public virtual bool IsExtra => false;
 	public virtual Color? WireKiteColor => null;
 	public virtual Color MiniWireMenuColor => WireKiteColor ?? Color.White;
+	public virtual bool Enabled => true;
 	public Asset<Texture2D> Texture2D { get; private set; }
 	protected sealed override void Register() {
 		if (Mod.Side != ModSide.Both && Mod is not PegasusLib) throw new InvalidOperationException("WireModes can only be added by Both-side mods");
@@ -74,6 +75,7 @@ public abstract class WireMode : ModTexturedType, IFlowerMenuItem<WirePetalData>
 	}
 	public virtual void SetupPreSort() { }
 	public virtual void SetupSets() { }
+	public virtual int GetItemType(int x, int y) => ItemType;
 	public abstract bool GetWire(int x, int y);
 	public abstract bool SetWire(int x, int y, bool value);
 	public static void DrawIcon(Texture2D texture, Vector2 position, Color tint) {
@@ -255,7 +257,7 @@ public class WireModeKite : ItemModeFlowerMenu<WireMode, WirePetalData> {
 		if (RightClicked) return;
 		EnabledWires[mode.Type] ^= true;
 	}
-	public override IEnumerable<WireMode> GetModes() => WireTool.Modes;
+	public override IEnumerable<WireMode> GetModes() => WireTool.Modes.Where(mode => mode.Enabled);
 	public static IWireTool GetWireTool(Item item) {
 		if (item?.ModItem is IWireTool wireTool) return wireTool;
 		if (item?.shoot == ModContent.ProjectileType<ModWireChannel>() && UseModWireChannel.VanillaWireModes.WireTools[item.type] is IWireTool vanillaWireTool) return vanillaWireTool;
