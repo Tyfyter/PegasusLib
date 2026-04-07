@@ -21,6 +21,8 @@ namespace PegasusLib {
 		[DefaultValue(true)]
 		public bool showAdditionalDebuffsTooltip = true;
 		[DefaultValue(true)]
+		public bool highlightFirstKeybindSnippet = true;
+		[DefaultValue(true)]
 		public bool colorBuffHints = true;
 		[DefaultValue(false)]
 		public bool invertOnHitBuffHintColor = false;

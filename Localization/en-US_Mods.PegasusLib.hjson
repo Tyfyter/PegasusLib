@@ -70,22 +70,31 @@ Configs: {
 		}
 
 		dyeSlotNamePlacement: {
-			Label: Extra Dye Slot Name Placement
+			Label: Extra dye slot name placement
 			Tooltip: ""
 		}
 
 		preferredTextCursor: {
-			Label: Preferred Text Input Cursor
+			Label: Preferred text input cursor
 			Tooltip: The type of text cursor which will be used by text input fields which use PegasusLib
 		}
 
 		ProceduralLightSourceDyeRate: {
-			Label: Procedural Light Source Dye Rate
+			Label: Procedural light source dye rate
 			Tooltip:
 				'''
 				How frequently unknown dyes will query their colors for supported light sources, in ticks per query
 				Set to 0 to exclusively dye light sources with known dyes
 				Low values will require beefy computers
+				'''
+		}
+
+		highlightFirstKeybindSnippet: {
+			Label: Automatically select first keybind
+			Tooltip:
+				'''
+				Only used with Control Configurator active
+				If this is disabled, you will need to scroll to select a keybinding in an item tooltip
 				'''
 		}
 	}

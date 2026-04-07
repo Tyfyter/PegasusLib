@@ -148,7 +148,7 @@ class KeybindHintItem : GlobalItem {
 		Enabled = KeybindLoaderMethods.TryGet($"{nameof(ControllerConfigurator)}/GoToKeybind", out searchKeybind);
 	}
 	static int lastType = ItemID.None;
-	static int scrollIndex = 0;
+	static int scrollIndex;
 	static readonly Dictionary<ModKeybind, int> indexByKey = [];
 
 	public override void ModifyTooltips(Item item, List<TooltipLine> tooltips) {
@@ -158,12 +158,13 @@ class KeybindHintItem : GlobalItem {
 	public override void PostDrawTooltip(Item item, ReadOnlyCollection<DrawableTooltipLine> lines) {
 		DrawingTooltip = false;
 		if (item.type != lastType) {
-			scrollIndex = 0;
+			scrollIndex = PegasusConfig.Instance.highlightFirstKeybindSnippet ? 0 : -1;
 			lastType = item.type;
 		}
 		if (indexByKey.Count <= 0) return;
-		if (PlayerInput.ScrollWheelDelta >= 120) scrollIndex++;
-		if (PlayerInput.ScrollWheelDelta <= -120) scrollIndex--;
+		if (Math.Abs(PlayerInput.ScrollWheelDelta) < 120) return;
+		if (PlayerInput.ScrollWheelDelta > 0) scrollIndex++;
+		if (PlayerInput.ScrollWheelDelta < 0) scrollIndex--;
 		if (scrollIndex >= indexByKey.Count) scrollIndex = 0;
 		else if (scrollIndex < 0) scrollIndex = indexByKey.Count - 1;
 	}
