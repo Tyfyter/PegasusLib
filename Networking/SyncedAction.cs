@@ -11,13 +11,83 @@ using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Core;
+using static PegasusLib.Networking.AutoSyncedAction;
+using static PegasusLib.Networking.ISyncedAction;
+using static PegasusLib.Networking.SyncedAction;
 
 namespace PegasusLib.Networking;
-public abstract record class SyncedAction : ILoadable {
-	static readonly List<SyncedAction> actions = [];
+public interface ISyncedAction : IAutoload<Impl> {
+	bool ServerOnly => false;
+	bool ShouldPerform => true;
+	protected abstract void Perform();
+	public abstract void NetSend(BinaryWriter writer);
+	protected static abstract Read GetReader(Type type);
+	public class Impl : IAutoloader {
+		static readonly MethodInfo getReader = typeof(Impl).GetMethod(nameof(GetReader), BindingFlags.NonPublic | BindingFlags.Static);
+		static readonly MethodInfo load = typeof(Impl).GetMethod(nameof(Load), BindingFlags.NonPublic | BindingFlags.Static);
+		static void IAutoloader.Autoload(Mod mod, Type type) {
+			if (!type.IsAssignableTo(typeof(ISyncedAction))) throw new InvalidOperationException($"Attempted to register invalid type {type} as {nameof(SyncedAction)}");
+			if (mod.Side != ModSide.Both && mod is not PegasusLib) throw new InvalidOperationException("SyncedActions can only be added by Both-side mods");
+			mod.Logger.Info($"{nameof(SyncedAction)} Loading {type.Name}");
+
+			actionIDsByType.Add(type, readers.Count);
+			ownedByMod.Add(type, mod);
+
+			foreach (Type iAutoload in type.GetInterfaces().Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IPreLoad<>)))
+				load.MakeGenericMethod(iAutoload.GetGenericArguments()).Invoke(null, [type]);
+
+			readers.Add((Read)getReader.MakeGenericMethod([type]).Invoke(null, [type]));
+
+			foreach (Type iAutoload in type.GetInterfaces().Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IOnLoad<>)))
+				load.MakeGenericMethod(iAutoload.GetGenericArguments()).Invoke(null, [type]);
+		}
+		static Read GetReader<T>(Type type) where T : ISyncedAction => T.GetReader(type);
+		static void Load<T>(Type type) where T : ILoadImpl => T.Load(type);
+	}
+	public delegate ISyncedAction Read(BinaryReader reader);
+	static readonly List<Read> readers = [];
 	static readonly Dictionary<Type, int> actionIDsByType = [];
 	static readonly Dictionary<Type, Mod> ownedByMod = [];
-	public static SyncedAction Get(int type) => actions[type];
+	public sealed static Read GetReader(int type) => readers[type];
+	/// <summary>
+	/// Performs the action, then sends it if appropriate
+	/// </summary>
+	/// <param name="fromClient"></param>
+	public sealed void Perform(int fromClient = -2) {
+		if (!ShouldPerform) return;
+		if (!NetmodeActive.MultiplayerClient || !ServerOnly) Perform();
+		if ((NetmodeActive.Server && !ServerOnly) || (NetmodeActive.MultiplayerClient && fromClient == -2)) {
+			Send(ignoreClient: fromClient);
+		}
+	}
+	public sealed void Send(int toClient = -1, int ignoreClient = -1) {
+		if (NetmodeActive.SinglePlayer) return;
+		ModPacket packet = ModContent.GetInstance<PegasusLib>().GetPacket();
+		packet.Write((byte)PegasusLib.Packets.SyncedAction);
+		WriteType(packet, GetType());
+		NetSend(packet);
+		packet.Send(toClient, ignoreClient);
+	}
+	static sealed void WriteType(BinaryWriter writer, Type type) {
+		int _type = actionIDsByType[type];
+		if (readers.Count < byte.MaxValue) writer.Write((byte)_type);
+		else if (readers.Count < ushort.MaxValue) writer.Write((ushort)_type);
+		else writer.Write((int)_type);
+	}
+	static sealed int ReadType(BinaryReader reader) {
+		if (readers.Count < byte.MaxValue) return reader.ReadByte();
+		if (readers.Count < ushort.MaxValue) return reader.ReadUInt16();
+		return reader.ReadInt32();
+	}
+	public interface IOnLoad<TImpl> where TImpl : ILoadImpl { }
+	public interface IPreLoad<TImpl> where TImpl : ILoadImpl { }
+	public interface ILoadImpl {
+		public static abstract void Load(Type type);
+	}
+}
+public abstract record class SyncedAction : ISyncedAction, IOnLoad<SyncedAction.OnLoadImpl> {
+	static readonly Dictionary<Type, SyncedAction> actions = [];
+	public SyncedAction GetTemplate() => actions[GetType()];
 	protected SyncedAction() {
 		actionIDsByType?.TryGetValue(GetType(), out type);
 	}
@@ -29,67 +99,31 @@ public abstract record class SyncedAction : ILoadable {
 	/// </summary>
 	public virtual bool ServerOnly => false;
 	protected virtual bool ShouldPerform => true;
-	void ILoadable.Load(Mod mod) {
-		if (mod.Side != ModSide.Both && mod is not PegasusLib) throw new InvalidOperationException("SyncedActions can only be added by Both-side mods");
-		type = actions.Count;
-		actions.Add(this);
-		actionIDsByType.Add(GetType(), type);
-		ownedByMod.Add(GetType(), mod);
-		mod.Logger.Info($"{nameof(SyncedAction)} Loading {GetType().Name}");
-		Load();
-	}
-	static void Load(Mod mod, Type type) {
-		if (!type.IsAssignableTo(typeof(SyncedAction))) throw new InvalidOperationException($"Attempted to register invalid type {type} as {nameof(SyncedAction)}");
-		if (mod.Side != ModSide.Both && mod is not PegasusLib) throw new InvalidOperationException("SyncedActions can only be added by Both-side mods");
+	static SyncedAction CreateDefault(Type type) {
+		if (actions.TryGetValue(type, out SyncedAction cached)) return cached;
 		ConstructorInfo ctor = type.GetConstructors()[0];
-		actionIDsByType.Add(type, actions.Count);
-		ownedByMod.Add(type, mod);
-		SyncedAction empty = (SyncedAction)ctor.Invoke([..ctor.GetParameters().Select(static parameter => {
+		return actions[type] = (SyncedAction)ctor.Invoke([..ctor.GetParameters().Select(static parameter => {
 			if (parameter.ParameterType.IsValueType)
 				return Activator.CreateInstance(parameter.ParameterType);
 			return null;
 		})]);
-		actions.Add(empty);
-		mod.Logger.Info($"{nameof(SyncedAction)} Loading {type.Name}");
-		empty.Load();
+	}
+	static Read ISyncedAction.GetReader(Type type) => CreateDefault(type).Read;
+	public class OnLoadImpl : ILoadImpl {
+		static void ILoadImpl.Load(Type type) => CreateDefault(type).Load();
 	}
 	public virtual void Load() { }
-	void ILoadable.Unload() { }
 	public SyncedAction Read(BinaryReader reader) {
 		return NetReceive(reader);
 	}
-	/// <summary>
-	/// Performs the action, then sends it if appropriate
-	/// </summary>
-	/// <param name="fromClient"></param>
-	public void Perform(int fromClient = -2) {
-		if (!ShouldPerform) return;
-		if (!NetmodeActive.MultiplayerClient || !ServerOnly) Perform();
-		if ((NetmodeActive.Server && !ServerOnly) || (NetmodeActive.MultiplayerClient && fromClient == -2)) {
-			Send(ignoreClient: fromClient);
-		}
-	}
-	public void Send(int toClient = -1, int ignoreClient = -1) {
-		if (NetmodeActive.SinglePlayer) return;
-		ModPacket packet = ModContent.GetInstance<PegasusLib>().GetPacket();
-		packet.Write((byte)PegasusLib.Packets.SyncedAction);
-		WriteType(packet);
-		NetSend(packet);
-		packet.Send(toClient, ignoreClient);
-	}
+	void ISyncedAction.Perform() => Perform();
 	protected abstract void Perform();
 	public abstract SyncedAction NetReceive(BinaryReader reader);
 	public abstract void NetSend(BinaryWriter writer);
-	internal void WriteType(BinaryWriter writer) {
-		if (actions.Count < byte.MaxValue) writer.Write((byte)type);
-		else if (actions.Count < ushort.MaxValue) writer.Write((ushort)type);
-		else writer.Write((int)type);
-	}
-	internal static int ReadType(BinaryReader reader) {
-		if (actions.Count < byte.MaxValue) return reader.ReadByte();
-		if (actions.Count < ushort.MaxValue) return reader.ReadUInt16();
-		return reader.ReadInt32();
-	}
+	/// <inheritdoc cref="ISyncedAction.Perform(int)"/>
+	public void Perform(int fromClient = -2) => ((ISyncedAction)this).Perform(fromClient);
+	/// <inheritdoc cref="ISyncedAction.Send(int, int)"/>
+	public void Send(int toClient = -1, int ignoreClient = -1) => ((ISyncedAction)this).Send(toClient, ignoreClient);
 	#region sync validation
 	/// <summary>
 	/// Any actions returned here will be used to verify that the action is synced properly, used from <see cref="Mod.PostSetupContent"/>
@@ -99,23 +133,22 @@ public abstract record class SyncedAction : ILoadable {
 		try {
 			LoaderUtils.ForEachAndAggregateExceptions(action.SyncTests, syncTest => {
 				if (syncTest.GetType() != action.GetType()) throw new InvalidOperationException($"{action.GetType()} tried to test its synchronization of other synced action type {syncTest.GetType()}");
-				if (syncTest == action) return;
 				MemoryStream stream = new();
 				BinaryWriter writer = new(stream);
 				syncTest.NetSend(writer);
 				stream.Position = 0;
 				SyncedAction result = action.NetReceive(new(stream));
-				if (syncTest != result) throw new InaccurateSynchronizationException(syncTest, result);
+				if (!result.Equals(syncTest)) throw new InaccurateSynchronizationException(syncTest, result);
 			});
 		} catch (Exception e) {
 			throw e.AttributedTo(ownedByMod[action.GetType()]);
 		}
 	}
 	internal static void TestAllSync() {
-		LoaderUtils.ForEachAndAggregateExceptions(actions, ValidateSync);
+		LoaderUtils.ForEachAndAggregateExceptions(actions.Values, ValidateSync);
 	}
 	[Serializable]
-	public class InaccurateSynchronizationException(SyncedAction tested, SyncedAction result) : Exception($"{tested.GetType()} not synchronized properly, {tested} -> {result}") { }
+	public class InaccurateSynchronizationException(ISyncedAction tested, ISyncedAction result) : Exception($"{tested.GetType()} not synchronized properly, {tested} -> {result}") { }
 	public virtual bool Equals(SyncedAction other) => ReferenceEquals(this, other) || this.EqualityContract == other.EqualityContract;
 	public override int GetHashCode() => EqualityContract.GetHashCode();
 	#endregion
@@ -209,7 +242,7 @@ public abstract record class AutoSyncedAction : SyncedAction {
 	public override int GetHashCode() => EqualityContract.GetHashCode();
 	public override void Load() {
 		StringBuilder warnings = new();
-		LooseDictionary<Type, (MethodInfo write, MethodInfo read)> syncSets = GetSyncSets();
+		LooseDictionary<Type, (MethodInfo write, MethodInfo read)> syncSets = GetSyncSets(GetType());
 
 		DynamicMethod _write = new("write", typeof(void), [typeof(AutoSyncedAction), typeof(BinaryWriter)]);
 		ILGenerator write = _write.GetILGenerator();
@@ -248,19 +281,18 @@ public abstract record class AutoSyncedAction : SyncedAction {
 		if (warnings.Length > 0) Mod.Logger.Warn($"Some data may be lost when syncing {GetType()}:{warnings}");
 		ValidateSync(this);
 	}
-	LooseDictionary<Type, (MethodInfo write, MethodInfo read)> GetSyncSets() {
+	internal static LooseDictionary<Type, (MethodInfo write, MethodInfo read)> GetSyncSets(Type type) {
+		Type originalType = type;
 		LooseDictionary<Type, (MethodInfo write, MethodInfo read)> syncSets = new(LooseDictionary.ParentType);
 		void TryAddVanilla<T>(Action<BinaryWriter, T> _write, Func<BinaryReader, T> _read) {
 			MethodInfo write = _write.Method;
 			MethodInfo read = _read.Method;
-			if (write.ReturnType != typeof(void)) throw new ArgumentException($"Invalid write return type {write.ReturnType}", nameof(write));
-			if (write.GetParameters().Length != 2) throw new ArgumentException($"Invalid write arg count {write.GetParameters().Length}", nameof(write));
-			if (read.GetParameters().Length != 1) throw new ArgumentException($"Invalid read arg count {read.GetParameters().Length}", nameof(read));
+			if (write.ReturnType != typeof(void)) throw new ArgumentException($"Invalid write return type {write.ReturnType}", nameof(_write));
+			if (write.GetParameters().Length != 2) throw new ArgumentException($"Invalid write arg count {write.GetParameters().Length}", nameof(_write));
+			if (read.GetParameters().Length != 1) throw new ArgumentException($"Invalid read arg count {read.GetParameters().Length}", nameof(_read));
 			syncSets.TryAdd(read.ReturnType, (write, read));
 		}
-
-		Type type = GetType();
-		do {
+		void AddFromType(Type type) {
 			Dictionary<Type, MethodInfo> writes = [];
 			Dictionary<Type, MethodInfo> reads = [];
 			foreach (MethodInfo method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly)) {
@@ -293,13 +325,22 @@ public abstract record class AutoSyncedAction : SyncedAction {
 			HashSet<Type> warnings = writes.Keys.ToHashSet();
 			warnings.SymmetricExceptWith(reads.Keys.ToHashSet());
 			if (warnings.Count > 0) {
-				Mod.Logger.Warn($"Ignoring send/receive methods in {GetType()} due to not being balanced:[{string.Join(", ", warnings.Select(type => $"{type} missing {(reads.ContainsKey(type) ? "send" : "receive")}"))}]");
+				ownedByMod[originalType].Logger.Warn($"Ignoring send/receive methods in {originalType} due to not being balanced:[{string.Join(", ", warnings.Select(type => $"{type} missing {(reads.ContainsKey(type) ? "send" : "receive")}"))}]");
 			}
+			foreach (Type copyFrom in type.GetCustomAttributes<AutoSyncMethodsAttribute>().SelectMany(a => a)) {
+				AddFromType(copyFrom);
+			}
+			foreach (Type copyFrom in type.GetInterfaces().SelectMany(i => i.GetCustomAttributes<AutoSyncMethodsAttribute>().SelectMany(a => a))) {
+				AddFromType(copyFrom);
+			}
+		}
+		do {
+			AddFromType(type);
 		} while ((type = type.BaseType) is not null);
 		TryAddVanilla(Utils.WriteVector2, Utils.ReadVector2);
 		return syncSets;
 	}
-	public override void NetSend(BinaryWriter writer) => ((AutoSyncedAction)Get(type)).write(this, writer);
+	public override void NetSend(BinaryWriter writer) => ((AutoSyncedAction)GetTemplate()).write(this, writer);
 	public override SyncedAction NetReceive(BinaryReader reader) => read(this, reader);
 	#region attributes
 	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
@@ -387,3 +428,102 @@ public abstract record class AutoSyncedAction : SyncedAction {
 #pragma warning restore IDE0051
 	#endregion
 }
+public static class SyncedActionExtensions {
+	/// <inheritdoc cref="ISyncedAction.Perform(int)"/>
+	public static void Perform(this ISyncedAction action, int fromClient = -2) => action.Perform(fromClient);
+	/// <inheritdoc cref="ISyncedAction.Send(int, int)"/>
+	public static void Send(this ISyncedAction action, int toClient = -1, int ignoreClient = -1) => action.Send(toClient, ignoreClient);
+	public static Mod GetMod(this ISyncedAction action) => ownedByMod.TryGetValue(action.GetType(), out Mod mod) ? mod : null;
+}
+[AutoSyncMethods<AutoSyncedAction>]
+public interface IAutoSyncedAction : ISyncedAction, IPreLoad<IAutoSyncedAction.PreLoadImpl>, IOnLoad<IAutoSyncedAction.OnLoadImpl> {
+	private sealed static Dictionary<Type, Write> Writes { get; set; } = [];
+	private sealed static Dictionary<Type, Read> Reads { get; set; } = [];
+	public class PreLoadImpl : ILoadImpl {
+		static void ILoadImpl.Load(Type type) {
+			if (!type.IsValueType) throw new InvalidOperationException($"{nameof(IAutoSyncedAction)}s must be structs, use {nameof(AutoSyncedAction)} for classes");
+			StringBuilder warnings = new();
+			LooseDictionary<Type, (MethodInfo write, MethodInfo read)> syncSets = GetSyncSets(type);
+
+			DynamicMethod _write = new("write", typeof(void), [typeof(IAutoSyncedAction), typeof(BinaryWriter)]);
+			ILGenerator write = _write.GetILGenerator();
+			DynamicMethod _read = new("read", typeof(IAutoSyncedAction), [typeof(BinaryReader)]);
+			ILGenerator read = _read.GetILGenerator();
+			write.DeclareLocal(type);
+			write.Emit(OpCodes.Ldarg_0);
+			write.Emit(OpCodes.Unbox_Any, type);
+			write.Emit(OpCodes.Stloc_0);
+
+			read.DeclareLocal(type);
+			read.Emit(OpCodes.Ldloca_S, 0);
+			read.Emit(OpCodes.Initobj, type);
+
+			foreach (PropertyInfo property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance)) {
+				if (property.GetMethod is not MethodInfo get) continue;
+				if (property.SetMethod is not MethodInfo set) continue;
+				if (!syncSets.TryGetValue(property.PropertyType, out (MethodInfo write, MethodInfo read) sync, out int inaccuracy)) {
+					throw new NotSupportedException($"\nProperty {property} is unsupported type {property.PropertyType}, you can add support with {nameof(AutoSyncSendAttribute)} and {nameof(AutoSyncReceiveAttribute)}");
+				}
+				if (inaccuracy > 0) warnings.Append($"\nProperty {property} falling back to ");
+				(MethodInfo send, MethodInfo receive) = sync;
+				write.Emit(OpCodes.Ldarg_1);
+				write.Emit(OpCodes.Ldloca_S, 0);
+				write.Emit(OpCodes.Call, get);
+				write.Emit(OpCodes.Call, send);
+
+				read.Emit(OpCodes.Ldloca_S, 0);
+				read.Emit(OpCodes.Ldarg_0);
+				read.Emit(OpCodes.Call, receive);
+				read.Emit(OpCodes.Call, set);
+			}
+
+			write.Emit(OpCodes.Ret);
+			read.Emit(OpCodes.Ldloc_0);
+			read.Emit(OpCodes.Box, type);
+			read.Emit(OpCodes.Ret);
+			Writes[type] = _write.CreateDelegate<Write>();
+			Reads[type] = _read.CreateDelegate<Read>();
+			if (warnings.Length > 0) ownedByMod[type].Logger.Warn($"Some data may be lost when syncing {type}:{warnings}");
+			PropertyInfo SyncTests = type.GetProperty("SyncTests", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+			if (SyncTests is null) return;
+			if (SyncTests.GetMethod is null || SyncTests.PropertyType != typeof(IEnumerable<>).MakeGenericType(type)) throw new InvalidOperationException($"{type} tried to test its synchronization with invalid sync tests {SyncTests}");
+			Read readForTests = Reads[type];
+			var exceptions = new List<Exception>();
+
+			foreach (object _syncTest in (IEnumerable)SyncTests.GetValue(null)) {
+				try {
+					ISyncedAction syncTest = (ISyncedAction)_syncTest;
+					MemoryStream stream = new();
+					BinaryWriter writer = new(stream);
+					syncTest.NetSend(writer);
+					stream.Position = 0;
+					ISyncedAction result = readForTests(new(stream));
+					if (!result.Equals(syncTest)) throw new InaccurateSynchronizationException(syncTest, result);
+				} catch (Exception ex) {
+					var aaaaaa = ex.GetType();
+					ex.Data["contentType"] = type;
+					exceptions.Add(ex);
+				}
+			}
+
+			LoaderUtils.RethrowAggregatedExceptions(exceptions);
+		}
+	}
+	public class OnLoadImpl : ILoadImpl {
+		static void ILoadImpl.Load(Type type) => ownedByMod[type].Logger.Info($"Many friendly bees helped load {type}");
+	}
+	void ISyncedAction.NetSend(BinaryWriter writer) => Writes[GetType()](this, writer);
+	static Read ISyncedAction.GetReader(Type type) => Reads[type];
+	public delegate void Write(IAutoSyncedAction action, BinaryWriter writer);
+}
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = true, AllowMultiple = true)]
+public class AutoSyncMethodsAttribute(params Type[] types) : Attribute, IEnumerable<Type> {
+	public IEnumerable<Type> Types { get; } = types;
+	IEnumerator<Type> IEnumerable<Type>.GetEnumerator() {
+		return Types.GetEnumerator();
+	}
+	IEnumerator IEnumerable.GetEnumerator() {
+		return ((IEnumerable)Types).GetEnumerator();
+	}
+}
+public class AutoSyncMethodsAttribute<T>() : AutoSyncMethodsAttribute(typeof(T)) { }
