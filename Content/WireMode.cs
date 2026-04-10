@@ -61,7 +61,7 @@ public abstract class WireMode : ModTexturedType, IFlowerMenuItem<WirePetalData>
 	public virtual bool IsExtra => false;
 	public virtual Color? WireKiteColor => null;
 	public virtual Color MiniWireMenuColor => WireKiteColor ?? Color.White;
-	public virtual bool Enabled => true;
+	public virtual bool Visible => true;
 	public Asset<Texture2D> Texture2D { get; private set; }
 	protected sealed override void Register() {
 		if (Mod.Side != ModSide.Both && Mod is not PegasusLib) throw new InvalidOperationException("WireModes can only be added by Both-side mods");
@@ -257,7 +257,7 @@ public class WireModeKite : ItemModeFlowerMenu<WireMode, WirePetalData> {
 		if (RightClicked) return;
 		EnabledWires[mode.Type] ^= true;
 	}
-	public override IEnumerable<WireMode> GetModes() => WireTool.Modes.Where(mode => mode.Enabled);
+	public override IEnumerable<WireMode> GetModes() => WireTool.Modes.Where(mode => mode.Visible);
 	public static IWireTool GetWireTool(Item item) {
 		if (item?.ModItem is IWireTool wireTool) return wireTool;
 		if (item?.shoot == ModContent.ProjectileType<ModWireChannel>() && UseModWireChannel.VanillaWireModes.WireTools[item.type] is IWireTool vanillaWireTool) return vanillaWireTool;
@@ -411,22 +411,27 @@ public record class Mass_Wire_Action(Player Player, Point Start, Point End, bool
 	static bool HasResearched(int type, Player player) => CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId.TryGetValue(type, out int needed) && player.creativeTracker.ItemSacrifices.GetSacrificeCount(type) >= needed;
 	protected override void Perform() {
 		Dictionary<int, int> costs = [];
-		WireMode[] modes = ReorderSet(WireModeLoader.GetSorted(), Modes);
-		for (int i = 0; i < modes.Length; i++) {
-			if (HasResearched(modes[i].ItemType, Player)) continue;
-			costs[modes[i].ItemType] = 0;
+		int InitializeCost(int itemType) {
+			if (!costs.TryGetValue(itemType, out int cost)) costs[itemType] = cost = HasResearched(itemType, Player) ? -1 : 0;
+			return cost;
 		}
+		void IncrementCost(int itemType) {
+			int cost = InitializeCost(itemType);
+			if (cost != -1) costs[itemType] = cost + 1;
+		}
+		WireMode[] modes = ReorderSet(WireModeLoader.GetSorted(), Modes);
 		foreach (Point pos in ModWireChannel.GetWirePositions(Player, Start, End)) {
 			bool didAny = false;
 			Vector2 worldPos = pos.ToWorldCoordinates(0, 0);
 			for (int i = 0; i < modes.Length; i++) {
+				int itemType = modes[i].GetItemType(pos.X, pos.Y);
 				if (!Cut) {
-					if (costs.ContainsKey(modes[i].ItemType) && !Player.ConsumeItem(modes[i].ItemType)) continue;
+					if (InitializeCost(itemType) != -1 && !Player.ConsumeItem(itemType)) continue;
 				}
 				if (modes[i].SetWire(pos.X, pos.Y, !Cut)) {
 					didAny |= true;
 					SoundEngine.PlaySound(SoundID.Dig, worldPos);
-					if (costs.TryGetValue(modes[i].ItemType, out int cost)) costs[modes[i].ItemType] = cost + 1;
+					IncrementCost(itemType);
 				}
 			}
 			if (didAny && Cut) {

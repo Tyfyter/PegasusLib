@@ -817,6 +817,12 @@
             <param name="x">the vector used to determine the x component of the output</param>
             <param name="y">the vector used to determine the y component of the output</param>
         </member>
+        <member name="M:PegasusLib.Networking.ISyncedAction.Perform(System.Int32)">
+            <summary>
+            Performs the action, then sends it if appropriate
+            </summary>
+            <param name="fromClient"></param>
+        </member>
         <member name="P:PegasusLib.Networking.SyncedAction.ServerOnly">
             <summary>
             In multiplayer, this is used to determine whether or not the action runs on clients
@@ -824,10 +830,10 @@
             </summary>
         </member>
         <member name="M:PegasusLib.Networking.SyncedAction.Perform(System.Int32)">
-            <summary>
-            Performs the action, then sends it if appropriate
-            </summary>
-            <param name="fromClient"></param>
+            <inheritdoc cref="M:PegasusLib.Networking.ISyncedAction.Perform(System.Int32)"/>
+        </member>
+        <member name="M:PegasusLib.Networking.SyncedAction.Send(System.Int32,System.Int32)">
+            <inheritdoc cref="M:PegasusLib.Networking.ISyncedAction.Send(System.Int32,System.Int32)"/>
         </member>
         <member name="P:PegasusLib.Networking.SyncedAction.SyncTests">
             <summary>
@@ -848,6 +854,12 @@
             <summary>
             Reorders <paramref name="values"/> to follow the order of <paramref name="options"/>
             </summary>
+        </member>
+        <member name="M:PegasusLib.Networking.SyncedActionExtensions.Perform(PegasusLib.Networking.ISyncedAction,System.Int32)">
+            <inheritdoc cref="M:PegasusLib.Networking.ISyncedAction.Perform(System.Int32)"/>
+        </member>
+        <member name="M:PegasusLib.Networking.SyncedActionExtensions.Send(PegasusLib.Networking.ISyncedAction,System.Int32,System.Int32)">
+            <inheritdoc cref="M:PegasusLib.Networking.ISyncedAction.Send(System.Int32,System.Int32)"/>
         </member>
         <member name="T:PegasusLib.Networking.WeakSyncedAction">
             <summary>
