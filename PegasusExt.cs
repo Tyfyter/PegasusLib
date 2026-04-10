@@ -211,6 +211,17 @@ namespace PegasusLib {
 			}
 			return false;
 		}
+		public static bool CycleDownWithZero(ref this float value, float from, float rate = 1) => value.CycleDownWithZero<float>(from, rate);
+		public static bool CycleDownWithZero(ref this int value, int from, int rate = 1) => value.CycleDownWithZero<int>(from, rate);
+		public static bool CycleDownWithZero<N>(ref this N value, N from, N rate) where N : struct, INumber<N> {
+			value -= rate;
+			if (value < N.Zero) {
+				value += from;
+				return true;
+			}
+			return false;
+		}
+		public static ScopedOverride<T> ScopedOverride<T>(ref this T variable, T value) where T : struct => new(ref variable, value);
 		/// <summary>
 		/// Pushes the contents of <paramref name="pushIn"/> into the beginning <paramref name="array"/><br/>
 		/// Elements at the end of <paramref name="array"/> are removed to make room
@@ -267,6 +278,7 @@ namespace PegasusLib {
 		public static Exception AttributedTo(this Exception exception, Mod mod, string message = null) => new AttributedException(exception, mod, message);
 		public static bool IsLocallyOwned(this Player player) => player.whoAmI == Main.myPlayer;
 		public static bool IsLocallyOwned(this Projectile projectile) => projectile.owner == Main.myPlayer;
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Following pattern")]
 		public static bool IsLocallyOwned(this NPC npc) => Main.netMode is NetmodeID.SinglePlayer or NetmodeID.Server;
 		public static int RandomRound(this UnifiedRandom random, float value) {
 			float amount = value % 1;

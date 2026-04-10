@@ -338,21 +338,25 @@ public abstract record class AutoSyncedAction : SyncedAction {
 			AddFromType(type);
 		} while ((type = type.BaseType) is not null);
 		TryAddVanilla(Utils.WriteVector2, Utils.ReadVector2);
+		foreach (PropertyInfo property in originalType.GetProperties(BindingFlags.Public | BindingFlags.Instance)) {
+			if (property.GetMethod is null || property.SetMethod is null || syncSets.ContainsKey(property.PropertyType)) continue;
+			AddFromType(property.PropertyType);
+		}
 		return syncSets;
 	}
 	public override void NetSend(BinaryWriter writer) => ((AutoSyncedAction)GetTemplate()).write(this, writer);
 	public override SyncedAction NetReceive(BinaryReader reader) => read(this, reader);
 	#region attributes
 	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
-	protected internal class AutoSyncSendAttribute(Type type) : Attribute {
+	public class AutoSyncSendAttribute(Type type) : Attribute {
 		public Type Type { get; } = type;
 	}
-	protected internal sealed class AutoSyncSendAttribute<T>() : AutoSyncSendAttribute(typeof(T)) { }
+	public sealed class AutoSyncSendAttribute<T>() : AutoSyncSendAttribute(typeof(T)) { }
 	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
-	protected internal class AutoSyncReceiveAttribute(Type type) : Attribute {
+	public class AutoSyncReceiveAttribute(Type type) : Attribute {
 		public Type Type { get; } = type;
 	}
-	protected internal sealed class AutoSyncReceiveAttribute<T>() : AutoSyncReceiveAttribute(typeof(T)) { }
+	public sealed class AutoSyncReceiveAttribute<T>() : AutoSyncReceiveAttribute(typeof(T)) { }
 	#endregion
 	#region helper methods
 #pragma warning disable IDE0051

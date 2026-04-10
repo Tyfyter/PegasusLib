@@ -51,7 +51,7 @@ namespace PegasusLib {
 
 			MonoModHooks.Modify(typeof(NPCLoader).GetMethod(nameof(NPCLoader.PreDraw)), IDrawNPCEffect.AddIteratePreDraw);
 			MonoModHooks.Modify(typeof(NPCLoader).GetMethod(nameof(NPCLoader.PostDraw)), IDrawNPCEffect.AddIteratePostDraw);
-			MonoModHooks.Modify(typeof(MenuLoader).GetMethod("Unload", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static), (ILContext il) => {
+			MonoModHooks.Modify(typeof(MenuLoader).GetMethod("Unload", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static), il => {
 				new ILCursor(il).EmitLdcI4(1).EmitStsfld(typeof(PegasusLib).GetField(nameof(unloading)));
 			});
 			Main.OnPostDraw += IncrementFrameCount;
@@ -430,6 +430,7 @@ namespace PegasusLib {
 		}*/
 	}
 	public ref struct ReverseEntityGlobalsEnumerator<TGlobal>(TGlobal[] baseGlobals, TGlobal[] entityGlobals) where TGlobal : GlobalType<TGlobal> {
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0340:Use unbound generic type", Justification = "Pretty sure those aren't supported yet")]
 		static readonly Func<IEntityWithGlobals<TGlobal>, TGlobal[]> getArray = PegasusLib.Compile<Func<IEntityWithGlobals<TGlobal>, TGlobal[]>>("getEntityGlobals",
 			(OpCodes.Ldarg_0, null),
 			(OpCodes.Callvirt, typeof(IEntityWithGlobals<TGlobal>).GetProperty(nameof(IEntityWithGlobals<TGlobal>.EntityGlobals)).GetGetMethod()),
@@ -497,6 +498,10 @@ namespace PegasusLib {
 		public static void Max<T>(ref T current, T @new) where T : IComparisonOperators<T, T, bool> {
 			if (current < @new) current = @new;
 		}
+		public static void Clamp<T>(ref T current, T min, T max) where T : IComparisonOperators<T, T, bool> {
+			if (current < min) current = min;
+			else if (current > max) current = max;
+		}
 		public static bool Minimize<T>(ref T current, T @new) where T : IComparisonOperators<T, T, bool> {
 			if (current > @new) {
 				current = @new;
@@ -513,6 +518,14 @@ namespace PegasusLib {
 		}
 		public static void MinMax<T>(ref T min, ref T max) where T : IComparisonOperators<T, T, bool> {
 			if (min > max) Utils.Swap(ref min, ref max);
+		}
+		//https://en.wikipedia.org/wiki/Euclidean_algorithm
+		public static T GCF<T>(this T a, T b) where T : struct, INumber<T> {
+			if (T.IsZero(a) || T.IsNegative(a)) return T.One;
+			if (T.IsZero(b) || T.IsNegative(b)) return T.One;
+			MinMax(ref a, ref b);
+			while (!T.IsZero(a)) (b, a) = (a, b % a);
+			return b;
 		}
 	}
 }
