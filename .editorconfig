@@ -186,7 +186,7 @@ dotnet_naming_rule.types_should_be_pascal_case.severity = suggestion
 dotnet_naming_rule.types_should_be_pascal_case.symbols = types
 dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
 
-dotnet_naming_rule.begins_with_underscore.severity = suggestion
+dotnet_naming_rule.begins_with_underscore.severity = none
 dotnet_naming_rule.begins_with_underscore.symbols = private_functions
 dotnet_naming_rule.begins_with_underscore.style = begins_with_underscore
 

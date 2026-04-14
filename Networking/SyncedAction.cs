@@ -1,4 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Microsoft.Build.Framework;
+using Microsoft.Xna.Framework;
+using MonoMod.Utils;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,6 +14,7 @@ using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Core;
+using Terraria.ModLoader.IO;
 using static PegasusLib.Networking.AutoSyncedAction;
 using static PegasusLib.Networking.ISyncedAction;
 using static PegasusLib.Networking.SyncedAction;
@@ -254,23 +258,7 @@ public abstract record class AutoSyncedAction : SyncedAction {
 		read.Emit(OpCodes.Stloc_0);
 
 		foreach (PropertyInfo property in GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)) {
-			if (property.GetMethod is not MethodInfo get) continue;
-			if (property.SetMethod is not MethodInfo set) continue;
-			if (!set.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(System.Runtime.CompilerServices.IsExternalInit))) continue;
-			if (!syncSets.TryGetValue(property.PropertyType, out (MethodInfo write, MethodInfo read) sync, out int inaccuracy)) {
-				throw new NotSupportedException($"\nProperty {property} is unsupported type {property.PropertyType}, you can add support with {nameof(AutoSyncSendAttribute)} and {nameof(AutoSyncReceiveAttribute)}");
-			}
-			if (inaccuracy > 0) warnings.Append($"\nProperty {property} falling back to ");
-			(MethodInfo send, MethodInfo receive) = sync;
-			write.Emit(OpCodes.Ldarg_1);
-			write.Emit(OpCodes.Ldarg_0);
-			write.Emit(OpCodes.Call, get);
-			write.Emit(OpCodes.Call, send);
-
-			read.Emit(OpCodes.Ldloc_0);
-			read.Emit(OpCodes.Ldarg_1);
-			read.Emit(OpCodes.Call, receive);
-			read.Emit(OpCodes.Call, set);
+			Generate(warnings, syncSets, write, read, property, property => !property.SetMethod.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(System.Runtime.CompilerServices.IsExternalInit)));
 		}
 
 		write.Emit(OpCodes.Ret);
@@ -280,6 +268,60 @@ public abstract record class AutoSyncedAction : SyncedAction {
 		this.read = _read.CreateDelegate<Func<AutoSyncedAction, BinaryReader, AutoSyncedAction>>();
 		if (warnings.Length > 0) Mod.Logger.Warn($"Some data may be lost when syncing {GetType()}:{warnings}");
 		ValidateSync(this);
+	}
+	internal static void Generate(StringBuilder warnings, LooseDictionary<Type, (MethodInfo write, MethodInfo read)> syncSets, ILGenerator write, ILGenerator read, PropertyInfo property, Predicate<PropertyInfo> autoFilter = null) {
+		if (property.GetMethod is not MethodInfo get) return;
+		if (property.SetMethod is not MethodInfo set) return;
+
+		Type SyncHandler = typeof(ASyncHandlerAttribute<>).MakeGenericType(property.PropertyType);
+		if (property.GetCustomAttributes().SingleOrDefault(attr => SyncHandler.IsAssignableFrom(attr.GetType())) is Attribute syncHandler) {
+			int index = (int)SyncHandler.GetMethod("AddReference", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, [syncHandler]);
+			MethodInfo getRef = SyncHandler.GetMethod("GetReference", BindingFlags.NonPublic | BindingFlags.Static);
+
+			write.Emit(OpCodes.Ldc_I4, index);
+			write.Emit(OpCodes.Call, getRef);
+			write.Emit(OpCodes.Ldarg_1);
+			EmitLdActSend();
+			write.Emit(OpCodes.Call, get);
+			write.Emit(OpCodes.Callvirt, SyncHandler.GetMethod("Write"));
+
+			EmitLdActReceive();
+			read.Emit(OpCodes.Ldc_I4, index);
+			read.Emit(OpCodes.Call, getRef);
+			EmitLdReader();
+			read.Emit(OpCodes.Callvirt, SyncHandler.GetMethod("Read"));
+			read.Emit(OpCodes.Call, set);
+			return;
+		}
+		if (autoFilter?.Invoke(property) ?? false) return;
+		if (!syncSets.TryGetValue(property.PropertyType, out (MethodInfo send, MethodInfo receive) sync, out int inaccuracy)) {
+			if (!property.PropertyType.IsEnum || !syncSets.TryGetValue(property.PropertyType.GetEnumUnderlyingType(), out sync, out inaccuracy)) {
+				throw new NotSupportedException($"\nProperty {property} is unsupported type {property.PropertyType}, you can add support with {nameof(AutoSyncSendAttribute)} and {nameof(AutoSyncReceiveAttribute)}");
+			}
+		}
+		if (inaccuracy > 0) warnings.Append($"\nProperty {property} falling back to ");
+		(MethodInfo send, MethodInfo receive) = sync;
+		write.Emit(OpCodes.Ldarg_1);
+		EmitLdActSend();
+		write.Emit(OpCodes.Call, get);
+		write.Emit(OpCodes.Call, send);
+
+		EmitLdActReceive();
+		EmitLdReader();
+		read.Emit(OpCodes.Call, receive);
+		read.Emit(OpCodes.Call, set);
+		void EmitLdActSend() {
+			if (property.DeclaringType.IsClass) write.Emit(OpCodes.Ldarg_0);
+			else write.Emit(OpCodes.Ldloca_S, 0);
+		}
+		void EmitLdActReceive() {
+			if (property.DeclaringType.IsClass) read.Emit(OpCodes.Ldloc_0);
+			else read.Emit(OpCodes.Ldloca_S, 0);
+		}
+		void EmitLdReader() {
+			if (property.DeclaringType.IsClass) read.Emit(OpCodes.Ldarg_1);
+			else read.Emit(OpCodes.Ldarg_0);
+		}
 	}
 	internal static LooseDictionary<Type, (MethodInfo write, MethodInfo read)> GetSyncSets(Type type) {
 		Type originalType = type;
@@ -345,6 +387,7 @@ public abstract record class AutoSyncedAction : SyncedAction {
 		return syncSets;
 	}
 	public override void NetSend(BinaryWriter writer) => ((AutoSyncedAction)GetTemplate()).write(this, writer);
+
 	public override SyncedAction NetReceive(BinaryReader reader) => read(this, reader);
 	#region attributes
 	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
@@ -357,6 +400,24 @@ public abstract record class AutoSyncedAction : SyncedAction {
 		public Type Type { get; } = type;
 	}
 	public sealed class AutoSyncReceiveAttribute<T>() : AutoSyncReceiveAttribute(typeof(T)) { }
+	[AttributeUsage(AttributeTargets.Property)]
+	public abstract class ASyncHandlerAttribute<T> : Attribute {
+		public abstract void Write(BinaryWriter writer, T value);
+		public abstract T Read(BinaryReader reader);
+		static List<ASyncHandlerAttribute<T>> references;
+		internal static int AddReference(ASyncHandlerAttribute<T> syncHandler) {
+			if (references is null) {
+				references = [];
+				PegasusLib.unloadables.Add(default(Unloader));
+			}
+			references.Add(syncHandler);
+			return references.Count - 1;
+		}
+		internal static ASyncHandlerAttribute<T> GetReference(int index) => references[index];
+		readonly struct Unloader : IUnloadable {
+			void IUnloadable.Unload() => references = null;
+		}
+	}
 	#endregion
 	#region helper methods
 #pragma warning disable IDE0051
@@ -463,22 +524,7 @@ public interface IAutoSyncedAction : ISyncedAction, IPreLoad<IAutoSyncedAction.P
 			read.Emit(OpCodes.Initobj, type);
 
 			foreach (PropertyInfo property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance)) {
-				if (property.GetMethod is not MethodInfo get) continue;
-				if (property.SetMethod is not MethodInfo set) continue;
-				if (!syncSets.TryGetValue(property.PropertyType, out (MethodInfo write, MethodInfo read) sync, out int inaccuracy)) {
-					throw new NotSupportedException($"\nProperty {property} is unsupported type {property.PropertyType}, you can add support with {nameof(AutoSyncSendAttribute)} and {nameof(AutoSyncReceiveAttribute)}");
-				}
-				if (inaccuracy > 0) warnings.Append($"\nProperty {property} falling back to ");
-				(MethodInfo send, MethodInfo receive) = sync;
-				write.Emit(OpCodes.Ldarg_1);
-				write.Emit(OpCodes.Ldloca_S, 0);
-				write.Emit(OpCodes.Call, get);
-				write.Emit(OpCodes.Call, send);
-
-				read.Emit(OpCodes.Ldloca_S, 0);
-				read.Emit(OpCodes.Ldarg_0);
-				read.Emit(OpCodes.Call, receive);
-				read.Emit(OpCodes.Call, set);
+				Generate(warnings, syncSets, write, read, property);
 			}
 
 			write.Emit(OpCodes.Ret);
@@ -531,3 +577,10 @@ public class AutoSyncMethodsAttribute(params Type[] types) : Attribute, IEnumera
 	}
 }
 public class AutoSyncMethodsAttribute<T>() : AutoSyncMethodsAttribute(typeof(T)) { }
+public class SendingPlayerAttribute : ASyncHandlerAttribute<Player> {
+	internal static int sendingPlayer;
+	public override Player Read(BinaryReader reader) => Main.player[NetmodeActive.Server ? sendingPlayer : reader.ReadByte()];
+	public override void Write(BinaryWriter writer, Player value) {
+		if (NetmodeActive.Server) writer.Write((byte)value.whoAmI);
+	}
+}

@@ -281,6 +281,7 @@ namespace PegasusLib {
 				}
 
 				case Packets.SyncedAction:
+				SendingPlayerAttribute.sendingPlayer = whoAmI;
 				ISyncedAction.GetReader(ISyncedAction.ReadType(reader))(reader).Perform(whoAmI);
 				break;
 

@@ -213,10 +213,12 @@ AdvancedTextSnippet: {
 	}
 
 	KeybindSnippetHandler: {
-		Option_Keyboard: Mods.PegasusLib.AdvancedTextSnippet.KeybindSnippetHandler.Option_Keyboard
-		Option_KeyboardUI: Mods.PegasusLib.AdvancedTextSnippet.KeybindSnippetHandler.Option_KeyboardUI
-		Option_Mouse: Mods.PegasusLib.AdvancedTextSnippet.KeybindSnippetHandler.Option_Mouse
-		Option_XBoxGamepad: Mods.PegasusLib.AdvancedTextSnippet.KeybindSnippetHandler.Option_XBoxGamepad
-		Option_XBoxGamepadUI: Mods.PegasusLib.AdvancedTextSnippet.KeybindSnippetHandler.Option_XBoxGamepadUI
+		Option_Keyboard: Keyboard
+		Option_KeyboardUI: KeyboardUI
+		Option_Mouse: Mouse
+		Option_XBoxGamepad: XBoxGamepad
+		Option_XBoxGamepadUI: XBoxGamepadUI
 	}
 }
+
+StackableAccessory.Tooltip: Can be stacked
