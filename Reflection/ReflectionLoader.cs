@@ -192,6 +192,7 @@ namespace PegasusLib.Reflection {
 		}
 		public static void UnloadReflections(Type type) {
 			foreach (FieldInfo item in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)) {
+				if (item.IsInitOnly) continue;
 				if (!item.FieldType.IsValueType) {
 					item.SetValue(null, null);
 				}

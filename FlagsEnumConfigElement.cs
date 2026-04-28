@@ -213,6 +213,14 @@ namespace PegasusLib {
 			else if (underlyingType == typeof(long) || underlyingType == typeof(ulong)) return Unsafe.BitCast<ulong, TEnum>((Unsafe.BitCast<TEnum, ulong>(a) | Unsafe.BitCast<TEnum, ulong>(b)));
 			else throw new InvalidOperationException($"Unsupported enum underlying type: {underlyingType}");
 		}
+		public static TEnum AND<TEnum>(this TEnum a, TEnum b) where TEnum : struct, Enum {
+			Type underlyingType = Enum.GetUnderlyingType(typeof(TEnum));
+			if (underlyingType == typeof(sbyte) || underlyingType == typeof(byte)) return Unsafe.BitCast<byte, TEnum>((byte)(Unsafe.BitCast<TEnum, byte>(a) & Unsafe.BitCast<TEnum, byte>(b)));
+			else if (underlyingType == typeof(short) || underlyingType == typeof(ushort)) return Unsafe.BitCast<ushort, TEnum>((ushort)(Unsafe.BitCast<TEnum, ushort>(a) & Unsafe.BitCast<TEnum, ushort>(b)));
+			else if (underlyingType == typeof(int) || underlyingType == typeof(uint)) return Unsafe.BitCast<uint, TEnum>((Unsafe.BitCast<TEnum, uint>(a) & Unsafe.BitCast<TEnum, uint>(b)));
+			else if (underlyingType == typeof(long) || underlyingType == typeof(ulong)) return Unsafe.BitCast<ulong, TEnum>((Unsafe.BitCast<TEnum, ulong>(a) & Unsafe.BitCast<TEnum, ulong>(b)));
+			else throw new InvalidOperationException($"Unsupported enum underlying type: {underlyingType}");
+		}
 		public static bool IsFlag<TEnum>(this TEnum value) where TEnum : struct, Enum {
 			Type underlyingType = Enum.GetUnderlyingType(typeof(TEnum));
 			ulong x;

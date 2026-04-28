@@ -64,6 +64,11 @@
             </summary>
             <typeparam name="TDefinition">The definition type which NamedDefinitionConfigElement should use</typeparam>
         </member>
+        <member name="P:PegasusLib.Content.DamageRedirection.FullName">
+            <summary>
+            The internal name of this, including the mod it is from.
+            </summary>
+        </member>
         <member name="M:PegasusLib.Content.IRightClickableAccessory.CanRightClickAccessory(Terraria.Item[],System.Int32,System.Int32)">
             <summary>
             If this returns false, the slot's normal right click behavior will apply instead of <see cref="M:PegasusLib.Content.IRightClickableAccessory.RightClickAccessory(Terraria.Item[],System.Int32,System.Int32)"/>

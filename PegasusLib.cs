@@ -93,6 +93,7 @@ namespace PegasusLib {
 			});
 		}
 		public override void PostSetupContent() {
+			ISyncedAction.LogActionCount();
 			SyncedAction.TestAllSync();
 
 			canAttributeErrors = false;

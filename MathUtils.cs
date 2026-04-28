@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
+using System.Numerics;
 using Terraria;
 
 namespace PegasusLib {
@@ -7,6 +8,20 @@ namespace PegasusLib {
 		public static bool LinearSmoothing(ref float smoothed, float target, float rate) {
 			if (target != smoothed) {
 				if (Math.Abs(target - smoothed) < rate) {
+					smoothed = target;
+				} else {
+					if (target > smoothed) {
+						smoothed += rate;
+					} else if (target < smoothed) {
+						smoothed -= rate;
+					}
+				}
+			}
+			return smoothed == target;
+		}
+		public static bool LinearSmoothing<T>(ref T smoothed, T target, T rate) where T : INumberBase<T>, IComparisonOperators<T, T, bool> {
+			if (target != smoothed) {
+				if (T.Abs(target - smoothed) < rate) {
 					smoothed = target;
 				} else {
 					if (target > smoothed) {

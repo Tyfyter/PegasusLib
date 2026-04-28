@@ -1,7 +1,4 @@
-﻿using Microsoft.Build.Framework;
-using Microsoft.Xna.Framework;
-using MonoMod.Utils;
-using Newtonsoft.Json.Linq;
+﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,7 +11,6 @@ using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Core;
-using Terraria.ModLoader.IO;
 using static PegasusLib.Networking.AutoSyncedAction;
 using static PegasusLib.Networking.ISyncedAction;
 using static PegasusLib.Networking.SyncedAction;
@@ -71,6 +67,13 @@ public interface ISyncedAction : IAutoload<Impl> {
 		WriteType(packet, GetType());
 		NetSend(packet);
 		packet.Send(toClient, ignoreClient);
+	}
+	internal static sealed void LogActionCount() {
+		StringBuilder text = new($"Loaded {readers.Count} SyncedActions, type will be written as ");
+		if (readers.Count < byte.MaxValue) text.Append(typeof(byte));
+		else if (readers.Count < ushort.MaxValue) text.Append(typeof(ushort));
+		else text.Append(typeof(int));
+		ModContent.GetInstance<PegasusLib>().Logger.Info(text);
 	}
 	static sealed void WriteType(BinaryWriter writer, Type type) {
 		int _type = actionIDsByType[type];
@@ -171,6 +174,21 @@ public abstract record class SyncedAction : ISyncedAction, IOnLoad<SyncedAction.
 	}
 	[AutoSyncedAction.AutoSyncReceive<Point>]
 	public static Point ReadPoint(BinaryReader reader) => new(reader.ReadInt32(), reader.ReadInt32());
+	[AutoSyncedAction.AutoSyncSend<Color >]
+	public static void WriteColor(BinaryWriter writer, Color color) {
+		writer.Write((uint)color.PackedValue);
+	}
+	[AutoSyncedAction.AutoSyncReceive<Color>]
+	public static Color ReadColor(BinaryReader reader) => new() { PackedValue = reader.ReadUInt32() };
+	[AutoSyncedAction.AutoSyncSend<Rectangle>]
+	public static void WriteRectangle(BinaryWriter writer, Rectangle point) {
+		writer.Write((int)point.X);
+		writer.Write((int)point.Y);
+		writer.Write((int)point.Width);
+		writer.Write((int)point.Height);
+	}
+	[AutoSyncedAction.AutoSyncReceive<Rectangle>]
+	public static Rectangle ReadRectangle(BinaryReader reader) => new(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
 	[AutoSyncedAction.AutoSyncSend<Player>]
 	public static void WritePlayer(BinaryWriter writer, Player player) => writer.Write((byte)player.whoAmI);
 	[AutoSyncedAction.AutoSyncReceive<Player>]
@@ -239,6 +257,7 @@ public abstract record class SyncedAction : ISyncedAction, IOnLoad<SyncedAction.
 
 	#endregion
 }
+[AutoSyncMethods<SyncedAction>]
 public abstract record class AutoSyncedAction : SyncedAction {
 	Action<AutoSyncedAction, BinaryWriter> write;
 	Func<AutoSyncedAction, BinaryReader, AutoSyncedAction> read;
