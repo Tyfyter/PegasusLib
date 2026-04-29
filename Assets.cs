@@ -44,10 +44,10 @@ namespace PegasusLib {
 		string assetPath;
 		Ref<Asset<T>> asset;
 		AutoLoadingAsset(Asset<T> asset) {
-			triedLoading = false;
+			triedLoading = true;
 			assetPath = "";
 			this.asset = new(asset);
-			exists = false;
+			exists = true;
 			this.RegisterForUnload();
 		}
 		AutoLoadingAsset(string asset) {
