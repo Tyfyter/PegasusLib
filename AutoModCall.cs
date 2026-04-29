@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using MonoMod.Utils;
+using PegasusLib.DynamicCode;
 using ReLogic.Content;
 using System;
 using System.Collections;
@@ -12,6 +13,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Terraria.ModLoader;
+using Terraria.ModLoader.Core;
 
 namespace PegasusLib;
 public abstract class AutoModCall : ILoadable, IModType {
@@ -97,6 +99,8 @@ public abstract class AutoModCall : ILoadable, IModType {
 		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, [Name.ToLower(), Name.ToUpper()]);
 		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, LegacyNameAttribute.GetLegacyNamesOfType(GetType()).SelectMany<string, string>(n => [n.ToLower(), n.ToUpper()]).ToArray());
 	}
+	bool ILoadable.IsLoadingEnabled(Mod mod) => !PreLoadedAutoModCalls.Contains(mod) && IsLoadingEnabled(mod);
+	public virtual bool IsLoadingEnabled(Mod mod) => true;
 	void GenerateCalls(MethodInfo[] methods) {
 		bool[] broken = new bool[methods.Length];
 		ParameterInfo[][] parameterLists = methods.Select(m => m.GetParameters()).ToArray();
@@ -336,6 +340,31 @@ public abstract class AutoModCall : ILoadable, IModType {
 	protected sealed class GetCallingModAttribute : Attribute { }
 	record struct CallData(ParameterSequence Parameters, ModCall Call, bool CanGetCallingMod);
 	struct NullParameter { }
+	readonly static HashSet<Mod> PreLoadedAutoModCalls = [];
+	readonly static Action<Mod, ILoadable> Content_Add = PegasusLib.Compile<Action<Mod, ILoadable>>("Content_Add",
+		OpCodes.Ldarg_0,
+		Instr.Get<Mod>("Content"),
+		OpCodes.Ldarg_1,
+		Instr.CallV(typeof(Mod).Assembly.GetType("Terraria.ModLoader.ContentCache"), "Add"),
+		OpCodes.Ret
+	);
+	public static void PreLoadAutoModCalls(Mod mod) => PegasusLib.PreLoadMods += () => {
+		LoaderUtils.ForEachAndAggregateExceptions(
+			(from t in AssemblyManager.GetLoadableTypes(mod.Code)
+			 where !t.IsAbstract && !t.ContainsGenericParameters && t.IsAssignableTo(typeof(AutoModCall))
+			 where AutoloadAttribute.GetValue(t).NeedsAutoloading
+			 select t)
+			.OrderBy(type => type.FullName, StringComparer.InvariantCulture),
+			type => {
+				ILoadable call = (ILoadable)Activator.CreateInstance(type)!;
+				if (!call.IsLoadingEnabled(mod)) return;
+				call.Load(mod);
+				Content_Add(mod, call);
+				ContentInstance.Register(call);
+			}
+		);
+		PreLoadedAutoModCalls.Add(mod);
+	};
 }
 #if DEBUG
 public class TestCall : AutoModCall {
