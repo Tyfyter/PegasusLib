@@ -7,8 +7,8 @@ using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using MonoMod.Utils;
 using PegasusLib.Content;
+using PegasusLib.DynamicCode;
 using PegasusLib.Networking;
-using PegasusLib.Sets;
 using PegasusLib.UI;
 using System;
 using System.Collections;
@@ -19,6 +19,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
@@ -40,9 +41,20 @@ namespace PegasusLib {
 		internal static Dictionary<LibFeature, Action<Exception>> onFeatureError = [];
 		internal static MultiDictionary<Mod, Exception> attributedErrors = [];
 		internal static bool canAttributeErrors = true;
-		static readonly FastStaticFieldInfo<bool> contentLoadingFinished = new (typeof(ModLoader).Assembly.GetType("Terraria.ModLoader.ContentCache"), "contentLoadingFinished");
+		static readonly FastStaticFieldInfo<bool> contentLoadingFinished = new(typeof(ModLoader).Assembly.GetType("Terraria.ModLoader.ContentCache"), "contentLoadingFinished");
 		public static bool ContentLoadingFinished => contentLoadingFinished.Value;
 		public static bool unloading = false;
+		PegasusLib() : base() {
+			MonoModHooks.Add(typeof(ModContent).GetMethod("Load", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static),
+				(orig_Load orig, CancellationToken token) => {
+					PreLoadMods?.Invoke();
+					PreLoadMods = null;
+					orig(token);
+				}
+			);
+		}
+		delegate void orig_Load(CancellationToken token);
+		internal static event Action PreLoadMods;
 		public override void Load() {
 			On_Main.DrawNPCDirect += IDrawNPCEffect.On_Main_DrawNPCDirect;
 			On_Main.DrawProj_Inner += IDrawProjectileEffect.On_Main_DrawProj_Inner;
@@ -242,6 +254,74 @@ namespace PegasusLib {
 				else if (operand is LocalBuilder localBuilder) gen.Emit(instructions[i].Item1, localBuilder);
 				else if (operand is sbyte @sbyte) gen.Emit(instructions[i].Item1, @sbyte);
 				else if (operand is null) gen.Emit(instructions[i].Item1);
+			}
+			return method.CreateDelegate<T>();
+		}
+		public static T Compile<T>(string name, params Span<Instr> instructions) where T : Delegate {
+			MethodInfo invoke = typeof(T).GetMethod("Invoke");
+			DynamicMethod method = new(name, invoke.ReturnType, invoke.GetParameters().Select(p => p.ParameterType).ToArray());
+			ILGenerator gen = method.GetILGenerator();
+			for (int i = 0; i < instructions.Length; i++) {
+				(OpCode opCode, object operand) = instructions[i];
+				if (opCode == OpCodes.Nop && operand is Action<ILGenerator> action) {
+					action(gen);
+					continue;
+				}
+				if (operand is Func<ILGenerator, object> func) operand = func(gen);
+				switch (operand) {
+					case byte value: 
+					gen.Emit(opCode, value);
+					break;
+					case short value: 
+					gen.Emit(opCode, value);
+					break;
+					case long value: 
+					gen.Emit(opCode, value);
+					break;
+					case float value: 
+					gen.Emit(opCode, value);
+					break;
+					case double value: 
+					gen.Emit(opCode, value);
+					break;
+					case int value: 
+					gen.Emit(opCode, value);
+					break;
+					case MethodInfo value: 
+					gen.Emit(opCode, value);
+					break;
+					case SignatureHelper value: 
+					gen.Emit(opCode, value);
+					break;
+					case ConstructorInfo value: 
+					gen.Emit(opCode, value);
+					break;
+					case Type value: 
+					gen.Emit(opCode, value);
+					break;
+					case Label value: 
+					gen.Emit(opCode, value);
+					break;
+					case Label[] value: 
+					gen.Emit(opCode, value);
+					break;
+					case FieldInfo value: 
+					gen.Emit(opCode, value);
+					break;
+					case string value: 
+					gen.Emit(opCode, value);
+					break;
+					case LocalBuilder value: 
+					gen.Emit(opCode, value);
+					break;
+					case sbyte value: 
+					gen.Emit(opCode, value);
+					break;
+
+					case null:
+					gen.Emit(opCode);
+					break;
+				}
 			}
 			return method.CreateDelegate<T>();
 		}
