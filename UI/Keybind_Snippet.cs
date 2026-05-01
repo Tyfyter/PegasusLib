@@ -34,13 +34,7 @@ public class KeybindSnippetHandler : AdvancedTextSnippetHandler<InputMode?> {
 		}
 
 		public override void Update() {
-			InputMode inputMode = mode ?? PlayerInput.CurrentInputMode;
-			switch (inputMode) {
-				case InputMode.Mouse:
-				inputMode = InputMode.Keyboard;
-				break;
-			}
-			string assignedKey = keybind.GetAssignedKeys(inputMode).FirstOrDefault();
+			string assignedKey = keybind.GetAssignedKeys(ShowInputMode).FirstOrDefault();
 			if (lastAssignedKey != assignedKey) {
 				lastAssignedKey = assignedKey;
 				if (assignedKey is null) {
@@ -55,6 +49,20 @@ public class KeybindSnippetHandler : AdvancedTextSnippetHandler<InputMode?> {
 				KeybindHintItem.UpdateHovered(keybind);
 			}
 		}
+
+		private InputMode ShowInputMode {
+			get {
+				InputMode inputMode = mode ?? PlayerInput.CurrentInputMode;
+				switch (inputMode) {
+					case InputMode.Mouse:
+					inputMode = InputMode.Keyboard;
+					break;
+				}
+
+				return inputMode;
+			}
+		}
+
 		TextSnippet[] FormatKeys(string keyname) {
 			string[] parts = keyname.Split('+');
 			List<TextSnippet> snippets = [];
@@ -68,8 +76,13 @@ public class KeybindSnippetHandler : AdvancedTextSnippetHandler<InputMode?> {
 		}
 		TextSnippet FormatKey(string key) {
 			if (key.Length > 1 && key[0] == '-') key = key[1..];
-			string glyph = GlyphTagHandler.GenerateTag(key);
-			if (glyph != key) return glyphs.Parse(glyph[3..^1]);
+			switch (ShowInputMode) {
+				case InputMode.XBoxGamepad:
+				case InputMode.XBoxGamepadUI:
+				string glyph = GlyphTagHandler.GenerateTag(key);
+				if (glyph != key) return glyphs.Parse(glyph[3..^1]);
+				break;
+			}
 			return new TextSnippet(key, Color);
 		}
 		public override bool UniqueDraw(bool justCheckingString, out Vector2 size, SpriteBatch spriteBatch, Vector2 position = default, Color color = default, float scale = 1) {
