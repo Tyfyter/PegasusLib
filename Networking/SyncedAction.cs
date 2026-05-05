@@ -16,16 +16,17 @@ using static PegasusLib.Networking.ISyncedAction;
 using static PegasusLib.Networking.SyncedAction;
 
 namespace PegasusLib.Networking;
-public interface ISyncedAction : IAutoload<Impl> {
+public interface ISyncedAction : IAutoload<Loading> {
 	bool ServerOnly => false;
 	bool ShouldPerform => true;
 	protected abstract void Perform();
 	public abstract void NetSend(BinaryWriter writer);
 	protected static abstract Read GetReader(Type type);
-	public class Impl : IAutoloader {
-		static readonly MethodInfo getReader = typeof(Impl).GetMethod(nameof(GetReader), BindingFlags.NonPublic | BindingFlags.Static);
-		static readonly MethodInfo load = typeof(Impl).GetMethod(nameof(Load), BindingFlags.NonPublic | BindingFlags.Static);
-		static void IAutoloader.Autoload(Mod mod, Type type) {
+	public class Loading : IAutoloader {
+		static readonly MethodInfo getReader = typeof(Loading).GetMethod(nameof(GetReader), BindingFlags.NonPublic | BindingFlags.Static);
+		static readonly MethodInfo load = typeof(Loading).GetMethod(nameof(Load), BindingFlags.NonPublic | BindingFlags.Static);
+		static void IAutoloader.Autoload(Mod mod, Type type) => Load(mod, type);
+		public static void Load(Mod mod, Type type) {
 			if (!type.IsAssignableTo(typeof(ISyncedAction))) throw new InvalidOperationException($"Attempted to register invalid type {type} as {nameof(SyncedAction)}");
 			if (mod.Side != ModSide.Both && mod is not PegasusLib) throw new InvalidOperationException("SyncedActions can only be added by Both-side mods");
 			mod.Logger.Info($"{nameof(SyncedAction)} Loading {type.Name}");
