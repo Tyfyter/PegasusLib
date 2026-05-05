@@ -26,6 +26,11 @@ public interface ISyncedAction : IAutoload<Loading> {
 		static readonly MethodInfo getReader = typeof(Loading).GetMethod(nameof(GetReader), BindingFlags.NonPublic | BindingFlags.Static);
 		static readonly MethodInfo load = typeof(Loading).GetMethod(nameof(Load), BindingFlags.NonPublic | BindingFlags.Static);
 		static void IAutoloader.Autoload(Mod mod, Type type) => Load(mod, type);
+		public static void EnsureLoaded<TAction>(Mod mod) where TAction : ISyncedAction => EnsureLoaded(mod, typeof(TAction));
+		public static void EnsureLoaded(Mod mod, Type type) {
+			if (actionIDsByType.ContainsKey(type)) return;
+			Load(mod, type);
+		}
 		public static void Load(Mod mod, Type type) {
 			if (!type.IsAssignableTo(typeof(ISyncedAction))) throw new InvalidOperationException($"Attempted to register invalid type {type} as {nameof(SyncedAction)}");
 			if (mod.Side != ModSide.Both && mod is not PegasusLib) throw new InvalidOperationException("SyncedActions can only be added by Both-side mods");
