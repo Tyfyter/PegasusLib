@@ -20,9 +20,16 @@ namespace PegasusLib {
 		public void Set(bool value = true) {
 			if (IsSet != value) {
 				IsSet = value;
+				if (value) {
+					OnSet?.Invoke();
+				} else {
+					OnRevert?.Invoke();
+				}
 				NetMessage.SendData(MessageID.WorldData);
 			}
 		}
+		public event Action OnSet;
+		public event Action OnRevert;
 		public override string ToString() => $"[{condition.Description}: {IsSet}]";
 		public static bool operator true(ProgressFlag flag) => flag.IsSet;
 		public static bool operator false(ProgressFlag flag) => !flag.IsSet;
