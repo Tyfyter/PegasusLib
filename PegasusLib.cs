@@ -52,6 +52,7 @@ namespace PegasusLib {
 					orig(token);
 				}
 			);
+			AutoModCall.PreLoadAutoModCalls(this);
 		}
 		delegate void orig_Load(CancellationToken token);
 		internal static event Action PreLoadMods;
