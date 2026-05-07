@@ -16,7 +16,7 @@ public abstract class ItemModeHUD : SwitchableUIState {
 	public Vector2 activationPosition;
 	public float cursorAreaOpacity = 0;
 	bool mouseRightRelease = false;
-	protected bool RightClicked => Main.mouseRight && mouseRightRelease;
+	protected bool RightClicked => Main.mouseRight && mouseRightRelease && !Main.LocalPlayer.tileInteractionHappened;
 	public virtual bool ShouldToggle() => RightClicked && !Main.LocalPlayer.mouseInterface;
 	public override void OnEnter() {
 		cursorAreaOpacity = 0;
