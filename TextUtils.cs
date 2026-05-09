@@ -1,5 +1,6 @@
 ﻿using Hjson;
 using Newtonsoft.Json.Linq;
+using ReLogic.OS;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +10,7 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Terraria;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI.Chat;
@@ -188,6 +190,7 @@ namespace PegasusLib {
 		public override void Load() => TextUtils.Load();
 		public override void OnLocalizationsLoaded() {
 			TextUtils.LoadTranslations();
+			if (Main.rand.NextBool(100)) Platform.Get<IWindowService>().SetUnicodeTitle(Main.instance.Window, Language.GetTextValue("Mods.PegasusLib.SecretTitle"));
 		}
 	}
 }
