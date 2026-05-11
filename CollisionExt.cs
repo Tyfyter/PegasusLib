@@ -127,8 +127,6 @@ namespace PegasusLib {
 				if (next == tileSubPos) break;
 				Tile tile = Framing.GetTileSafely(tilePos);
 				bool doBreak = !WorldGen.InWorld(tilePos.X, tilePos.Y);
-				Vector2 diff = next - tileSubPos;
-				float dist = diff.Length();
 
 				if (!extraCheck(tile)) break;
 				if (tile.HasFullSolidTile()) {
@@ -184,10 +182,17 @@ namespace PegasusLib {
 							factor,
 							tileSlope * factor + tileIntercept
 						);
-						length += (float)(16 * endPoint.Distance(tileSubPos));
+						if (endPoint.HasNaNs()) {
+							length += 16;
+						} else if (endPoint.X >= 0 && endPoint.Y >= 0 && endPoint.X <= 1 && endPoint.Y <= 1) {
+							length += (float)(16 * endPoint.Distance(tileSubPos));
+						} else {
+							doBreak = false;
+						}
 					}
 				}
 				if (doBreak) break;
+				float dist = (next - tileSubPos).Length();
 				length += dist * 16;
 				//Dust.NewDustPerfect(tilePos.ToWorldCoordinates(0, 0) + next * 16, 6, Vector2.Zero).noGravity = true;
 				DoLoopyThing(next.X, out next.X, tilePos.X, out tilePos.X, cos);
@@ -290,8 +295,6 @@ namespace PegasusLib {
 				if (next == tileSubPos) break;
 				Tile tile = Framing.GetTileSafely(tilePos);
 				bool doBreak = !WorldGen.InWorld(tilePos.X, tilePos.Y);
-				Vector2 diff = next - tileSubPos;
-				float dist = diff.Length();
 
 				if (tile.HasFullSolidTile()) {
 					float flope = (float)slope;
@@ -346,10 +349,17 @@ namespace PegasusLib {
 							factor,
 							tileSlope * factor + tileIntercept
 						);
-						length += (float)(16 * endPoint.Distance(tileSubPos));
+						if (endPoint.HasNaNs()) {
+							length += 16;
+						} else if (endPoint.X >= 0 && endPoint.Y >= 0 && endPoint.X <= 1 && endPoint.Y <= 1) {
+							length += (float)(16 * endPoint.Distance(tileSubPos));
+						} else {
+							doBreak = false;
+						}
 					}
 				}
 				if (doBreak) break;
+				float dist = (next - tileSubPos).Length();
 				length += dist * 16;
 				//Dust.NewDustPerfect(tilePos.ToWorldCoordinates(0, 0) + next * 16, 6, Vector2.Zero).noGravity = true;
 				DoLoopyThing(next.X, out next.X, tilePos.X, out tilePos.X, cos);
