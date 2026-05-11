@@ -1,12 +1,13 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using PegasusLib.Graphics;
+using PegasusLib.Networking;
+using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent.Bestiary;
 using Terraria.ID;
-using Terraria.ModLoader;
-using Terraria;
-using Microsoft.Xna.Framework;
 using Terraria.Localization;
+using Terraria.ModLoader;
 
 namespace PegasusLib {
 	public static class NPCExt {
@@ -97,6 +98,19 @@ namespace PegasusLib {
 		public static FlavorTextBestiaryInfoElement GetOrRegisterBestiaryFlavorText(this ModNPC npc) {
 			Language.GetOrRegister($"Mods.{npc.Mod.Name}.Bestiary.{npc.Name}", () => "bestiary text here");
 			return new FlavorTextBestiaryInfoElement($"Mods.{npc.Mod.Name}.Bestiary.{npc.Name}");
+		}
+		static readonly FastStaticFieldInfo<NPC, bool> noSpawnCycle = "noSpawnCycle";
+		public static void Despawn(this NPC npc) {
+			if (!NetmodeActive.MultiplayerClient && !NPCLoader.SavesAndLoads(npc)) {
+				noSpawnCycle.Value = true;
+				npc.active = false;
+				if (NetmodeActive.Server) {
+					npc.netSkip = -1;
+					npc.life = 0;
+					NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, npc.whoAmI);
+				}
+				if (npc.extraValue > 0) NPC.RevengeManager.CacheEnemy(npc);
+			}
 		}
 	}
 }
