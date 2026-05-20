@@ -98,4 +98,23 @@ public static class GeometryUtils {
 	public static bool Contains(this Rectangle area, Vector2 point) {
 		return area.Contains((int)point.X, (int)point.Y);
 	}
+	public static void Deconstruct(this Vector2 vector, out float X, out float Y) {
+		X = vector.X;
+		Y = vector.Y;
+	}
+	public static void Deconstruct(this Vector3 vector, out float X, out float Y, out float Z) {
+		X = vector.X;
+		Y = vector.Y;
+		Z = vector.Z;
+	}
+	public static void Deconstruct(this Vector4 vector, out Vector2 XY, out Vector2 ZW) {
+		XY = vector.XY();
+		ZW = vector.ZW();
+	}
+	public static void Deconstruct(this Vector4 vector, out float X, out float Y, out float Z, out float W) {
+		X = vector.X;
+		Y = vector.Y;
+		Z = vector.Z;
+		W = vector.W;
+	}
 }

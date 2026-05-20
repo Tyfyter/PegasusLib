@@ -122,7 +122,8 @@ namespace PegasusLib {
 					throw new Exception($"Error while loading feature {feature} required by mod {mod.DisplayNameClean}:", exception);
 				} else {
 					if (!requiredFeatures.TryGetValue(feature, out List<Mod> reqs)) requiredFeatures[feature] = reqs = [];
-					if (!reqs.Contains(mod)) reqs.Add(mod);
+					if (reqs.Contains(mod)) continue;
+					reqs.Add(mod);
 				}
 				switch (feature) {
 					case LibFeature.WireChannel:
@@ -569,6 +570,7 @@ namespace PegasusLib {
 		/// Requiring this will automatically register <see cref="ModWireChannel"/> and <see cref="UseModWireChannel"/> to the first mod which does so
 		/// </summary>
 		WireChannel,
+		IInheritedDamageClass,
 	}
 	public static class GlobalUtils {
 		public static Color FromHexRGB(uint hex) => FromHexRGBA((hex << 8) | 0x000000ffu);
@@ -610,5 +612,51 @@ namespace PegasusLib {
 			while (!T.IsZero(a)) (b, a) = (a, b % a);
 			return b;
 		}
+		public static void Min(ref StatInheritanceData a, StatInheritanceData b) {
+			Min(ref a.damageInheritance, b.damageInheritance);
+			Min(ref a.critChanceInheritance, b.critChanceInheritance);
+			Min(ref a.attackSpeedInheritance, b.attackSpeedInheritance);
+			Min(ref a.armorPenInheritance, b.armorPenInheritance);
+			Min(ref a.knockbackInheritance, b.knockbackInheritance);
+		}
+		public static void Max(ref StatInheritanceData a, StatInheritanceData b) {
+			Max(ref a.damageInheritance, b.damageInheritance);
+			Max(ref a.critChanceInheritance, b.critChanceInheritance);
+			Max(ref a.attackSpeedInheritance, b.attackSpeedInheritance);
+			Max(ref a.armorPenInheritance, b.armorPenInheritance);
+			Max(ref a.knockbackInheritance, b.knockbackInheritance);
+		}
+		/*
+		extension(StatInheritanceData) {
+			public static StatInheritanceData Subtract(StatInheritanceData a, StatInheritanceData b) => new(
+				a.damageInheritance - b.damageInheritance,
+				a.critChanceInheritance - b.critChanceInheritance,
+				a.attackSpeedInheritance - b.attackSpeedInheritance,
+				a.armorPenInheritance - b.armorPenInheritance,
+				a.knockbackInheritance - b.knockbackInheritance
+			);
+			public static StatInheritanceData Add(StatInheritanceData a, StatInheritanceData b) => new(
+				a.damageInheritance + b.damageInheritance,
+				a.critChanceInheritance + b.critChanceInheritance,
+				a.attackSpeedInheritance + b.attackSpeedInheritance,
+				a.armorPenInheritance + b.armorPenInheritance,
+				a.knockbackInheritance + b.knockbackInheritance
+			);
+			public static StatInheritanceData Multiply(StatInheritanceData a, StatInheritanceData b) => new(
+				a.damageInheritance * b.damageInheritance,
+				a.critChanceInheritance * b.critChanceInheritance,
+				a.attackSpeedInheritance * b.attackSpeedInheritance,
+				a.armorPenInheritance * b.armorPenInheritance,
+				a.knockbackInheritance * b.knockbackInheritance
+			);
+			public static StatInheritanceData Multiply(StatInheritanceData a, float scale) => new(
+				a.damageInheritance * scale,
+				a.critChanceInheritance * scale,
+				a.attackSpeedInheritance * scale,
+				a.armorPenInheritance * scale,
+				a.knockbackInheritance * scale
+			);
+		}
+		*/
 	}
 }
