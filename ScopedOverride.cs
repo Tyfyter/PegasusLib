@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace PegasusLib; 
 public readonly ref struct ScopedOverride<T> : IDisposable {
@@ -10,5 +11,7 @@ public readonly ref struct ScopedOverride<T> : IDisposable {
 		original = variable;
 		variable = value;
 	}
-	public void Dispose() => variable = original;
+	public void Dispose() {
+		if (!Unsafe.IsNullRef(in variable)) variable = original;
+	}
 }
