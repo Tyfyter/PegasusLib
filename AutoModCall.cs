@@ -98,9 +98,11 @@ public abstract class AutoModCall : ILoadable, IModType {
 		ModTypeLookup<AutoModCall>.Register(this);
 		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, [Name.ToLower(), Name.ToUpper()]);
 		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, LegacyNameAttribute.GetLegacyNamesOfType(GetType()).SelectMany<string, string>(n => [n.ToLower(), n.ToUpper()]).ToArray());
+		Load();
 	}
 	bool ILoadable.IsLoadingEnabled(Mod mod) => !PreLoadedAutoModCalls.Contains(mod) && IsLoadingEnabled(mod);
 	public virtual bool IsLoadingEnabled(Mod mod) => true;
+	public virtual void Load() { }
 	void GenerateCalls(MethodInfo[] methods) {
 		bool[] broken = new bool[methods.Length];
 		ParameterInfo[][] parameterLists = methods.Select(m => m.GetParameters()).ToArray();
