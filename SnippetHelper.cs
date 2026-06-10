@@ -145,7 +145,7 @@ namespace PegasusLib {
 		public void Load(Mod mod) {
 			Mod = mod;
 			foreach (string name in Names) {
-				_handlers.Value[name.ToLower()] = this;
+				_handlers.Value[name.ToLowerInvariant()] = this;
 			}
 			if (NetmodeActive.Server) return;
 			if (ModLoader.TryGetMod("ChatPlus", out Mod chatPlus)) {

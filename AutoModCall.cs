@@ -1,9 +1,7 @@
 ﻿#nullable enable
 using MonoMod.Utils;
 using PegasusLib.DynamicCode;
-using ReLogic.Content;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -96,8 +94,8 @@ public abstract class AutoModCall : ILoadable, IModType {
 		GenerateCalls(GetType().GetMethods(BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.Static).Where(method => method.Name == "Call").ToArray());
 		if (calls.Count == 0) throw new NotImplementedException($"{nameof(AutoModCall)} must have at least one public static Call method");
 		ModTypeLookup<AutoModCall>.Register(this);
-		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, [Name.ToLower(), Name.ToUpper()]);
-		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, LegacyNameAttribute.GetLegacyNamesOfType(GetType()).SelectMany<string, string>(n => [n.ToLower(), n.ToUpper()]).ToArray());
+		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, [Name.ToLowerInvariant(), Name.ToUpperInvariant()]);
+		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, LegacyNameAttribute.GetLegacyNamesOfType(GetType()).SelectMany<string, string>(n => [n.ToLowerInvariant(), n.ToUpperInvariant()]).ToArray());
 		Load();
 	}
 	bool ILoadable.IsLoadingEnabled(Mod mod) => !PreLoadedAutoModCalls.Contains(mod) && IsLoadingEnabled(mod);
