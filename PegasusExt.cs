@@ -122,8 +122,11 @@ namespace PegasusLib {
 				ai2
 			);
 		}
+#pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
+		/// <inheritdoc cref="SpawnProjectile(Projectile, IEntitySource, Vector2, Vector2, int, int, float, float, float, float)"/>
 		public static Projectile SpawnProjectile(this ModProjectile self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) =>
 			SpawnProjectile(self.Projectile, spawnSource, position, velocity, type, damage, knockback, ai0, ai1, ai2);
+		/// <param name="spawnSource">defaults to self.GetSource_FromAI() if null</param>
 		public static Projectile SpawnProjectile(this Projectile self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) {
 			if (self.owner != Main.myPlayer) return null;
 			spawnSource ??= self.GetSource_FromAI();
@@ -140,8 +143,10 @@ namespace PegasusLib {
 				ai2
 			);
 		}
+		/// <inheritdoc cref="SpawnProjectile(NPC, IEntitySource, Vector2, Vector2, int, int, float, float, float, float)
 		public static Projectile SpawnProjectile(this ModNPC self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) =>
 			SpawnProjectile(self.NPC, spawnSource, position, velocity, type, damage, knockback, ai0, ai1, ai2);
+		/// <param name="spawnSource">defaults to self.GetSource_FromAI() if null</param>
 		public static Projectile SpawnProjectile(this NPC self, IEntitySource spawnSource, Vector2 position, Vector2 velocity, int type, int damage, float knockback, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f) {
 			if (Main.netMode == NetmodeID.MultiplayerClient) return null;
 			spawnSource ??= self.GetSource_FromAI();
@@ -158,6 +163,7 @@ namespace PegasusLib {
 				ai2
 			);
 		}
+#pragma warning restore CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
 		public static NPC SpawnNPC(this ModNPC self, IEntitySource spawnSource, int x, int y, int type, int start = 0, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f, float ai3 = 0f, int target = 255) =>
 			SpawnNPC(self.NPC, spawnSource, x, y, type, start, ai0, ai1, ai2, ai3, target);
 		public static NPC SpawnNPC(this NPC self, IEntitySource spawnSource, int x, int y, int type, int start = 0, float ai0 = 0f, float ai1 = 0f, float ai2 = 0f, float ai3 = 0f, int target = 255) {

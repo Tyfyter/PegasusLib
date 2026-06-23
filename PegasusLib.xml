@@ -906,6 +906,16 @@
             <param name="ingredients">the ingredients, set to null to ignore the recipe's ingredients, set count to null to ignore the amount of the ingredient used</param>
             <returns></returns>
         </member>
+        <member name="M:PegasusLib.PegasusExt.SpawnProjectile(Terraria.ModLoader.ModProjectile,Terraria.DataStructures.IEntitySource,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Int32,System.Int32,System.Single,System.Single,System.Single,System.Single)">
+            <inheritdoc cref="M:PegasusLib.PegasusExt.SpawnProjectile(Terraria.Projectile,Terraria.DataStructures.IEntitySource,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Int32,System.Int32,System.Single,System.Single,System.Single,System.Single)"/>
+        </member>
+        <member name="M:PegasusLib.PegasusExt.SpawnProjectile(Terraria.Projectile,Terraria.DataStructures.IEntitySource,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Int32,System.Int32,System.Single,System.Single,System.Single,System.Single)">
+            <param name="spawnSource">defaults to self.GetSource_FromAI() if null</param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:PegasusLib.PegasusExt.SpawnProjectile(Terraria.ModLoader.ModNPC,Terraria.DataStructures.IEntitySource,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Int32,System.Int32,System.Single,System.Single,System.Single,System.Single)" -->
+        <member name="M:PegasusLib.PegasusExt.SpawnProjectile(Terraria.NPC,Terraria.DataStructures.IEntitySource,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Int32,System.Int32,System.Single,System.Single,System.Single,System.Single)">
+            <param name="spawnSource">defaults to self.GetSource_FromAI() if null</param>
+        </member>
         <member name="M:PegasusLib.PegasusExt.Roll``1(``0[],``0[])">
             <summary>
             Pushes the contents of <paramref name="pushIn"/> into the beginning <paramref name="array"/><br/>

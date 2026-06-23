@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Terraria;
@@ -6,8 +7,17 @@ using Terraria.ModLoader;
 
 namespace PegasusLib.Content;
 public static class SearchExtraInventories {
-	public static IEnumerable<Item[]> ExtraInventories(this Player player) {
-		for (int i = 0; i < AddExtraInventoryForSearches.getters.Count; i++) yield return AddExtraInventoryForSearches.getters[i](player);
+	public static ExtraInventoryIterator ExtraInventories(this Player player) => new ExtraInventoryIterator(player);
+	public struct ExtraInventoryIterator(Player player) : IEnumerable<Item[]>, IEnumerator<Item[]> {
+		static int StartingValue => Main.gameMenu ? int.MaxValue - 1 : -1;
+		int i = StartingValue;
+		readonly Item[] IEnumerator<Item[]>.Current => AddExtraInventoryForSearches.getters[i](player);
+		readonly object IEnumerator.Current => AddExtraInventoryForSearches.getters[i](player);
+		bool IEnumerator.MoveNext() => ++i < AddExtraInventoryForSearches.getters.Count;
+		void IEnumerator.Reset() => i = StartingValue;
+		readonly IEnumerator<Item[]> IEnumerable<Item[]>.GetEnumerator() => this;
+		readonly IEnumerator IEnumerable.GetEnumerator() => this;
+		readonly void IDisposable.Dispose() { }
 	}
 	static bool HasItem(this Item[] collection, Predicate<Item> item) {
 		for (int i = 0; i < collection.Length; i++) {
