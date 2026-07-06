@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using MonoMod.Cil;
 using PegasusLib.Sets;
 using System;
@@ -61,6 +62,17 @@ public class Buff_Hint_Snippet : TextSnippet {
 		];
 		Buff_Hint_Handler.BuffHintModifiers[buffType].ModifyBuffTip?.Invoke(lines, BuffHintItem.currentItem, options.OnSelf);
 		return lines.SelectMany(l => l.Split('\n')).ToArray();
+	}
+	public override bool UniqueDraw(bool justCheckingString, out Vector2 size, SpriteBatch spriteBatch, Vector2 position = default, Color color = default, float scale = 1) {
+		size = Vector2.Zero;
+		switch (Text.Length) {
+			case 0:
+			return true;
+			case 1:
+			return Text[0] is '\u200B' or '\uFEFF';
+			default:
+			return false;
+		}
 	}
 	public static string GenerateBuffIcon(int buffType) => $"[sprite:{BuffLoader.GetBuff(buffType)?.Texture ?? $"Terraria/Images/Buff_{buffType}"}]";
 	public record struct Options(bool OnSelf = false, bool Hide = false);
@@ -247,6 +259,7 @@ public class Buff_Hint_Handler : ITagHandler {
 			Buff_Hint_Snippet.Options snoptions = new(false);
 			SnippetHelper.ParseOptions(options,
 				SnippetOption.CreateStringOption("dn", value => text = value, '|'),
+				SnippetOption.CreateFlagOption("dn", () => text = ""),
 				SnippetOption.CreateFlagOption("self", () => snoptions.OnSelf = true),
 				SnippetOption.CreateFlagOption("hide", () => snoptions.Hide = true)
 			);
@@ -254,6 +267,8 @@ public class Buff_Hint_Handler : ITagHandler {
 		}
 		return new Buff_Hint_Snippet(text, -1, baseColor);
 	}
+	public static string GenerateTag(int buffID, string text, Buff_Hint_Snippet.Options options = default) => 
+		$"[buffhint/{(options.OnSelf ? "self" : "")}{(options.Hide ? "hide" : "")}{(text is null ? "" : $"dn{text}")}:{(BuffID.Search.TryGetName(buffID, out string name) ? name : buffID)}]";
 	public static string GenerateTag(int buffID) => $"[buffhint:{(BuffID.Search.TryGetName(buffID, out string name) ? name : buffID)}]";
 	public static string GenerateTag<TBuff>() where TBuff : ModBuff => GenerateTag(ModContent.BuffType<TBuff>());
 }

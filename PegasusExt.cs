@@ -312,5 +312,8 @@ namespace PegasusLib {
 		}
 		public static string FullName(this ModKeybind keybind) => KeybindLoaderMethods._get_FullName(keybind);
 		public static Mod GetMod(this Assembly assembly) => AssemblyManager.GetAssemblyOwner(assembly, out string modName) && ModLoader.TryGetMod(modName, out Mod mod) ? mod : null;
+		public static ref int BuilderToggleState<TToggle>(this Player player) where TToggle : BuilderToggle {
+			return ref player.builderAccStatus[ModContent.GetInstance<TToggle>().Type];
+		}
 	}
 }
