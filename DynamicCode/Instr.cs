@@ -52,5 +52,6 @@ public record struct Instr(OpCode OpCode, object Operand) {
 		Ref<Label> _label = label = new();
 		return GenerateOperand(opCode, gen => _label.Value = gen.DefineLabel());
 	}
-
+	public static Instr Newobj(ConstructorInfo ctor) => new(OpCodes.Newobj, ctor);
+	public static Instr Ret => new(OpCodes.Ret, null);
 }

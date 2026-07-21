@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.Diagnostics;
 using System.Collections;
 
@@ -9,6 +8,7 @@ namespace PegasusLib {
 	[DebuggerDisplay("Count = {Count}, Total = {Total}")]
 	public class FungibleSet<T> : IDictionary<T, int> {
 		public readonly EqualityComparer<T> KeyComparer;
+		[Obsolete("Unused, replace with false", true)]
 		public readonly bool AddOnSet = false;
 
 		public Dictionary<T, int> Entries { get; private set; }

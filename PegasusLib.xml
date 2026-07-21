@@ -794,6 +794,13 @@
              Cycles between performing hops, leaping towards the player to pound them, and firing Regal Gel. Grows wings at half health, and begins flying towards the player's position, firing Regal Gel and attempting to pound the player when above them. Spawns Crystal Slimes, Heavenly Slimes, and Bouncy Slimes when damaged.
             </summary>
         </member>
+        <member name="T:PegasusLib.Interop.IComponentKind`1">
+            <summary>
+            Used to create a category of entity for the <see cref="T:PegasusLib.Interop.ComponentRegistrar`1"/> ECS <br/>
+            A static TComponent.Initialize method taking only a <see cref="T:PegasusLib.Interop.ComponentRegistrar`1.Components"/> will be called after initializing all components, if one exists
+            </summary>
+            <typeparam name="TComponent">The interface or abstract class implementing this interface</typeparam>
+        </member>
         <member name="P:PegasusLib.AutoKeybind.Current">
             <summary>
             Returns true if this keybind is pressed currently. Useful for creating a behavior that relies on the keybind being held down.
