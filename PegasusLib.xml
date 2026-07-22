@@ -801,6 +801,11 @@
             </summary>
             <typeparam name="TComponent">The interface or abstract class implementing this interface</typeparam>
         </member>
+        <member name="T:PegasusLib.Interop.ComponentMayBeNullAttribute">
+            <summary>
+            Skips initializing this component type, even if it has a public parameterless constructor
+            </summary>
+        </member>
         <member name="P:PegasusLib.AutoKeybind.Current">
             <summary>
             Returns true if this keybind is pressed currently. Useful for creating a behavior that relies on the keybind being held down.
