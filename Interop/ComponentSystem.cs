@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Terraria;
 using Terraria.ModLoader;
 
 namespace PegasusLib.Interop;
@@ -22,20 +23,36 @@ public class ComponentRegistrar<TInterface> : IAutoloader where TInterface : ICo
 	static readonly List<Func<TInterface>> initializers = [];
 	static readonly Action<Components> finalInitializer = typeof(TInterface).GetMethod("Initialize", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, [typeof(Components)])?.CreateDelegate<Action<Components>>();
 	public static Components Rent() => new();
+	static object GetIndexValue(Type type, string name) => typeof(Index<>).MakeGenericType(typeof(TInterface), type).GetField(name).GetValue(null);
+	static void SetIndexValue(Type type, string name, object value) => typeof(Index<>).MakeGenericType(typeof(TInterface), type).GetField(name).SetValue(null, value);
 	public static void Autoload(Mod mod, Type type) {
-		typeof(Index<>).MakeGenericType(typeof(TInterface), type).GetField(nameof(Index<>.index)).SetValue(null, Count);
-		Count++;
-		if (type.GetCustomAttribute<ComponentMayBeNullAttribute>() is null && type.GetConstructor([]) is ConstructorInfo ctor && ctor.GetCustomAttribute<ComponentMayBeNullAttribute>() is null) {
-			initializers.Add(PegasusLib.Compile<Func<TInterface>>("Initialize",
-				Instr.Newobj(ctor),
-				Instr.Ret
-			));
+		Type rootType = type;
+		while (rootType.BaseType?.IsAssignableTo(typeof(TInterface)) ?? false) rootType = rootType.BaseType;
+
+		if ((bool)GetIndexValue(rootType, nameof(Index<>.ownsIndex))) {
+			object rootIndex = GetIndexValue(rootType, nameof(Index<>.index));
+			SetIndexValue(type, nameof(Index<>.index), rootIndex);
 		} else {
-			initializers.Add(null);
+			SetIndexValue(rootType, nameof(Index<>.ownsIndex), true);
+			rootType = type;
+			while (rootType.BaseType is not null) {
+				SetIndexValue(rootType, nameof(Index<>.index), Count);
+				rootType = rootType.BaseType;
+			}
+			Count++;
+			if (type.GetCustomAttribute<ComponentMayBeNullAttribute>() is null && type.GetConstructor([]) is ConstructorInfo ctor && ctor.GetCustomAttribute<ComponentMayBeNullAttribute>() is null) {
+				initializers.Add(PegasusLib.Compile<Func<TInterface>>("Initialize",
+					Instr.Newobj(ctor),
+					Instr.Ret
+				));
+			} else {
+				initializers.Add(null);
+			}
 		}
 	}
 	static class Index<TComponent> where TComponent : TInterface {
 		public static int index;
+		public static bool ownsIndex;
 	}
 	public class Components : IDisposable {
 		static readonly Stack<TInterface[]> freeLists = new();
@@ -76,3 +93,45 @@ public class ComponentRegistrar<TInterface> : IAutoloader where TInterface : ICo
 		}
 	}
 }
+#if DEBUG
+public class TestComponentsCommand : ModCommand {
+	public override string Command => "TestComponents";
+	public override CommandType Type => CommandType.Chat;
+	public override void Action(CommandCaller caller, string input, string[] args) {
+		ComponentRegistrar<ITestComponent>.Components components = ComponentRegistrar<ITestComponent>.Rent();
+		components.Set<HealthComponent>(new PlayerHealthComponent(caller.Player));
+		for (int i = 0; i < 50; ++i) foreach (ITestComponent component in components.Iterate) component.Tick(components);
+		components.Set(new PoisonComponent(120));
+		for (int i = 0; i < 50; ++i) foreach (ITestComponent component in components.Iterate) component.Tick(components);
+		components.Set<HealthComponent>(new ArbitraryHealthComponent() { Health = 75 });
+		for (int i = 0; i < 50; ++i) foreach (ITestComponent component in components.Iterate) component.Tick(components);
+		components.Set<PoisonComponent>(null);
+		for (int i = 0; i < 50; ++i) foreach (ITestComponent component in components.Iterate) component.Tick(components);
+	}
+}
+interface ITestComponent : IComponentKind<ITestComponent> {
+	public void Tick(ComponentRegistrar<ITestComponent>.Components components) { }
+}
+abstract class HealthComponent : ITestComponent {
+	public abstract int Health { get; set; }
+}
+class PlayerHealthComponent(Player player) : HealthComponent {
+	public override int Health { get => player.statLife; set => player.statLife = value; }
+}
+class ArbitraryHealthComponent : HealthComponent {
+	public override int Health {
+		get;
+		set {
+			field = value;
+			Main.NewText(value);
+		}
+	}
+}
+[ComponentMayBeNull]
+class PoisonComponent(int dp2s) : ITestComponent {
+	int timer;
+	void ITestComponent.Tick(ComponentRegistrar<ITestComponent>.Components components) {
+		if (timer.CycleUp(120, dp2s)) components.Get<HealthComponent>().Health--;
+	}
+}
+#endif
