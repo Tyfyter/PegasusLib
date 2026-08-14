@@ -227,8 +227,8 @@ public class WireModeKite : ItemModeFlowerMenu<WireMode, WirePetalData> {
 	public static IWireTool WireTool => GetWireTool(Main.LocalPlayer.HeldItem);
 	public override bool Toggle => RightClicked;
 	public override bool IsActive() => WireTool is not null;
-	AutoLoadingAsset<Texture2D> wireMiniIcons = "Origins/Items/Tools/Wiring/Mini_Wire_Icons";
-	AutoLoadingAsset<Texture2D> extraMiniIcons = "Origins/Items/Tools/Wiring/Mini_Wire_Extra_Icons";
+	AutoLoadingAsset<Texture2D> wireMiniIcons = "PegasusLib/Textures/Mini_Wire_Icons";
+	AutoLoadingAsset<Texture2D> extraMiniIcons = "PegasusLib/Textures/Mini_Wire_Extra_Icons";
 	public override float DrawCenter() {
 		bool hovered = Main.MouseScreen.WithinRange(activationPosition, 20);
 		int cutter = Cutter.ToInt();
