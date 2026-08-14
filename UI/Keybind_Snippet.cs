@@ -39,7 +39,7 @@ public class KeybindSnippetHandler : AdvancedTextSnippetHandler<InputMode?> {
 				lastAssignedKey = assignedKey;
 				if (assignedKey is null) {
 					bound = false;
-					snippets = ChatManager.ParseMessage(Language.GetOrRegister("Mods.Origins.Generic.UnboundKey").Format(keybind.DisplayName.Value), Color).ToArray();
+					snippets = ChatManager.ParseMessage(Language.GetOrRegister("Mods.PegasusLib.UnboundKey").Format(keybind.DisplayName.Value), Color).ToArray();
 				} else {
 					bound = true;
 					snippets = FormatKeys(assignedKey);

@@ -27,7 +27,6 @@ namespace PegasusLib {
 			if (info.UnlockState > BestiaryEntryUnlockState.NotKnownAtAll_0) {
 				int statCount = 0;
 				foreach (BestiaryCombatStat stat in bestiaryCombatStats) {
-					string modName = (stat as ModType)?.Mod?.Name ?? "Origins";
 					NPC npc = ContentSamples.NpcsByNetId[self.NpcId];
 					if (stat.ShouldDisplay(npc)) {
 						if (statCount % 2 == 0) {

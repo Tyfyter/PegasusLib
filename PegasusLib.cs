@@ -335,7 +335,7 @@ namespace PegasusLib {
 			return false;
 		}
 		public static void LogLoadingWarning(LocalizedText message) {
-			ModContent.GetInstance<PegasusLib>().Logger.Warn(message.Value);
+			(ModContent.GetInstance<PegasusLib>()?.Logger ?? Logging.PublicLogger).Warn(message.Value);
 			loadingWarnings.Add(message);
 		}
 		public static List<LocalizedText> loadingWarnings = [];
