@@ -3,12 +3,12 @@ using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.ItemDropRules;
-using Terraria.ID;
-using Terraria.ModLoader;
 
 namespace PegasusLib.Content;
-public class CopyNPCDropRule(int type) : IItemDropRule {
+public class CopyNPCDropRule(int type) : IItemDropRule, IDropRuleKind<CopyNPCDropRule> {
 	static readonly RecursionCheckedSet<int> recursionBlocker = new();
+	private readonly int type = type;
+
 	public List<IItemDropRuleChainAttempt> ChainedRules { get; } = [];
 	public bool CanDrop(DropAttemptInfo info) => true;
 	public void ReportDroprates(List<DropRateInfo> drops, DropRateInfoChainFeed ratesInfo) {
@@ -27,4 +27,6 @@ public class CopyNPCDropRule(int type) : IItemDropRule {
 			State = ItemDropAttemptResultState.Success
 		};
 	}
+	static DropRuleDefinition IDropRuleKind<CopyNPCDropRule>.Import(CopyNPCDropRule rule) => new(new CopyNPCDropRule(rule.type));
+	CopyNPCDropRule IDropRuleKind<CopyNPCDropRule>.Export(DropRuleDefinition definition) => new(type);
 }
