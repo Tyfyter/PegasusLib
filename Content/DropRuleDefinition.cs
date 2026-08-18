@@ -4,7 +4,10 @@ using PegasusLib.Content.DropRules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using Terraria;
 using Terraria.GameContent.ItemDropRules;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace PegasusLib.Content;
@@ -53,7 +56,15 @@ public class DropRuleDefinition(IDropRuleKind kind) {
 	public IItemDropRule Export() {
 		int[] itemIDs = ItemIDs;
 		if (ItemIDs is not null) ItemIDs = ItemIDs.ToArray();
-		IItemDropRule rule = kind.Export(this);
+		IItemDropRule rule;
+		if (kind is IChanceDenominatorKind chance && chance.ChanceDenominator < chance.ChanceNumerator) {
+			int oldDenominator = chance.ChanceDenominator;
+			chance.ChanceDenominator = chance.ChanceNumerator;
+			rule = kind.Export(this);
+			chance.ChanceDenominator = oldDenominator;
+		} else {
+			rule = kind.Export(this);
+		}
 		ItemIDs = itemIDs;
 
 		if (ReferenceEquals(kind, rule)) throw new InvalidOperationException($"Cannot export kind as a drop rule");
@@ -93,7 +104,7 @@ public interface IDropRuleKind {
 	internal bool ImplementTheGenericVersionInstead { get; }
 	internal IItemDropRule Export(DropRuleDefinition definition);
 }
-public interface IDropRuleKind<IRule> : IDropRuleKind, IAutoload<DropRuleKindLoader> where IRule : IItemDropRule {
+public interface IDropRuleKind<IRule> : IDropRuleKind, IAutoload<DropRuleKindLoader.ActualLoader<IRule>> where IRule : IItemDropRule {
 	bool IDropRuleKind.ImplementTheGenericVersionInstead => false;
 	IItemDropRule IDropRuleKind.Export(DropRuleDefinition definition) => Export(definition);
 	/// <summary>
@@ -135,19 +146,26 @@ public interface IChainWrapperRuleKind { }
 public interface IDropExactOptionsCoundKind {
 	int OptionsCount { get; }
 }
-public class DropRuleKindLoader : IAutoloader {
-	internal static Dictionary<Type, Func<IItemDropRule, DropRuleDefinition>> kinds = [];
+public static class DropRuleKindLoader {
+	static readonly HashSet<Type> knownUnsupportedTypes = [];
+	static readonly Dictionary<Type, Func<IItemDropRule, DropRuleDefinition>> kinds = [];
 	static Func<IItemDropRule, DropRuleDefinition> GetImporter(Type ruleType) {
+		if (ruleType is null) return null;
 		if (ruleType.IsAssignableTo(typeof(IDropRuleKind))) return null;
 		if (kinds.TryGetValue(ruleType, out Func<IItemDropRule, DropRuleDefinition> importer)) return importer;
 		ModContent.GetInstance<PegasusLib>().Logger.Warn($"Drop rule {ruleType} using inherited drop rule kind");
 		importer = GetImporter(ruleType.BaseType);
+		if (importer is null) return null;
 		kinds[ruleType] = importer;
 		return importer;
 	}
 	public static DropRuleDefinition Import(IItemDropRule dropRule) => Import(dropRule, false);
 	public static DropRuleDefinition Import(IItemDropRule dropRule, bool withoutChains) {
 		DropRuleDefinition definition = GetImporter(dropRule.GetType())?.Invoke(dropRule);
+		if (definition is null) {
+			if (knownUnsupportedTypes.Add(dropRule.GetType())) ModContent.GetInstance<PegasusLib>().Logger.Warn($"Unsupported drop rule type {dropRule.GetType()}");
+			return null;
+		}
 		if (ReferenceEquals(definition.kind, dropRule)) throw new InvalidOperationException($"Cannot use a drop rule as its own kind, make a copy of the rule or use a separate class instead");
 		if (definition.ItemIDs is not null) definition.ItemIDs = definition.ItemIDs.ToArray();
 		if (!withoutChains || definition is IChainWrapperRuleKind) {
@@ -161,24 +179,45 @@ public class DropRuleKindLoader : IAutoloader {
 		for (int i = 0; i < dropRules.Length; i++) definitions[i] = Import(dropRules[i]);
 		return definitions;
 	}
-	static void IAutoloader.Autoload(Mod mod, Type type) {
-		DynamicMethodDefinition dmd = new(type.GetMethods().Single(m => m.Name == "Export" && m.ReturnType == type.GenericTypeArguments[0]));
-		if (new ILCursor(new ILContext(dmd.Definition)).TryGotoNext(i => i.MatchLdarg0(), i => i.MatchRet())) {
-			throw new InvalidOperationException($"Cannot export kind as a drop rule");
-		}
-		System.Reflection.MethodInfo import = type.GetMethod("Import");
-		dmd = new(import);
-		if (new ILCursor(new ILContext(dmd.Definition)).TryGotoNext(i => i.MatchLdarg0(), i => i.MatchStfld<DropRuleDefinition>(nameof(DropRuleDefinition.kind)))) {
-			throw new InvalidOperationException($"Cannot use a drop rule as its own kind, make a copy of the rule or use a separate class instead");
-		}
-		kinds.Add(type.GenericTypeArguments[0], import.CreateDelegate<Func<IItemDropRule, DropRuleDefinition>>());
-	}
-}
-public static class DropRuleKindExtensions {
 	public static float GetChance(this IChanceDenominatorKind drop) => drop.ChanceNumerator / (float)drop.ChanceDenominator;
 	public static IItemDropRule[] Export(this DropRuleDefinition[] dropRules) {
 		IItemDropRule[] definitions = new IItemDropRule[dropRules.Length];
 		for (int i = 0; i < dropRules.Length; i++) definitions[i] = dropRules[i].Export();
 		return definitions;
 	}
+	public class ActualLoader<IRule> : IAutoloader where IRule : IItemDropRule {
+		static void IAutoloader.Autoload(Mod mod, Type type) {
+			DynamicMethodDefinition dmd = new(type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+				.Single(m => m.ReturnType == typeof(IRule) && m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType == typeof(DropRuleDefinition)  && m.Name.Contains("Export")));
+			if (new ILCursor(new ILContext(dmd.Definition)).TryGotoNext(i => i.MatchLdarg0(), i => i.MatchRet())) {
+				throw new InvalidOperationException($"Cannot export kind as a drop rule");
+			}
+			MethodInfo import = type.GetMethod($"PegasusLib.Content.IDropRuleKind<{typeof(IRule).FullName}>.Import", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+				?? type.GetMethod("Import", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+			dmd = new(import);
+			if (new ILCursor(new ILContext(dmd.Definition)).TryGotoNext(i => i.MatchLdarg0(), i => i.MatchStfld<DropRuleDefinition>(nameof(DropRuleDefinition.kind)))) {
+				throw new InvalidOperationException($"Cannot use a drop rule as its own kind, make a copy of the rule or use a separate class instead");
+			}
+			dmd = new("Import", typeof(DropRuleDefinition), [typeof(IItemDropRule)]);
+			new ILCursor(new ILContext(dmd.Definition)).EmitLdarg0().EmitCastclass(typeof(IRule)).EmitCall(import).EmitRet();
+			kinds[typeof(IRule)] = dmd.Generate().CreateDelegate<Func<IItemDropRule, DropRuleDefinition>>();
+		}
+	}
 }
+#if DEBUG
+public class DRDTest : GlobalNPC {
+	static readonly HashSet<IItemDropRule> modifiedRules = [];
+	public override void ModifyNPCLoot(NPC npc, NPCLoot npcLoot) {
+		foreach (IItemDropRule rule in npcLoot.Get(false).FindDropRules<IItemDropRule>(static rule => !modifiedRules.Contains(rule) && (DropRuleDefinition.ImportForCheck(rule)?.ItemIDs.Contains(ItemID.ChumBucket) ?? false))) {
+			DropRuleDefinition drd = DropRuleDefinition.Import(rule);
+			if (drd.kind is IChanceDenominatorKind data) {
+				data.ChanceDenominator -= data.ChanceNumerator * 2;
+				IItemDropRule newRule = drd.Export();
+				rule.OnFailedRoll(new LeadingConditionRule(new Conditions.PlayerNeedsHealing())).OnSuccess(newRule);
+				modifiedRules.Add(newRule);
+				modifiedRules.Add(rule);
+			}
+		}
+	}
+}
+#endif

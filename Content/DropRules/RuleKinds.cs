@@ -116,7 +116,7 @@ public record struct DropPerPlayerOnThePlayerKind(int ChanceDenominator, int Cha
 	};
 }
 public record struct FewFromOptionsDropRuleKind(int ChanceDenominator, int ChanceNumerator, int Amount)
-	: IDropRuleKind<FewFromOptionsDropRule>, IDropChanceKind, IDropSingleQuantityKind {
+	: IDropRuleKind<FewFromOptionsDropRule>, IDropOptionsKind, IDropChanceKind, IDropSingleQuantityKind {
 	static DropRuleDefinition IDropRuleKind<FewFromOptionsDropRule>.Import(FewFromOptionsDropRule rule) =>
 		new(new FewFromOptionsDropRuleKind(rule.chanceDenominator, rule.chanceNumerator, rule.amount)) {
 			ItemIDs = rule.dropIds
@@ -125,7 +125,7 @@ public record struct FewFromOptionsDropRuleKind(int ChanceDenominator, int Chanc
 		new(Amount, ChanceDenominator, ChanceNumerator, definition.ItemIDs);
 }
 public record struct FewFromOptionsNotScaledWithLuckDropRuleKind(int ChanceDenominator, int ChanceNumerator, int Amount)
-	: IDropRuleKind<FewFromOptionsNotScaledWithLuckDropRule>, IDropChanceKind, IDropSingleQuantityKind {
+	: IDropRuleKind<FewFromOptionsNotScaledWithLuckDropRule>, IDropOptionsKind, IDropChanceKind, IDropSingleQuantityKind {
 	static DropRuleDefinition IDropRuleKind<FewFromOptionsNotScaledWithLuckDropRule>.Import(FewFromOptionsNotScaledWithLuckDropRule rule) =>
 		new(new FewFromOptionsNotScaledWithLuckDropRuleKind(rule.chanceDenominator, rule.chanceNumerator, rule.amount)) {
 			ItemIDs = rule.dropIds
@@ -143,7 +143,7 @@ public record struct FewFromRulesRuleKind(int ChanceDenominator, int Amount)
 		new(Amount, ChanceDenominator, definition.ChildRules.Export());
 }
 public record struct FromOptionsWithoutRepeatsDropRuleKind(int Amount)
-	: IDropRuleKind<FromOptionsWithoutRepeatsDropRule>, IDropSingleQuantityKind {
+	: IDropRuleKind<FromOptionsWithoutRepeatsDropRule>, IDropOptionsKind, IDropSingleQuantityKind {
 	static DropRuleDefinition IDropRuleKind<FromOptionsWithoutRepeatsDropRule>.Import(FromOptionsWithoutRepeatsDropRule rule) =>
 		new(new FromOptionsWithoutRepeatsDropRuleKind(rule.dropCount)) {
 			ItemIDs = rule.dropIds
@@ -173,7 +173,7 @@ public record struct LeadingConditionRuleKind(IItemDropRuleCondition Condition)
 		new(Condition);
 }
 public record struct OneFromOptionsDropRuleKind(int ChanceDenominator, int ChanceNumerator)
-	: IDropRuleKind<OneFromOptionsDropRule>, IDropChanceKind {
+	: IDropRuleKind<OneFromOptionsDropRule>, IDropOptionsKind, IDropChanceKind {
 
 	static DropRuleDefinition IDropRuleKind<OneFromOptionsDropRule>.Import(OneFromOptionsDropRule rule) => new(new OneFromOptionsDropRuleKind(rule.chanceDenominator, rule.chanceNumerator)) {
 		ItemIDs = rule.dropIds
@@ -182,7 +182,7 @@ public record struct OneFromOptionsDropRuleKind(int ChanceDenominator, int Chanc
 		new(ChanceDenominator, ChanceNumerator, definition.ItemIDs);
 }
 public record struct OneFromOptionsNotScaledWithLuckDropRuleKind(int ChanceDenominator, int ChanceNumerator)
-	: IDropRuleKind<OneFromOptionsNotScaledWithLuckDropRule>, IDropChanceKind {
+	: IDropRuleKind<OneFromOptionsNotScaledWithLuckDropRule>, IDropOptionsKind, IDropChanceKind {
 
 	static DropRuleDefinition IDropRuleKind<OneFromOptionsNotScaledWithLuckDropRule>.Import(OneFromOptionsNotScaledWithLuckDropRule rule) => new(new OneFromOptionsNotScaledWithLuckDropRuleKind(rule.chanceDenominator, rule.chanceNumerator)) {
 		ItemIDs = rule.dropIds
@@ -191,7 +191,7 @@ public record struct OneFromOptionsNotScaledWithLuckDropRuleKind(int ChanceDenom
 		new(ChanceDenominator, ChanceNumerator, definition.ItemIDs);
 }
 public record struct OneFromRulesRuleKind(int ChanceDenominator, int ChanceNumerator)
-	: IDropRuleKind<OneFromRulesRule>, IDropChanceKind {
+	: IDropRuleKind<OneFromRulesRule>, IDropOptionsKind, IDropChanceKind {
 
 	static DropRuleDefinition IDropRuleKind<OneFromRulesRule>.Import(OneFromRulesRule rule) =>
 		new(new OneFromRulesRuleKind(rule.chanceDenominator, rule.chanceNumerator)) {
@@ -201,7 +201,7 @@ public record struct OneFromRulesRuleKind(int ChanceDenominator, int ChanceNumer
 		new(ChanceDenominator, ChanceNumerator, definition.ChildRules.Export());
 }
 public record struct SequentialRulesNotScalingWithLuckRuleKind(int ChanceDenominator, int ChanceNumerator)
-	: IDropRuleKind<SequentialRulesNotScalingWithLuckRule>, IDropChanceKind {
+	: IDropRuleKind<SequentialRulesNotScalingWithLuckRule>, IDropOptionsKind, IDropChanceKind {
 
 	static DropRuleDefinition IDropRuleKind<SequentialRulesNotScalingWithLuckRule>.Import(SequentialRulesNotScalingWithLuckRule rule) =>
 		new(new SequentialRulesNotScalingWithLuckRuleKind(rule.chanceDenominator, rule.chanceNumerator)) {
@@ -211,7 +211,7 @@ public record struct SequentialRulesNotScalingWithLuckRuleKind(int ChanceDenomin
 		new(ChanceDenominator, ChanceNumerator, definition.ChildRules.Export());
 }
 public record struct SequentialRulesRuleKind(int ChanceDenominator)
-	: IDropRuleKind<SequentialRulesRule>, IChanceDenominatorKind {
+	: IDropRuleKind<SequentialRulesRule>, IDropOptionsKind, IChanceDenominatorKind {
 
 	static DropRuleDefinition IDropRuleKind<SequentialRulesRule>.Import(SequentialRulesRule rule) =>
 		new(new SequentialRulesRuleKind(rule.chanceDenominator)) {
