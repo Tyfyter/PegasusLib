@@ -112,7 +112,10 @@ namespace PegasusLib {
 			canAttributeErrors = false;
 #if DEBUG
 			Logger.Info(Call(nameof(TestCall), "Bees?"));
+			Logger.Info(Call(nameof(TestCall), TestCall.TestEnum.TWO));
 			Logger.Info(Call(nameof(TestCall), ModContent.GetInstance<UnloadedItem>()));
+			Logger.Info(Call(nameof(TestCall), null, TestCall.TestEnum.TWO));
+			Logger.Info(Call(nameof(TestCall), null, "two"));
 #endif
 		}
 		public static void Require(Mod mod, params LibFeature[] features) {

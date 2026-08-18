@@ -71,12 +71,18 @@ public abstract class AutoModCall : ILoadable, IModType {
 			}
 		}
 		call.Parameters.CastDelegates(args);
+		call.Parameters.CastEnums(args);
 		return call.Call(args);
 	}
 	bool GetApprorpriateCall(ParameterSequence sequence, out CallData call) {
 		List<CallData> matchingCalls = [];
-		foreach(CallData callData in calls) {
-			if (callData.Parameters.CanAccept(sequence)) matchingCalls.Add(callData);
+		int maxStretch = int.MaxValue;
+		foreach (CallData callData in calls) {
+			if (callData.Parameters.CanAccept(sequence, out int stretching)) {
+				if (Minimize(ref maxStretch, stretching)) matchingCalls.Clear();
+				else if (stretching > maxStretch) continue;
+				matchingCalls.Add(callData);
+			}
 		}
 		switch (matchingCalls.Count) {
 			case 0:
@@ -220,10 +226,11 @@ public abstract class AutoModCall : ILoadable, IModType {
 			}
 			return true;
 		}
-		public bool CanAccept(ParameterSequence other) {
+		public bool CanAccept(ParameterSequence other, out int stretching) {
+			stretching = 0;
 			if (other.parameters.Length != parameters.Length) return false;
 			for (int i = 0; i < parameters.Length; i++) {
-				if (!parameters[i].CanAccept(other.parameters[i])) return false;
+				if (!parameters[i].CanAccept(other.parameters[i], ref stretching)) return false;
 			}
 			return true;
 		}
@@ -232,6 +239,17 @@ public abstract class AutoModCall : ILoadable, IModType {
 		public void CastDelegates(object[] args) {
 			for (int i = 0; i < args.Length; i++) {
 				if (parameters[i].IsDelegate && args[i].GetType() != parameters[i].type) args[i] = ((Delegate)args[i]).CastDelegate(parameters[i].type);
+			}
+		}
+		public void CastEnums(object[] args) {
+			try {
+				for (int i = 0; i < args.Length; i++) {
+					if (parameters[i].parseDict is not Dictionary<string, object> parseDict) continue;
+					if (args[i] is string arg) args[i] = parseDict[arg];
+					else if (args[i].GetType().IsEnum) args[i] = parseDict[args[i].ToString()!];
+				}
+			} catch (KeyNotFoundException e) {
+				throw;
 			}
 		}
 		public override int GetHashCode() {
@@ -259,6 +277,9 @@ public abstract class AutoModCall : ILoadable, IModType {
 		readonly DelegateSignature? delegateSignature = type.IsAssignableTo(typeof(Delegate)) ? 
 			new(type.GetMethod("Invoke")!)
 			: null;
+		public readonly Dictionary<string, object>? parseDict = type.IsEnum ?
+			new Dictionary<string, object>(Enum.GetValues(type).Cast<object>().Select(static value => new KeyValuePair<string, object>(value.ToString()!, value)), StringComparer.OrdinalIgnoreCase)
+			: null;
 		public readonly bool IsDelegate => delegateSignature is not null;
 		public override string ToString() => IsDelegate ? $"delegate {delegateSignature!.ReturnType} {delegateSignature.Parameters}" : type.ToString();
 		public override bool Equals([NotNullWhen(true)] object? obj) {
@@ -272,12 +293,16 @@ public abstract class AutoModCall : ILoadable, IModType {
 			}
 			return false;
 		}
-		public bool CanAccept(ParameterType other) {
+		public bool CanAccept(ParameterType other, ref int stretching) {
 			switch ((delegateSignature, other.delegateSignature)) {
 				case (DelegateSignature, DelegateSignature):
 				return delegateSignature.Equals(other.delegateSignature);
 
 				case (null, null):
+				if (parseDict is not null && (other.type.IsEnum || other.type == typeof(string))) {
+					stretching++;
+					return true;
+				}
 				return type.IsAssignableFrom(other.type) || (other.type == typeof(NullParameter) && (type.IsClass || type.IsInterface));
 			}
 			return false;
@@ -377,5 +402,19 @@ public class TestCall : AutoModCall {
 		return CallingMod?.Name ?? "No calling mod";
 	}
 	public static string Call(ModItem value) => value.FullName;
+	public enum TestEnum {
+		ONE,
+		TWO,
+		TWENTY_SEVEN
+	}
+	public static string Call(object _, TestEnum value) {
+		return $"Result: {value}";
+	}
+	public static string Call(object _, string value) {
+		return $"Different result: {value}";
+	}
+	public static string Call(TestEnum value) {
+		return $"Result: {value}";
+	}
 }
 #endif
