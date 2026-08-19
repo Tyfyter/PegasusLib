@@ -74,6 +74,71 @@ public abstract class AutoModCall : ILoadable, IModType {
 		call.Parameters.CastEnums(args);
 		return call.Call(args);
 	}
+	public static TDelegate GetCall<TDelegate>(Mod mod, string name) where TDelegate : Delegate {
+		return mod.Find<AutoModCall>(name).GetOverload<TDelegate>();
+	}
+	public TDelegate GetOverload<TDelegate>() where TDelegate : Delegate {
+		MethodInfo invoke = typeof(TDelegate).GetMethod("Invoke")!;
+		ParameterSequence sequence = new(invoke.GetParameters());
+		if (!GetApprorpriateCall(sequence, out CallData call)) {
+			string correction;
+			if (calls.Count == 1) {
+				correction = $"Correct parameters are {calls[0].Parameters}";
+			} else {
+				correction = $"Available overloads are {string.Join(", ", calls.Select(p => p.Parameters.ToString()))}";
+			}
+			throw new KeyNotFoundException($"Cannot find call {FullName}{sequence}, {correction}");
+		}
+		if (call.OriginalMethod.ReturnType != invoke.ReturnType) throw new ArgumentException($"{Name}({sequence}) returns {call.OriginalMethod.ReturnType}, {nameof(TDelegate)} returns {invoke.ReturnType}");
+		if (!call.CanGetCallingMod && call.OriginalMethod.TryCreateDelegate<TDelegate>() is TDelegate result) return result;
+		ParameterInfo[] parameters = call.OriginalMethod.GetParameters();
+		for (int i = 0; i < sequence.Length; i++) if (sequence[i] != parameters[i].ParameterType) throw new ArgumentException($"Parameter types must be exactly equal to use GetCall");
+
+		DynamicMethod delCall = new("Call", invoke.ReturnType, call.CanGetCallingMod ? [typeof(Mod), ..invoke.GetParameters().Select(p => p.ParameterType)] : invoke.GetParameters().Select(p => p.ParameterType).ToArray());
+		ILGenerator gen = delCall.GetILGenerator();
+		if (invoke.ReturnType != typeof(void)) gen.DeclareLocal(invoke.ReturnType);
+		Label tryLabel = default;
+		int parameterOffset = 0;
+		if (call.CanGetCallingMod) {
+			gen.Emit(OpCodes.Ldc_I4_1);
+			gen.Emit(OpCodes.Stsfld, typeof(AutoModCall).GetField(nameof(canGetCallingMod), BindingFlags.NonPublic | BindingFlags.Static)!);
+			gen.Emit(OpCodes.Ldarg_0);
+			gen.Emit(OpCodes.Call, typeof(AutoModCall).GetProperty(nameof(CallingMod), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)!.SetMethod!);
+			tryLabel = gen.BeginExceptionBlock();
+			parameterOffset = 1;
+		}
+		{
+			int i = 0;
+			for (; i < sequence.Length; i++) gen.Emit(OpCodes.Ldarg, i + parameterOffset);
+			for (; i < parameters.Length; i++) GenerateDefaultParameter(gen, parameters[i]);
+		}
+		gen.Emit(OpCodes.Call, call.OriginalMethod);
+
+		if (call.CanGetCallingMod) {
+			if (invoke.ReturnType != typeof(void)) gen.Emit(OpCodes.Stloc_0);
+			gen.Emit(OpCodes.Leave_S, tryLabel);
+			
+			gen.BeginFinallyBlock();
+			gen.Emit(OpCodes.Ldc_I4_0);
+			gen.Emit(OpCodes.Stsfld, typeof(AutoModCall).GetField(nameof(canGetCallingMod), BindingFlags.NonPublic | BindingFlags.Static)!);
+			gen.Emit(OpCodes.Endfinally);
+			
+			gen.EndExceptionBlock();
+			if (invoke.ReturnType != typeof(void)) gen.Emit(OpCodes.Ldloc_0);
+			gen.Emit(OpCodes.Ret);
+			StackTrace trace = new(0);
+			for (int i = 3; i < trace.FrameCount; i++) {
+				var aaaaaaa = trace.GetFrame(i);
+				if (trace.GetFrame(i)?.GetMethod()?.DeclaringType?.Assembly is not Assembly assembly) continue;
+				if (assembly.GetMod() is Mod callingMod) {
+					return delCall.CreateDelegate<TDelegate>(callingMod);
+				}
+			}
+			throw new InvalidOperationException($"GetCall must be called from within a recognizable assembly if the requested call can get the calling mod");
+		}
+		gen.Emit(OpCodes.Ret);
+		return delCall.CreateDelegate<TDelegate>();
+	}
 	bool GetApprorpriateCall(ParameterSequence sequence, out CallData call) {
 		List<CallData> matchingCalls = [];
 		int maxStretch = int.MaxValue;
@@ -117,7 +182,8 @@ public abstract class AutoModCall : ILoadable, IModType {
 				calls.Add(new(
 					parameterSequence,
 					GenerateCall(methods[m], parameterSequence.Length),
-					GetCallingMod || methods[m].GetCustomAttribute<GetCallingModAttribute>() is not null
+					GetCallingMod || methods[m].GetCustomAttribute<GetCallingModAttribute>() is not null,
+					methods[m]
 				));
 				if (i >= parameterLists[m].Length) broken[m] = true;
 				else if (!parameterLists[m][^(i + 1)].HasDefaultValue && parameterLists[m][^(i + 1)].GetCustomAttribute<DefaultValueAttribute>() is null) broken[m] = true;
@@ -145,39 +211,7 @@ public abstract class AutoModCall : ILoadable, IModType {
 			}
 		}
 		for (int i = length; i < parameters.Length; i++) {
-			if (parameters[i].GetCustomAttribute<DefaultValueAttribute>() is DefaultValueAttribute defaultValue) {
-				Type retType = defaultValue.Generate(gen, parameters[i]);
-				if (retType != parameters[i].ParameterType) throw new ArgumentException($"Invalid default value type, {retType} != {parameters[i].ParameterType}", defaultValue.ToString());
-				continue;
-			}
-			switch (parameters[i].DefaultValue) {
-				case string value:
-				gen.Emit(OpCodes.Ldstr, value);
-				break;
-
-				case int value:
-				gen.Emit(OpCodes.Ldc_I4, value);
-				break;
-
-				case long value:
-				gen.Emit(OpCodes.Ldc_I8, value);
-				break;
-
-				case float value:
-				gen.Emit(OpCodes.Ldc_R4, value);
-				break;
-
-				case double value:
-				gen.Emit(OpCodes.Ldc_R8, value);
-				break;
-
-				default:
-				LocalBuilder local = gen.DeclareLocal(parameters[i].ParameterType);
-				gen.Emit(OpCodes.Ldloca, local);
-				gen.Emit(OpCodes.Initobj, parameters[i].ParameterType);
-				gen.Emit(OpCodes.Ldloc, local);
-				break;
-			}
+			GenerateDefaultParameter(gen, parameters[i]);
 		}
 
 		gen.Emit(OpCodes.Call, method);
@@ -197,12 +231,48 @@ public abstract class AutoModCall : ILoadable, IModType {
 
 		return call.CreateDelegate<ModCall>();
 	}
+	static void GenerateDefaultParameter(ILGenerator gen, ParameterInfo parameter) {
+		if (parameter.GetCustomAttribute<DefaultValueAttribute>() is DefaultValueAttribute defaultValue) {
+			Type retType = defaultValue.Generate(gen, parameter);
+			if (retType != parameter.ParameterType) throw new ArgumentException($"Invalid default value type, {retType} != {parameter.ParameterType}", defaultValue.ToString());
+			return;
+		}
+		switch (parameter.DefaultValue) {
+			case string value:
+			gen.Emit(OpCodes.Ldstr, value);
+			break;
+
+			case int value:
+			gen.Emit(OpCodes.Ldc_I4, value);
+			break;
+
+			case long value:
+			gen.Emit(OpCodes.Ldc_I8, value);
+			break;
+
+			case float value:
+			gen.Emit(OpCodes.Ldc_R4, value);
+			break;
+
+			case double value:
+			gen.Emit(OpCodes.Ldc_R8, value);
+			break;
+
+			default:
+			LocalBuilder local = gen.DeclareLocal(parameter.ParameterType);
+			gen.Emit(OpCodes.Ldloca, local);
+			gen.Emit(OpCodes.Initobj, parameter.ParameterType);
+			gen.Emit(OpCodes.Ldloc, local);
+			break;
+		}
+	}
 	void ILoadable.Unload() { }
 	delegate object ModCall(object[] args);
 	class ParameterSequence {
 		readonly ParameterType[] parameters;
 		readonly bool[] isByRef;
 		public readonly bool containsNulls;
+		public Type this[int i] => parameters[i].type;
 		public int Length => parameters.Length;
 		public ParameterSequence(Type?[] parameters) {
 			this.parameters = parameters.Select(t => new ParameterType(t ?? typeof(NullParameter))).ToArray();
@@ -363,8 +433,8 @@ public abstract class AutoModCall : ILoadable, IModType {
 	}
 	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
 	protected sealed class GetCallingModAttribute : Attribute { }
-	record struct CallData(ParameterSequence Parameters, ModCall Call, bool CanGetCallingMod);
-	struct NullParameter { }
+	record struct CallData(ParameterSequence Parameters, ModCall Call, bool CanGetCallingMod, MethodInfo OriginalMethod);
+	struct NullParameter;
 	readonly static HashSet<Mod> PreLoadedAutoModCalls = [];
 	readonly static Action<Mod, ILoadable> Content_Add = PegasusLib.Compile<Action<Mod, ILoadable>>("Content_Add",
 		OpCodes.Ldarg_0,
@@ -407,14 +477,18 @@ public class TestCall : AutoModCall {
 		TWO,
 		TWENTY_SEVEN
 	}
-	public static string Call(object _, TestEnum value) {
-		return $"Result: {value}";
+	public static void Call(object _, TestEnum value) {
+		ModContent.GetInstance<PegasusLib>().Logger.Info($"Result: {value}");
 	}
-	public static string Call(object _, string value) {
-		return $"Different result: {value}";
+	public static void Call(object _, string value) {
+		ModContent.GetInstance<PegasusLib>().Logger.Info($"Different result: {value}");
 	}
-	public static string Call(TestEnum value) {
-		return $"Result: {value}";
+	public static string Call(TestEnum value, int test = 6) {
+		return $"Result: {value} ({test})";
+	}
+	[GetCallingMod]
+	public static void Call(int value, int test = 7) {
+		ModContent.GetInstance<PegasusLib>().Logger.Info($"{value + test}: {(CallingMod?.Name ?? "No calling mod")}");
 	}
 }
 #endif

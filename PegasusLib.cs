@@ -116,6 +116,16 @@ namespace PegasusLib {
 			Logger.Info(Call(nameof(TestCall), ModContent.GetInstance<UnloadedItem>()));
 			Logger.Info(Call(nameof(TestCall), null, TestCall.TestEnum.TWO));
 			Logger.Info(Call(nameof(TestCall), null, "two"));
+
+			//Logger.Info(AutoModCall.GetCall<Func<string, int, string>>(this, nameof(TestCall))("Bees?", 1));
+			AutoModCall.GetCall<Action<int>>(this, nameof(TestCall))(3);
+			bool hasErrored = false;
+			try {
+				Logger.Info(AutoModCall.GetCall<Func<int, string>>(this, nameof(TestCall))(3));
+			} catch (Exception) {
+				hasErrored = true;
+			}
+			if (!hasErrored) throw new Exception($"Exception not thrown by invalid {nameof(AutoModCall)}.{nameof(AutoModCall.GetCall)}");
 #endif
 		}
 		public static void Require(Mod mod, params LibFeature[] features) {
