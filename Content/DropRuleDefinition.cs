@@ -142,6 +142,9 @@ public interface IDropChanceKind : IChanceDenominatorKind {
 public interface IVariableDropChanceKind {
 	public (int ChanceNumerator, int ChanceDenominator)[] Chances { get; set; }
 }
+public interface IDropRerollsKind {
+	public int Rerolls { get; set; }
+}
 public interface IDropQuantityKind {
 	public int AmountDroppedMinimum { get; set; }
 	public int AmountDroppedMaximum { get; set; }

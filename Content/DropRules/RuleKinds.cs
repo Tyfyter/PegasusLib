@@ -37,7 +37,7 @@ public record struct CommonDropNotScalingWithLuckKind(int ChanceDenominator, int
 	);
 }
 public record struct CommonDropWithRerollsKind(int ChanceDenominator, int ChanceNumerator, int AmountDroppedMinimum, int AmountDroppedMaximum, int Rerolls)
-	: IDropRuleKind<CommonDropWithRerolls>, IDropChanceKind, IDropQuantityKind {
+	: IDropRuleKind<CommonDropWithRerolls>, IDropChanceKind, IDropQuantityKind, IDropRerollsKind {
 	static DropRuleDefinition IDropRuleKind<CommonDropWithRerolls>.Import(CommonDropWithRerolls rule) => new(new CommonDropWithRerollsKind(rule.chanceDenominator, rule.chanceNumerator, rule.amountDroppedMinimum, rule.amountDroppedMaximum, rule.timesToRoll - 1)) {
 		ItemIDs = [rule.itemId]
 	};
