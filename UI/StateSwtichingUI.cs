@@ -158,6 +158,14 @@ public class StateSwitchingInterface : UserInterface {
 	readonly LegacyGameInterfaceLayer layer;
 	readonly AStateSwtichingUI state;
 	readonly string after;
+	public bool Hidden {
+		get => hiddenFrame >= PegasusLib.GameTickCount;
+		set {
+			if (value) hiddenFrame = PegasusLib.GameTickCount;
+			else hiddenFrame = PegasusLib.GameTickCount - 1;
+		}
+	}
+	uint hiddenFrame;
 	public StateSwitchingInterface(string name, bool multi = false, string after = "Vanilla: Inventory") : base() {
 		layer = new LegacyGameInterfaceLayer(
 			name,
@@ -176,6 +184,7 @@ public class StateSwitchingInterface : UserInterface {
 		state.AddStates(states);
 	}
 	public void Insert(List<GameInterfaceLayer> layers) {
+		if (Hidden) return;
 		if (!state.IsActive) return;
 		int inventoryIndex = layers.FindIndex(layer => layer.Name.Equals(after));
 		if (inventoryIndex != -1) {//error prevention & null check
