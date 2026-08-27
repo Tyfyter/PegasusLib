@@ -130,17 +130,27 @@ public abstract class SwitchableUIState : UIState, ILoadable {
 		if (isActive) base.Update(gameTime);
 	}
 	public override void Draw(SpriteBatch spriteBatch) {
-		if (isActive) base.Draw(spriteBatch);
+		if (!isActive) return;
+		if (!UseImmediateMode && OverrideSamplerState is null) {
+			base.Draw(spriteBatch);
+			return;
+		}
+		using (spriteBatch.OverrideState(UseImmediateMode ? SpriteSortMode.Immediate : SpriteSortMode.Deferred, samplerState: OverrideSamplerState)) {
+			DrawSelf(spriteBatch);
+		}
+		DrawChildren(spriteBatch);
 	}
 	public class SharedInterfaces : ModSystem {
 		public static StateSwitchingInterface SetBonusHUD { get; } = new("PegasusLib: Set Bonus HUD");
 		public static StateSwitchingInterface AccessoryHUD { get; } = new("PegasusLib: Accessory HUD", true);
 		public static StateSwitchingInterface ItemUseHUD { get; } = new("PegasusLib: Held Item HUD");
+		public static StateSwitchingInterface MountHUD { get; } = new("PegasusLib: Mount HUD");
 		public static StateSwitchingInterface EventHUD { get; } = new("PegasusLib: Event HUD");
 		public override void UpdateUI(GameTime gameTime) {
 			ItemUseHUD.Update(gameTime);
 			AccessoryHUD.Update(gameTime);
 			SetBonusHUD.Update(gameTime);
+			MountHUD.Update(gameTime);
 			EventHUD.Update(gameTime);
 		}
 		public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers) {
@@ -149,6 +159,7 @@ public abstract class SwitchableUIState : UIState, ILoadable {
 				ItemUseHUD.Insert(layers);
 				AccessoryHUD.Insert(layers);
 				SetBonusHUD.Insert(layers);
+				MountHUD.Insert(layers);
 				EventHUD.Insert(layers);
 			}
 		}
