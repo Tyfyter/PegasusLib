@@ -144,12 +144,17 @@ namespace PegasusLib.Graphics {
 			}
 			Main.graphics.GraphicsDevice.UseOldRenderTargets(oldRenderTargets);
 		}
-		public ShaderLayerTargetHandler() {
+		public ShaderLayerTargetHandler() : this(SurfaceFormat.Color, DepthFormat.None) { }
+		public ShaderLayerTargetHandler(SurfaceFormat preferredFormat, DepthFormat preferredDepthFormat) {
 			if (Main.dedServ) return;
+			this.preferredFormat = preferredFormat;
+			this.preferredDepthFormat = preferredDepthFormat;
 			this.RegisterForUnload();
 			Main.QueueMainThreadAction(SetupRenderTargets);
 			Main.OnResolutionChanged += Resize;
 		}
+		readonly SurfaceFormat preferredFormat;
+		readonly DepthFormat preferredDepthFormat;
 		public void Resize(Vector2 _) {
 			if (Main.dedServ) return;
 			renderTarget.Dispose();
@@ -158,8 +163,8 @@ namespace PegasusLib.Graphics {
 		}
 		void SetupRenderTargets() {
 			if (renderTarget is not null && !renderTarget.IsDisposed) return;
-			renderTarget = new RenderTarget2D(Main.instance.GraphicsDevice, Main.screenWidth, Main.screenHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
-			oldRenderTarget = new RenderTarget2D(Main.instance.GraphicsDevice, Main.screenWidth, Main.screenHeight, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+			renderTarget = new RenderTarget2D(Main.instance.GraphicsDevice, Main.screenWidth, Main.screenHeight, false, preferredFormat, preferredDepthFormat, 0, RenderTargetUsage.PreserveContents);
+			oldRenderTarget = new RenderTarget2D(Main.instance.GraphicsDevice, Main.screenWidth, Main.screenHeight, false, preferredFormat, preferredDepthFormat, 0, RenderTargetUsage.PreserveContents);
 		}
 		public void Unload() {
 			Main.QueueMainThreadAction(() => {
