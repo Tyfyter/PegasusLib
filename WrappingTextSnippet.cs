@@ -14,7 +14,8 @@ namespace PegasusLib {
 		public WrappingTextSnippet() : this("", Color.White, 1) { }
 		public static Vector2 BasePosition { get; internal set; }
 		public static float MaxWidth { get; internal set; }
-		public static Vector2 Origin { get; internal set; }
+		public static Vector2 Origin => WrappingTextSnippetSetup.currentOrigin;
+		public static DynamicSpriteFont Font => WrappingTextSnippetSetup.currentFont ?? FontAssets.MouseText.Value;
 		public bool IsHovered { get; protected set; }
 		public class PaddingSnippet(float width) : TextSnippet {
 			public override bool UniqueDraw(bool justCheckingString, out Vector2 size, SpriteBatch spriteBatch, Vector2 position = default, Color color = default, float scale = 1) {
@@ -23,12 +24,12 @@ namespace PegasusLib {
 			}
 		}
 		public static Vector2 GetSnippetArraySize(TextSnippet[] snippets, float scale) {
-			Vector2 size = new(0, FontAssets.MouseText.Value.LineSpacing * scale);
+			Vector2 size = new(0, Font.LineSpacing * scale);
 			for (int i = 0; i < snippets.Length; i++) {
 				if (snippets[i].UniqueDraw(true, out Vector2 _size, null)) {
 					size.X += _size.X;
 				} else {
-					size.X += FontAssets.MouseText.Value.MeasureString(snippets[i].Text).X;
+					size.X += Font.MeasureString(snippets[i].Text).X;
 				}
 			}
 			if (MaxWidth > -1 && float.IsFinite(MaxWidth)) {
@@ -46,20 +47,20 @@ namespace PegasusLib {
 			_snippets[0] = new PaddingSnippet(padding);
 			snippets.CopyTo(_snippets, 1);
 			position.X = BasePosition.X;
-			ChatManager.DrawColorCodedString(spriteBatch, FontAssets.MouseText.Value, _snippets, position, color, 0, Origin, new(scale), out hovered, MaxWidth, ignoreColors);
+			ChatManager.DrawColorCodedString(spriteBatch, Font, _snippets, position, color, 0, Origin, new(scale), out hovered, MaxWidth, ignoreColors);
 			if (hovered > -1) hovered--;
 		}
 	}
 	public class WrappingTextSnippetSetup : ILoadable {
+		internal static Vector2 currentOrigin;
+		internal static DynamicSpriteFont currentFont;
 		public void Load(Mod mod) {
 			try {
 				On_ChatManager.DrawColorCodedString_SpriteBatch_DynamicSpriteFont_TextSnippetArray_Vector2_Color_float_Vector2_Vector2_refInt32_float_bool += On_ChatManager_DrawColorCodedString_SpriteBatch_DynamicSpriteFont_TextSnippetArray_Vector2_Color_float_Vector2_Vector2_refInt32_float_bool;
 				IL_ChatManager.DrawColorCodedString_SpriteBatch_DynamicSpriteFont_TextSnippetArray_Vector2_Color_float_Vector2_Vector2_refInt32_float_bool += IL_ChatManager_DrawColorCodedString_SpriteBatch_DynamicSpriteFont_TextSnippetArray_Vector2_Color_float_Vector2_Vector2_refInt32_float_bool;
 				MonoModHooks.Add(typeof(DynamicSpriteFont).GetMethod("InternalDraw", BindingFlags.NonPublic | BindingFlags.Instance), (orig_InternalDraw orig, DynamicSpriteFont self, string text, SpriteBatch spriteBatch, Vector2 startPosition, Color color, float rotation, Vector2 origin, ref Vector2 scale, SpriteEffects spriteEffects, float depth) => {
-					Vector2 oldOrigin = WrappingTextSnippet.Origin;
-					WrappingTextSnippet.Origin = origin;
+					using ScopedOverride<Vector2> _o = currentOrigin.ScopedOverride(origin);
 					orig(self, text, spriteBatch, startPosition, color, rotation, origin, ref scale, spriteEffects, depth);
-					WrappingTextSnippet.Origin = oldOrigin;
 				});
 			} catch (Exception exception) {
 				PegasusLib.FeatureError(LibFeature.WrappingTextSnippet, exception);
@@ -76,6 +77,7 @@ namespace PegasusLib {
 		}
 		private static Vector2 On_ChatManager_DrawColorCodedString_SpriteBatch_DynamicSpriteFont_TextSnippetArray_Vector2_Color_float_Vector2_Vector2_refInt32_float_bool(On_ChatManager.orig_DrawColorCodedString_SpriteBatch_DynamicSpriteFont_TextSnippetArray_Vector2_Color_float_Vector2_Vector2_refInt32_float_bool orig, SpriteBatch spriteBatch, DynamicSpriteFont font, TextSnippet[] snippets, Vector2 position, Color baseColor, float rotation, Vector2 origin, Vector2 baseScale, out int hoveredSnippet, float maxWidth, bool ignoreColors) {
 			SetWrappingData(position, maxWidth);
+			using ScopedOverride<DynamicSpriteFont> _f = new(ref currentFont, font);
 			return orig(spriteBatch, font, snippets, position, baseColor, rotation, origin, baseScale, out hoveredSnippet, maxWidth, ignoreColors);
 		}
 		private static void IL_ChatManager_DrawColorCodedString_SpriteBatch_DynamicSpriteFont_TextSnippetArray_Vector2_Color_float_Vector2_Vector2_refInt32_float_bool(ILContext il) {
@@ -117,7 +119,7 @@ namespace PegasusLib {
 			c.EmitLdarg(1);
 			c.EmitLdarg(scale);
 			c.EmitDelegate(static (TextSnippet snippet, ref Vector2 vector, Vector2 startPosition, float maxWidth, DynamicSpriteFont font, Vector2 scale) => {
-				if (maxWidth == -1 || snippet is not WrappingTextSnippet) return;
+				if (maxWidth <= 0 || snippet is not WrappingTextSnippet) return;
 				float lineSpacing = font.LineSpacing * scale.Y;
 				while (vector.X - startPosition.X > maxWidth) {
 					vector.X -= maxWidth;
