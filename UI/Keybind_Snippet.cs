@@ -68,8 +68,8 @@ public class KeybindSnippetHandler : AdvancedTextSnippetHandler<InputMode?> {
 			List<TextSnippet> snippets = [];
 			for (int i = 0; i < parts.Length; i++) {
 				string key = parts[i];
-				if (key.Length > 1 && key[0] == '-') snippets.Add(new("-", Color));
-				else if (i > 0) snippets.Add(new("+", Color));
+				if (key.Length > 1 && key[0] == '-') snippets.Add(new PlainTagHandler.PlainSnippet("-", Color));
+				else if (i > 0) snippets.Add(new PlainTagHandler.PlainSnippet("+", Color));
 				snippets.Add(FormatKey(key));
 			}
 			return snippets.ToArray();
@@ -83,22 +83,37 @@ public class KeybindSnippetHandler : AdvancedTextSnippetHandler<InputMode?> {
 				if (glyph != key) return glyphs.Parse(glyph[3..^1]);
 				break;
 			}
-			return new TextSnippet(key, Color);
+			return new PlainTagHandler.PlainSnippet(key, Color);
 		}
 		public override bool UniqueDraw(bool justCheckingString, out Vector2 size, SpriteBatch spriteBatch, Vector2 position = default, Color color = default, float scale = 1) {
 			if (snippets is not null) {
-				size = ChatManager.GetStringSize(FontAssets.MouseText.Value, snippets, new(scale), -1);
+				size = ChatManager.GetStringSize(Font, snippets, new(scale), -1);
 				if (justCheckingString || spriteBatch is null) return true;
-				if (IsHovered || KeybindHintItem.IsSelected(keybind)) spriteBatch.DrawString(
-					FontAssets.MouseText.Value,
-					"_",
-					position + Vector2.UnitY * 4,
-					color,
-					0,
-					new(0, 0),
-					new Vector2(size.X / FontAssets.MouseText.Value.MeasureString("_").X, 1),
-					0,
-				0);
+				if (IsHovered || KeybindHintItem.IsSelected(keybind)) {
+					DynamicSpriteFont.SpriteCharacterData charData = Font.SpriteCharacters['_'];
+					Rectangle frame = charData.Glyph;
+					Rectangle dest = frame with {
+						X = (int)position.X,
+						Y = (int)(position.Y + charData.Padding.Y * scale) + 4,
+						Width = (int)size.X
+					};
+					spriteBatch.Draw(
+						charData.Texture,
+						dest,
+						frame,
+						color
+					);
+					/*spriteBatch.DrawString(
+						Font,
+						"_",
+						position + Vector2.UnitY * 4,
+						color,
+						0,
+						new(0, 0),
+						new Vector2(size.X / Font.SpriteCharacters['_'].Glyph.Width, 1),
+						0,
+					0);*/
+				}
 				DrawSnippetArray(snippets, spriteBatch, position, color, scale, out int hovered, true);
 				if (!TextUtils.DrawingShadows) {
 					if (KeybindHintItem.Enabled && !KeybindHintItem.DrawingTooltip) IsHovered = hovered != -1;
