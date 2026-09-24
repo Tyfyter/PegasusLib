@@ -36,10 +36,24 @@ namespace PegasusLib {
 		public override void Unload() {
 			SpawnPools = null;
 		}
+		static bool InvasionActive(NPCSpawnInfo spawnInfo) {
+			const float dist = 3000;
+			if (Main.invasionType != 0 && Main.invasionDelay == 0 && Main.invasionSize > 0 && (spawnInfo.Player.position.Y < Main.worldSurface * 16 + spawnInfo.SpawnTileY || Main.remixWorld)) {
+				if (spawnInfo.Player.position.X > Main.invasionX * 16 - dist && spawnInfo.Player.position.X < Main.invasionX * 16 + dist) return true;
+				if (Main.invasionX >= (double)(Main.maxTilesX / 2 - 5) && Main.invasionX <= (double)(Main.maxTilesX / 2 + 5)) {
+					for (int l = 0; l < 200; l++) {
+						if (Main.npc[l].townNPC && Math.Abs(spawnInfo.Player.position.X - Main.npc[l].Center.X) < dist) {
+							return Main.rand.NextBool(3);
+						}
+					}
+				}
+			}
+			return false;
+		}
 		public override void EditSpawnPool(IDictionary<int, float> pool, NPCSpawnInfo spawnInfo) {
 			SpawnPool selectedPool = null;
 			float priority = 0;
-			if (Main.invasionType != 0) priority = SpawnPool.SpawnPoolPriority.Event;
+			if (InvasionActive(spawnInfo)) priority = SpawnPool.SpawnPoolPriority.Event;
 			if (spawnInfo.Player.ZoneTowerNebula || spawnInfo.Player.ZoneTowerSolar || spawnInfo.Player.ZoneTowerStardust || spawnInfo.Player.ZoneTowerVortex) priority = SpawnPool.SpawnPoolPriority.EventHigh;
 			for (int i = 0; i < SpawnPools.Count; i++) {
 				SpawnPool currentPool = SpawnPools[i];
