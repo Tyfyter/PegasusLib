@@ -54,6 +54,7 @@ public interface ISyncedAction : IAutoload<Loading> {
 	static readonly List<Read> readers = [];
 	static readonly Dictionary<Type, int> actionIDsByType = [];
 	static readonly Dictionary<Type, Mod> ownedByMod = [];
+	public sealed static Read GetReader<TAction>() where TAction : ISyncedAction => GetReader(actionIDsByType[typeof(TAction)]);
 	public sealed static Read GetReader(int type) => readers[type];
 	/// <summary>
 	/// Performs the action, then sends it if appropriate
