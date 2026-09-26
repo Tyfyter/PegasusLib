@@ -586,7 +586,7 @@ public interface IAutoSyncedAction : ISyncedAction, IPreLoad<IAutoSyncedAction.P
 		}
 	}
 	public class OnLoadImpl : ILoadImpl {
-		static void ILoadImpl.Load(Type type) => ownedByMod[type].Logger.Info($"Many friendly bees helped load {type}");
+		static void ILoadImpl.Load(Type type) => ownedByMod[type].Logger.Info($"Loaded IAutoSyncedAction {type}");
 	}
 	void ISyncedAction.NetSend(BinaryWriter writer) => Writes[GetType()](this, writer);
 	static Read ISyncedAction.GetReader(Type type) => Reads[type];
