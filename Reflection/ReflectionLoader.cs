@@ -136,7 +136,7 @@ namespace PegasusLib.Reflection {
 			}
 			string name = item.GetCustomAttribute<ReflectionMemberNameAttribute>()?.MemberName ?? item.Name;
 			if (fieldType.IsAssignableTo(typeof(Delegate))) {
-				Type parentType = GetParentType(item).ParentType;
+				if (GetParentType(item)?.ParentType is not Type parentType) return;
 				ParameterInfo[] parameters = fieldType.GetMethod("Invoke").GetParameters();
 				Type[] paramTypes = new Type[parameters.Length];
 				//ParameterModifier paramMods = new ParameterModifier(parameters.Length);
