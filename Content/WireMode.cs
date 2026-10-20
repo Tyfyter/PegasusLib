@@ -467,7 +467,7 @@ public record class Mass_Wire_Action(Player Player, Point Start, Point End, bool
 [Autoload(false)]
 public sealed class UseModWireChannel : GlobalItem {
 	public override void Load() {
-		MonoModHooks.Add(typeof(WiresUI.Settings).GetProperty(nameof(WiresUI.Settings.DrawToolModeUI)).GetGetMethod(), () => false);
+		MonoModHooks.Add(typeof(WiresUI.Settings).GetProperty(nameof(WiresUI.Settings.DrawToolModeUI)).GetGetMethod(), (Func<bool> orig) => false);
 	}
 	public override void SetDefaults(Item item) {
 		if (item.shoot == ProjectileID.WireKite && VanillaWireModes.WireTools[item.type] is not null) {
