@@ -18,6 +18,19 @@ public static class GeometryUtils {
 		float distance = phi > MathHelper.Pi ? MathHelper.TwoPi - phi : phi;
 		return distance;
 	}
+	public static float AngleDif(float alpha, float beta) => AngleDif(alpha, beta, out int dir) * dir;
+	public static bool AngularClamp(ref float angle, float root, float maxDeviation) {
+		float diff = AngleDif(root, angle, out int dir);
+		if (diff > maxDeviation) {
+			angle = root + maxDeviation * dir;
+			return true;
+		}
+		return false;
+	}
+	public static float AngularClamp(float angle, float root, float maxDeviation) {
+		AngularClamp(ref angle, root, maxDeviation);
+		return angle;
+	}
 	public static Vector2 Vec2FromPolar(float r, float theta) {
 		return new Vector2((float)(r * Math.Cos(theta)), (float)(r * Math.Sin(theta)));
 	}
