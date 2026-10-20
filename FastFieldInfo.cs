@@ -32,6 +32,9 @@ namespace PegasusLib {
 			(setter ??= CreateSetter())(parent, value);
 		}
 		public void SetValue(ref TParent parent, T value) => (refGetter ??= CreateRefGetter())(ref parent) = value;
+		public ref T GetValueRef(ref TParent parent) {
+			return ref (refGetter ??= CreateRefGetter())(ref parent);
+		}
 		/// <summary>
 		/// Creates a <see cref="ScopedOverride{T}"/> setting the value to <paramref name="value"/>
 		/// Remember to use a <see langword="using"/> statement!
