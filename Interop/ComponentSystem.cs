@@ -29,14 +29,14 @@ public class ComponentRegistrar<TInterface> : IAutoloader where TInterface : ICo
 		Type rootType = type;
 		while (rootType.BaseType?.IsAssignableTo(typeof(TInterface)) ?? false) rootType = rootType.BaseType;
 
-		if ((bool)GetIndexValue(rootType, nameof(Index<>.ownsIndex))) {
-			object rootIndex = GetIndexValue(rootType, nameof(Index<>.index));
-			SetIndexValue(type, nameof(Index<>.index), rootIndex);
+		if ((bool)GetIndexValue(rootType, nameof(Index<TInterface>.ownsIndex))) {
+			object rootIndex = GetIndexValue(rootType, nameof(Index<TInterface>.index));
+			SetIndexValue(type, nameof(Index<TInterface>.index), rootIndex);
 		} else {
-			SetIndexValue(rootType, nameof(Index<>.ownsIndex), true);
+			SetIndexValue(rootType, nameof(Index<TInterface>.ownsIndex), true);
 			rootType = type;
 			while (rootType.BaseType is not null) {
-				SetIndexValue(rootType, nameof(Index<>.index), Count);
+				SetIndexValue(rootType, nameof(Index<TInterface>.index), Count);
 				rootType = rootType.BaseType;
 			}
 			Count++;
