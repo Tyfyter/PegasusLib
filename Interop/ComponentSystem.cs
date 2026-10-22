@@ -8,7 +8,7 @@ using Terraria.ModLoader;
 
 namespace PegasusLib.Interop;
 /// <summary>
-/// Used to create a category of entity for the <see cref="ComponentRegistrar{TComponent}"/> ECS <br/>
+/// Used to create a category of entity for <see cref="ComponentRegistrar{TComponent}"/> <br/>
 /// A static TComponent.Initialize method taking only a <see cref="ComponentRegistrar{TComponent}.Components"/> will be called after initializing all components, if one exists
 /// </summary>
 /// <typeparam name="TComponent">The interface or abstract class implementing this interface</typeparam>
