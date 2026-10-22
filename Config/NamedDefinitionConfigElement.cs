@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PegasusLib.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,7 @@ using Terraria.UI.Chat;
 
 namespace PegasusLib.Config {
 	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true)]
-	public class DisplayConfigValuesFilterAttribute<TFiltered>(Type memberType, string memberName) : Attribute {
+	public class DisplayConfigValuesFilterAttribute<TFiltered>(Type memberType, string memberName) : Attribute, IValidatedAttribute {
 		public Predicate<TFiltered> GetFilter(UIElement instance) {
 			if (memberType.GetMethod(memberName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, [typeof(TFiltered)]) is MethodInfo staticMethod) {
 				return staticMethod.CreateDelegate<Predicate<TFiltered>>(null);
@@ -26,6 +27,11 @@ namespace PegasusLib.Config {
 			}
 			return null;
 		}
+		bool IValidatedAttribute.IsValidOn(MemberInfo member) => member switch {
+			FieldInfo field => field.FieldType == typeof(TFiltered),
+			PropertyInfo property => property.PropertyType == typeof(TFiltered),
+			_ => false
+		};
 	}
 	public interface INamedDefinition {
 		public abstract string FullName { get; }
@@ -58,10 +64,13 @@ namespace PegasusLib.Config {
 			opened = true;
 			RemoveAllChildren();
 			height = 30;
-			filters ??=
-				MemberInfo.Type.GetCustomAttributes<DisplayConfigValuesFilterAttribute<TDefinition>>().Select(a => a.GetFilter(Parent)).Concat(
-				MemberInfo.MemberInfo.GetCustomAttributes<DisplayConfigValuesFilterAttribute<TDefinition>>().Select(a => a.GetFilter(Parent)))
-			.ToArray();
+			if (filters is null) {
+				MemberInfo.MemberInfo.ValidateAttributes();
+				filters =
+					MemberInfo.Type.GetCustomAttributes<DisplayConfigValuesFilterAttribute<TDefinition>>().Select(a => a.GetFilter(Parent)).Concat(
+					MemberInfo.MemberInfo.GetCustomAttributes<DisplayConfigValuesFilterAttribute<TDefinition>>().Select(a => a.GetFilter(Parent)))
+				.ToArray();
+			}
 			foreach (TDefinition option in TDefinition.GetOptions()) {
 				bool skip = false;
 				foreach (Predicate<TDefinition> filter in filters) {
