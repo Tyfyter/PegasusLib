@@ -828,7 +828,7 @@
         </member>
         <member name="T:PegasusLib.Interop.IComponentKind`1">
             <summary>
-            Used to create a category of entity for the <see cref="T:PegasusLib.Interop.ComponentRegistrar`1"/> ECS <br/>
+            Used to create a category of entity for <see cref="T:PegasusLib.Interop.ComponentRegistrar`1"/> <br/>
             A static TComponent.Initialize method taking only a <see cref="T:PegasusLib.Interop.ComponentRegistrar`1.Components"/> will be called after initializing all components, if one exists
             </summary>
             <typeparam name="TComponent">The interface or abstract class implementing this interface</typeparam>
