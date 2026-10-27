@@ -70,7 +70,7 @@ namespace PegasusLib.Sets {
 		public abstract void Setup();
 	}
 	[AttributeUsage(AttributeTargets.Class, Inherited = false)]
-	sealed class ForceInitializeAttribute : Attribute { }
+	public sealed class ForceInitializeAttribute : Attribute { }
 	internal interface IBakedSet {
 		internal static bool tooLateToCreate = false;
 		protected static List<IBakedSet> toSetup = [];
