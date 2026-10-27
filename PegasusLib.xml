@@ -16,6 +16,11 @@
             <para/>Examples include calling <see cref="M:Terraria.ModLoader.DamageClass.CountsAsClass(Terraria.ModLoader.DamageClass)"/> in <see cref="M:Terraria.ModLoader.DamageClass.GetEffectInheritance(Terraria.ModLoader.DamageClass)"/>, or throwing an exception in <see cref="M:Terraria.GameContent.ItemDropRules.IItemDropRule.ReportDroprates(System.Collections.Generic.List{Terraria.GameContent.ItemDropRules.DropRateInfo},Terraria.GameContent.ItemDropRules.DropRateInfoChainFeed)"/>
             </summary>
         </member>
+        <member name="T:PegasusLib.AutoModCall">
+            <summary>
+            Automatically prepares all <see langword="static"/> Call overloads for use with <see cref="M:Terraria.ModLoader.Mod.Call(System.Object[])"/> using <see cref="M:PegasusLib.AutoModCall.TryCall(Terraria.ModLoader.Mod,System.Object[],System.Object@)"/> or <see cref="M:PegasusLib.AutoModCall.TryDoCall(Terraria.ModLoader.Mod,System.Object[],System.Boolean@)"/>
+            </summary>
+        </member>
         <member name="M:PegasusLib.AutoModCall.DefaultValueAttribute.#ctor">
             <summary>
             Uses the containing type and parameter name as the type and path
@@ -956,7 +961,9 @@
         <member name="M:PegasusLib.PegasusExt.SpawnProjectile(Terraria.Projectile,Terraria.DataStructures.IEntitySource,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Int32,System.Int32,System.Single,System.Single,System.Single,System.Single)">
             <param name="spawnSource">defaults to self.GetSource_FromAI() if null</param>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:PegasusLib.PegasusExt.SpawnProjectile(Terraria.ModLoader.ModNPC,Terraria.DataStructures.IEntitySource,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Int32,System.Int32,System.Single,System.Single,System.Single,System.Single)" -->
+        <member name="M:PegasusLib.PegasusExt.SpawnProjectile(Terraria.ModLoader.ModNPC,Terraria.DataStructures.IEntitySource,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Int32,System.Int32,System.Single,System.Single,System.Single,System.Single)">
+            <inheritdoc cref="M:PegasusLib.PegasusExt.SpawnProjectile(Terraria.NPC,Terraria.DataStructures.IEntitySource,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Int32,System.Int32,System.Single,System.Single,System.Single,System.Single)"/>
+        </member>
         <member name="M:PegasusLib.PegasusExt.SpawnProjectile(Terraria.NPC,Terraria.DataStructures.IEntitySource,Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Int32,System.Int32,System.Single,System.Single,System.Single,System.Single)">
             <param name="spawnSource">defaults to self.GetSource_FromAI() if null</param>
         </member>

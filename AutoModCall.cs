@@ -14,6 +14,9 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.Core;
 
 namespace PegasusLib;
+/// <summary>
+/// Automatically prepares all <see langword="static"/> Call overloads for use with <see cref="Mod.Call(object[])"/> using <see cref="TryCall"/> or <see cref="TryDoCall"/>
+/// </summary>
 public abstract class AutoModCall : ILoadable, IModType {
 	readonly List<CallData> calls = new();
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -166,7 +169,7 @@ public abstract class AutoModCall : ILoadable, IModType {
 		if (calls.Count == 0) throw new NotImplementedException($"{nameof(AutoModCall)} must have at least one public static Call method");
 		ModTypeLookup<AutoModCall>.Register(this);
 		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, [Name.ToLowerInvariant(), Name.ToUpperInvariant()]);
-		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, LegacyNameAttribute.GetLegacyNamesOfType(GetType()).SelectMany<string, string>(n => [n.ToLowerInvariant(), n.ToUpperInvariant()]).ToArray());
+		ModTypeLookup<AutoModCall>.RegisterLegacyNames(this, LegacyNameAttribute.GetLegacyNamesOfType(GetType()).SelectMany<string, string>(n => [n, n.ToLowerInvariant(), n.ToUpperInvariant()]).ToArray());
 		Load();
 	}
 	bool ILoadable.IsLoadingEnabled(Mod mod) => !PreLoadedAutoModCalls.Contains(mod) && IsLoadingEnabled(mod);
@@ -312,14 +315,15 @@ public abstract class AutoModCall : ILoadable, IModType {
 			}
 		}
 		public void CastEnums(object[] args) {
+			int i = 0;
 			try {
-				for (int i = 0; i < args.Length; i++) {
+				for (; i < args.Length; i++) {
 					if (parameters[i].parseDict is not Dictionary<string, object> parseDict) continue;
 					if (args[i] is string arg) args[i] = parseDict[arg];
 					else if (args[i].GetType().IsEnum) args[i] = parseDict[args[i].ToString()!];
 				}
 			} catch (KeyNotFoundException e) {
-				throw;
+				throw new InvalidCastException($"Cannot parse \"{args[i]}\" as {parameters[i].type}", e);
 			}
 		}
 		public override int GetHashCode() {

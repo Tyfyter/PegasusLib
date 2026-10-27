@@ -32,7 +32,7 @@ namespace PegasusLib.UI {
 				if (!dragController.dragging && parameters.ShouldDrag(Main.MouseScreen - new Vector2(element.Left.Pixels, element.Top.Pixels))) {
 					parameters.PickUp?.Invoke();
 					dragController.Click();
-					parameters.ModifyOffset(ref dragController.offset);
+					parameters.ModifyOffset?.Invoke(ref dragController.offset);
 				}
 			};
 			element.OnUpdate += _ => dragController.Update(parameters.Drop);
