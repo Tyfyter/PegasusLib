@@ -54,11 +54,12 @@ public abstract class ItemModeFlowerMenu<TMode, TExtraModeData> : ItemModeHUD wh
 	public sealed override bool ShouldToggle() {
 		if (showingModes is null || !GetModes().SequenceEqual(showingModes)) {
 			showingModes = GetModes().ToArray();
-			return isShowing;
+			//return isShowing;
 		}
 		return Toggle;
 	}
 	public virtual bool Toggle => base.ShouldToggle();
+	protected virtual bool Clockwise => true;
 	public abstract float DrawCenter();
 	protected override void DrawSelf(SpriteBatch spriteBatch) {
 		if (showingModes is null) return;
@@ -70,7 +71,7 @@ public abstract class ItemModeFlowerMenu<TMode, TExtraModeData> : ItemModeHUD wh
 		float radius = DrawCenter();
 		Max(ref radius, radius * showingModes.Length / 6);
 		for (int i = 0; i < showingModes.Length; i++) {
-			Vector2 pos = activationPosition + (Vector2.UnitY * -radius).RotatedBy(i * -MathHelper.TwoPi / showingModes.Length);
+			Vector2 pos = activationPosition + (Vector2.UnitY * -radius).RotatedBy(i * Clockwise.ToDirectionInt() * -MathHelper.TwoPi / showingModes.Length);
 			bool hovered = showingModes[i].IsHovered(pos);
 			showingModes[i].Draw(
 				pos,
