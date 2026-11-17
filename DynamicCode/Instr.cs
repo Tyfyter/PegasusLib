@@ -30,6 +30,7 @@ public record struct Instr(OpCode OpCode, object Operand) {
 	public static Instr LoadToken(Type type, string method) => new(OpCodes.Ldtoken, type.GetMember(method, any));
 	public static Instr Call<T>(string method) => Call(typeof(T), method);
 	public static Instr Call(Type type, string method) => new(OpCodes.Call, type.GetMethod(method, any));
+	public static Instr Call(Delegate method) => new(OpCodes.Call, method.Method);
 	public static Instr CallV<T>(string method) => CallV(typeof(T), method);
 	public static Instr CallV(Type type, string method) => new(OpCodes.Callvirt, type.GetMethod(method, any_instance));
 	public static Instr Get<T>(string property) => Get(typeof(T), property);
@@ -52,6 +53,30 @@ public record struct Instr(OpCode OpCode, object Operand) {
 		Ref<Label> _label = label = new();
 		return GenerateOperand(opCode, gen => _label.Value = gen.DefineLabel());
 	}
+	public static Instr Branch(OpCode opCode, Ref<Label> label) {
+		switch (opCode.FlowControl) {
+			case FlowControl.Branch:
+			case FlowControl.Cond_Branch:
+			break;
+			default:
+			throw new ArgumentException("OpCode must be a branch instruction", nameof(opCode));
+		}
+		return new(opCode, label.Value);
+	}
 	public static Instr Newobj(ConstructorInfo ctor) => new(OpCodes.Newobj, ctor);
 	public static Instr Ret => new(OpCodes.Ret, null);
+	public readonly Instr WithLabel(Ref<Label> label) => WithLabel(this, label);
+	public static Instr WithLabel(Instr instr, Ref<Label> label) => GenerateOperand(instr.OpCode, gen => {
+		gen.MarkLabel(label.Value);
+		return instr.Operand;
+	});
+	public readonly Instr WithLabel(out Ref<Label> label) {
+		Ref<Label> _label = label = new();
+		Instr instr = this;
+		return Instr.GenerateOperand(instr.OpCode, gen => {
+			_label.Value = gen.DefineLabel();
+			gen.MarkLabel(_label.Value);
+			return instr.Operand;
+		});
+	}
 }
