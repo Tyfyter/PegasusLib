@@ -331,6 +331,7 @@ namespace PegasusLib {
 		}
 	}
 	internal class ShowDyeSlotNames : GlobalItem {
+		[CloneByReference]
 		internal LocalizedText text;
 		public override bool InstancePerEntity => true;
 		public override bool AppliesToEntity(Item entity, bool lateInstantiation) => entity.dye != 0;
